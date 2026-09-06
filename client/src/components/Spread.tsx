@@ -4,6 +4,7 @@ import TarotCard from './TarotCard';
 
 type SpreadProps = {
   reading: Reading;
+  includeReversals: boolean;
   isInterpreting: boolean;
   onGenerateInterpretation: () => void;
   onShowSampleInterpretation: () => void;
@@ -11,6 +12,7 @@ type SpreadProps = {
 
 function Spread({
   reading,
+  includeReversals = false,
   isInterpreting,
   onGenerateInterpretation,
   onShowSampleInterpretation,
@@ -26,7 +28,7 @@ function Spread({
         style={{ '--card-columns': reading.cards.length } as CSSProperties}
       >
         {reading.cards.map((card) => (
-          <TarotCard card={card} key={card.id} />
+          <TarotCard card={card} includeReversals={includeReversals} key={card.id} />
         ))}
       </div>
       <div className="interpretation-actions">

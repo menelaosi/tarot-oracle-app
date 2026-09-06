@@ -3,6 +3,7 @@ import type { CardDetails, DrawnCard } from '../types';
 
 type TarotCardProps = {
   card: DrawnCard;
+  includeReversals?: boolean;
 };
 
 type DetailValue = string | string[] | null | undefined;
@@ -21,13 +22,13 @@ function DetailLine({
   return <p className={`details-${className}`}>{label ? `${label}: ${text}` : text}</p>;
 }
 
-function TarotCard({ card }: TarotCardProps) {
+function TarotCard({ card, includeReversals = false }: TarotCardProps) {
   const [details, setDetails] = useState<CardDetails | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [detailsError, setDetailsError] = useState('');
   const [isDetailsVisible, setIsDetailsVisible] = useState(false);
 
-  const isUpright = card.orientation === 'upright';
+  const isUpright = card.orientation === 'upright' || !includeReversals;
   function pick<T>(upright: T, reversed: T) {
     return isUpright ? upright : reversed;
   }
@@ -69,7 +70,7 @@ function TarotCard({ card }: TarotCardProps) {
     >
       <div className="card-topline">
         <span>{String(card.position).padStart(2, '0')}</span>
-        <span>{card.orientation}</span>
+        {includeReversals && <span>{card.orientation}</span>}
       </div>
       <div className="image-frame">
         <img

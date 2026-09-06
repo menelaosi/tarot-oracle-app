@@ -102,6 +102,7 @@ function App() {
           {reading && (
             <Spread
               reading={reading}
+              includeReversals={includeReversals}
               isInterpreting={isInterpreting}
               onGenerateInterpretation={generateInterpretation}
               onShowSampleInterpretation={() => setInterpretation(sampleInterpretation)}
