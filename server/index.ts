@@ -209,9 +209,9 @@ app.post('/api/readings/:readingId/interpret', async (request: Request, response
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const message = await anthropic.messages.create({
       model: process.env.CLAUDE_MODEL ?? 'claude-sonnet-5',
-      max_tokens: 700,
+      max_tokens: 1400,
       system:
-        'You are a tarot interpreter. Use only the supplied database context. Do not use general tarot knowledge or invent meanings, correspondences, or facts. Synthesize the supplied meanings into a grounded, reflective reading. Clearly distinguish the three positions. Do not claim certainty or predict guaranteed events.',
+        'You are a tarot interpreter. Use only the supplied database context. Do not use general tarot knowledge or invent meanings, correspondences, or facts. Synthesize the supplied meanings into a grounded, reflective reading. Clearly distinguish the three positions. Do not claim certainty or predict guaranteed events. Finish the reading with a complete synthesis and final thought.',
       messages: [
         {
           role: 'user',
@@ -219,6 +219,9 @@ app.post('/api/readings/:readingId/interpret', async (request: Request, response
         },
       ],
     });
+    if (message.stop_reason === 'max_tokens') {
+      console.warn('Claude interpretation reached the max token limit.');
+    }
     const interpretation = message.content
       .filter((block): block is Anthropic.TextBlock => block.type === 'text')
       .map((block) => block.text)
