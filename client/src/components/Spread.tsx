@@ -7,7 +7,6 @@ type SpreadProps = {
   includeReversals: boolean;
   isInterpreting: boolean;
   onGenerateInterpretation: () => void;
-  onShowSampleInterpretation: () => void;
 };
 
 function Spread({
@@ -15,7 +14,6 @@ function Spread({
   includeReversals = false,
   isInterpreting,
   onGenerateInterpretation,
-  onShowSampleInterpretation,
 }: SpreadProps) {
   return (
     <section className="spread-section" aria-labelledby="spread-title">
@@ -31,19 +29,16 @@ function Spread({
           <TarotCard card={card} includeReversals={includeReversals} key={card.id} />
         ))}
       </div>
+      <button
+        className="secondary-action"
+        type="button"
+        onClick={onGenerateInterpretation}
+        disabled={isInterpreting}
+      >
+        {isInterpreting ? 'Consulting the record...' : 'Generate interpretation'}
+        <span aria-hidden="true">✦</span>
+      </button>
       <div className="interpretation-actions">
-        <button
-          className="secondary-action"
-          type="button"
-          onClick={onGenerateInterpretation}
-          disabled={isInterpreting}
-        >
-          {isInterpreting ? 'Consulting the record...' : 'Generate interpretation'}
-          <span aria-hidden="true">✦</span>
-        </button>
-        <button className="sample-action" type="button" onClick={onShowSampleInterpretation}>
-          Preview sample
-        </button>
       </div>
     </section>
   );

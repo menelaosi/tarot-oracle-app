@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 import Header from './components/Header';
-import Interpretation, { sampleInterpretation } from './components/Interpretation';
+import Interpretation from './components/Interpretation';
 import ReadingControls from './components/ReadingControls';
 import Spread from './components/Spread';
 import type { Reading, SpreadOption } from './types';
@@ -105,7 +105,6 @@ function App() {
               includeReversals={includeReversals}
               isInterpreting={isInterpreting}
               onGenerateInterpretation={generateInterpretation}
-              onShowSampleInterpretation={() => setInterpretation(sampleInterpretation)}
             />
           )}
           {error && <p className="error-message" role="alert">{error}</p>}
