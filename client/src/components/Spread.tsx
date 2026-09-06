@@ -38,8 +38,6 @@ function Spread({
         {isInterpreting ? 'Consulting the record...' : 'Generate interpretation'}
         <span aria-hidden="true">✦</span>
       </button>
-      <div className="interpretation-actions">
-      </div>
     </section>
   );
 }
