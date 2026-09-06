@@ -8,10 +8,12 @@ node_modules/
 
 # Build output
 dist/
-server/*.js
-server/*.js.map
-server/*.d.ts
-server/*.d.ts.map
+server/**/*.js
+server/**/*.js.map
+server/**/*.d.ts
+server/**/*.d.ts.map
+# ...except real source config files that happen to live in server/ and end in .js
+!server/eslint.config.js
 
 # macOS
 .DS_Store

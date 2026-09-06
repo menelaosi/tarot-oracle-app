@@ -30,6 +30,56 @@ export type DrawnCardRow = {
   position: number;
 };
 
+export type CardDetailsDto = {
+  id: number;
+  name: string;
+  arcana: 'major' | 'minor';
+  suit: string | null;
+  number: number | null;
+  meaningUpright: string;
+  meaningReversed: string;
+  element: string | null;
+  suitPositiveAssociations: string[];
+  suitNegativeAssociations: string[];
+  numerologyAssociations: string[];
+  courtRank: string | null;
+  courtDescription: string | null;
+  courtPositiveAssociations: string[];
+  courtNegativeAssociations: string[];
+  majorElement: string | null;
+  majorPlanets: string[];
+  majorSigns: string[];
+  majorPositiveAssociations: string[];
+  majorNegativeAssociations: string[];
+  majorRepresentations: string[];
+};
+
+export function toCardDetails(row: CardDetailsRow): CardDetailsDto {
+  return {
+    id: row.id,
+    name: row.name,
+    arcana: row.arcana,
+    suit: row.suit,
+    number: row.number,
+    meaningUpright: row.meaning_upright,
+    meaningReversed: row.meaning_reversed,
+    element: row.element,
+    suitPositiveAssociations: row.suit_positive ?? [],
+    suitNegativeAssociations: row.suit_negative ?? [],
+    numerologyAssociations: row.numerology ?? [],
+    courtRank: row.court_rank,
+    courtDescription: row.court_description,
+    courtPositiveAssociations: row.court_positive ?? [],
+    courtNegativeAssociations: row.court_negative ?? [],
+    majorElement: row.major_element,
+    majorPlanets: row.major_planets ?? [],
+    majorSigns: row.major_signs ?? [],
+    majorPositiveAssociations: row.major_positive ?? [],
+    majorNegativeAssociations: row.major_negative ?? [],
+    majorRepresentations: row.major_representations ?? [],
+  };
+}
+
 export const selectCardDetails = `
   SELECT c.id, c.name, c.arcana, c.suit, c.number,
          c.meaning_upright, c.meaning_reversed,

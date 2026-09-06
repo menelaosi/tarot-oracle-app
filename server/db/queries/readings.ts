@@ -1,3 +1,5 @@
+import type { SpreadType } from '../../spreads.js';
+
 export type ReadingRow = {
   id: string;
   question: string | null;
@@ -5,7 +7,7 @@ export type ReadingRow = {
 
 export type InterpretationCardRow = {
   question: string | null;
-  spread_type: 'three_card' | 'yes_no' | 'mind_body_soul';
+  spread_type: SpreadType;
   position: number;
   orientation: 'upright' | 'reversed';
   name: string;

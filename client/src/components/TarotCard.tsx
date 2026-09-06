@@ -5,11 +5,32 @@ type TarotCardProps = {
   card: DrawnCard;
 };
 
+type DetailValue = string | string[] | null | undefined;
+
+function DetailLine({
+  className = 'meta',
+  label,
+  value,
+}: {
+  className?: string;
+  label?: string;
+  value: DetailValue;
+}) {
+  const text = Array.isArray(value) ? value.slice(0, 4).join(' · ') : value;
+  if (!text) return null;
+  return <p className={`details-${className}`}>{label ? `${label}: ${text}` : text}</p>;
+}
+
 function TarotCard({ card }: TarotCardProps) {
   const [details, setDetails] = useState<CardDetails | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [detailsError, setDetailsError] = useState('');
   const [isDetailsVisible, setIsDetailsVisible] = useState(false);
+
+  const isUpright = card.orientation === 'upright';
+  function pick<T>(upright: T, reversed: T) {
+    return isUpright ? upright : reversed;
+  }
 
   async function loadDetails() {
     if (details || isLoadingDetails) return;
@@ -28,20 +49,23 @@ function TarotCard({ card }: TarotCardProps) {
     }
   }
 
+  function showDetails() {
+    setIsDetailsVisible(true);
+    void loadDetails();
+  }
+
+  function hideDetails() {
+    setIsDetailsVisible(false);
+  }
+
   return (
     <article
       className={`tarot-card ${card.orientation}`}
       tabIndex={0}
-      onMouseEnter={() => {
-        setIsDetailsVisible(true);
-        void loadDetails();
-      }}
-      onMouseLeave={() => setIsDetailsVisible(false)}
-      onFocus={() => {
-        setIsDetailsVisible(true);
-        void loadDetails();
-      }}
-      onBlur={() => setIsDetailsVisible(false)}
+      onMouseEnter={showDetails}
+      onMouseLeave={hideDetails}
+      onFocus={showDetails}
+      onBlur={hideDetails}
     >
       <div className="card-topline">
         <span>{String(card.position).padStart(2, '0')}</span>
@@ -62,60 +86,37 @@ function TarotCard({ card }: TarotCardProps) {
           {detailsError && <p className="details-status">{detailsError}</p>}
           {details && (
             <>
-              <p className="details-meaning">
-                {card.orientation === 'reversed' ? details.meaningReversed : details.meaningUpright}
-              </p>
-              {details.element && <p className="details-meta">Element: {details.element}</p>}
-              {details.numerologyAssociations.length > 0 && (
-                <p className="details-meta">
-                  Number: {details.numerologyAssociations.slice(0, 4).join(' · ')}
-                </p>
-              )}
-              {details.courtRank && (
-                <p className="details-meta">
-                  Court: {details.courtRank} — {details.courtDescription}
-                </p>
-              )}
-              {(card.orientation === 'upright'
-                ? details.courtPositiveAssociations
-                : details.courtNegativeAssociations
-              ).length > 0 && (
-                <p className="details-meta">
-                  Court energy:{' '}
-                  {(card.orientation === 'upright'
-                    ? details.courtPositiveAssociations
-                    : details.courtNegativeAssociations
-                  )
-                    .slice(0, 4)
-                    .join(' · ')}
-                </p>
-              )}
-              {details.majorElement && (
-                <p className="details-meta">Arcana element: {details.majorElement}</p>
-              )}
-              {details.majorPlanets.length > 0 && (
-                <p className="details-meta">Planets: {details.majorPlanets.join(' · ')}</p>
-              )}
-              {details.majorSigns.length > 0 && (
-                <p className="details-meta">Signs: {details.majorSigns.join(' · ')}</p>
-              )}
-              {(details.majorPositiveAssociations.length > 0 ||
-                details.majorNegativeAssociations.length > 0) && (
-                <p className="details-meta">
-                  Arcana energy:{' '}
-                  {(card.orientation === 'upright'
-                    ? details.majorPositiveAssociations
-                    : details.majorNegativeAssociations
-                  )
-                    .slice(0, 4)
-                    .join(' · ')}
-                </p>
-              )}
-              {details.majorRepresentations.length > 0 && (
-                <p className="details-meta">
-                  Symbols: {details.majorRepresentations.join(' · ')}
-                </p>
-              )}
+              <DetailLine
+                className="meaning"
+                value={pick(details.meaningUpright, details.meaningReversed)}
+              />
+              <DetailLine label="Element" value={details.element} />
+              <DetailLine
+                label="Number"
+                value={details.numerologyAssociations}
+              />
+              <DetailLine
+                label="Court"
+                value={details.courtRank && `${details.courtRank} — ${details.courtDescription}`}
+              />
+              <DetailLine
+                label="Court energy"
+                value={pick(details.courtPositiveAssociations, details.courtNegativeAssociations)}
+              />
+              <DetailLine
+                label="Arcana element"
+                value={details.majorElement}
+              />
+              <DetailLine label="Planets" value={details.majorPlanets} />
+              <DetailLine label="Signs" value={details.majorSigns} />
+              <DetailLine
+                label="Arcana energy"
+                value={pick(details.majorPositiveAssociations, details.majorNegativeAssociations)}
+              />
+              <DetailLine
+                label="Symbols"
+                value={details.majorRepresentations}
+              />
             </>
           )}
         </div>
