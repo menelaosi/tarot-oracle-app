@@ -147,33 +147,33 @@ UPDATE cards SET meaning_upright='Joy, success, celebration, positivity', meanin
 UPDATE cards SET meaning_upright='Reflection, reckoning, inner voice', meaning_reversed='Lack of self-awareness, doubt, self-loathing' WHERE name='Judgement';
 UPDATE cards SET meaning_upright='Fulfillment, harmony, completion', meaning_reversed='Unfinished, no closure, incomplete goals' WHERE name='The World';
 
-INSERT INTO major_arcana_correspondences (card_id, planets, signs, representations, positive_associations, negative_associations)
-SELECT c.id, d.planets, d.signs, d.representations, d.positive_associations, d.negative_associations
+INSERT INTO major_arcana_correspondences (card_id, planets, signs, representations, positive_associations, negative_associations, core_theme)
+SELECT c.id, d.planets, d.signs, d.representations, d.positive_associations, d.negative_associations, d.core_theme
 FROM (VALUES
-('The Fool',ARRAY['Uranus'],ARRAY[]::TEXT[],ARRAY['Pan','Aeolas','Zeus','Dionysus'],ARRAY['Innocence','New beginnings','Free spirit'],ARRAY['Recklessness','Being taken advantage of','Inconsideration']),
-('The Magician',ARRAY['Mercury'],ARRAY[]::TEXT[],ARRAY['Hermes'],ARRAY['Willpower','Desire','Creation','Manifestation'],ARRAY['Trickery','Illusions','Out of touch']),
-('The High Priestess',ARRAY[]::TEXT[],ARRAY[]::TEXT[],ARRAY['Hecate','Demeter','Selene','Artemis','The Moon'],ARRAY['Intuition','Unconscious','Inner voice'],ARRAY['Lack of center','Lost inner voice','Repressed feelings']),
-('The Empress',ARRAY['Venus'],ARRAY[]::TEXT[],ARRAY['Hera','Aphrodite'],ARRAY['Motherhood','Fertility','Nature'],ARRAY['Dependence','Smothering','Emptiness']),
-('The Emperor',ARRAY[]::TEXT[],ARRAY['Aries'],ARRAY['Zeus','Ares','Athena'],ARRAY['Authority','Structure','Control','Fatherhood'],ARRAY['Tyranny','Rigidity','Coldness']),
-('The Hierophant',ARRAY[]::TEXT[],ARRAY['Taurus'],ARRAY['Dionysus','Zagreus'],ARRAY['Tradition','Conformity','Morality and ethics'],ARRAY['Rebellion','Subversiveness','New approaches']),
-('The Lovers',ARRAY[]::TEXT[],ARRAY['Gemini'],ARRAY['Eros and Psyche','Aphrodite and Ares','Castor and Pollux'],ARRAY['Partnerships','Union','Duality','Choice'],ARRAY['Loss of balance','One-sidedness','Disharmony']),
-('The Chariot',ARRAY[]::TEXT[],ARRAY['Cancer'],ARRAY['Apollo'],ARRAY['Direction','Control','Willpower'],ARRAY['Lack of control','Lack of direction','Aggression']),
-('Strength',ARRAY[]::TEXT[],ARRAY['Leo'],ARRAY['Heracles','Hestia'],ARRAY['Bravery','Compassion','Focus','Inner strength'],ARRAY['Self-doubt','Weakness','Insecurity']),
-('The Hermit',ARRAY[]::TEXT[],ARRAY['Virgo'],ARRAY['Cronos','Persephone','Astraea'],ARRAY['Contemplation','Search for truth','Inner guidance'],ARRAY['Loneliness','Isolation','Lost your way']),
-('Wheel of Fortune',ARRAY['Jupiter'],ARRAY[]::TEXT[],ARRAY['Zeus','Tyche'],ARRAY['Change','Cycles','Inevitable fate'],ARRAY['No control','Clinging to control','Bad luck']),
-('Justice',ARRAY[]::TEXT[],ARRAY['Libra'],ARRAY['Themis','Athena'],ARRAY['Cause and effect','Clarity','Truth'],ARRAY['Dishonesty','Unaccountability','Unfairness']),
-('The Hanged Man',ARRAY['Neptune'],ARRAY[]::TEXT[],ARRAY['Adonis','Poseidon','Dionysus'],ARRAY['Sacrifice','Release','Martyrdom'],ARRAY['Stalling','Needless sacrifice','Fear of sacrifice']),
-('Death',ARRAY[]::TEXT[],ARRAY['Scorpio'],ARRAY['Thanatos','Ares','Hades'],ARRAY['End of a cycle','Beginnings','Change','Metamorphosis'],ARRAY['Fear of change','Holding on','Stagnation']),
-('Temperance',ARRAY[]::TEXT[],ARRAY['Sagittarius'],ARRAY['Artemis','Chiron','Iris','Hermaphroditus'],ARRAY['The middle path','Patience','Finding meaning'],ARRAY['Extremes','Excess','Lack of balance']),
-('The Devil',ARRAY[]::TEXT[],ARRAY['Capricorn'],ARRAY['Priapus','Pan'],ARRAY['Excess','Materialism','Playfulness'],ARRAY['Freedom','Release','Restoring control']),
-('The Tower',ARRAY['Mars'],ARRAY[]::TEXT[],ARRAY['Ares'],ARRAY['Sudden upheaval','Pride','Disaster'],ARRAY['Disaster avoided','Delaying disaster','Fear of suffering']),
-('The Star',ARRAY[]::TEXT[],ARRAY['Aquarius'],ARRAY['Hebe','Ganymede','Astraea','Aphrodite'],ARRAY['Hope','Faith','Rejuvenation'],ARRAY['Insecurity','Discouragement','Faithlessness']),
-('The Moon',ARRAY[]::TEXT[],ARRAY['Pisces'],ARRAY['Selene','Artemis','Hecate','Poseidon'],ARRAY['Unconscious','Illusions','Intuition'],ARRAY['Confusion','Fear','Misinterpretation']),
-('The Sun',ARRAY[]::TEXT[],ARRAY[]::TEXT[],ARRAY['Helios','Apollo','The Sun'],ARRAY['Joy','Success','Celebration','Positivity'],ARRAY['Negativity','Depression','Sadness']),
-('Judgement',ARRAY['Pluto'],ARRAY[]::TEXT[],ARRAY['Hephaestus'],ARRAY['Reflection','Reckoning','Inner voice'],ARRAY['Lack of self-awareness','Doubt','Self-loathing']),
-('The World',ARRAY['Saturn'],ARRAY[]::TEXT[],ARRAY['Cronos','Gaea','Demeter'],ARRAY['Fulfillment','Harmony','Completion'],ARRAY['Unfinished','No closure','Incomplete goals'])) AS d(name,planets,signs,representations,positive_associations,negative_associations)
+('The Fool',ARRAY['Uranus'],ARRAY[]::TEXT[],ARRAY['Pan','Aeolas','Zeus','Dionysus'],ARRAY['Innocence','New beginnings','Free spirit'],ARRAY['Recklessness','Being taken advantage of','Inconsideration'],'Beginnings'),
+('The Magician',ARRAY['Mercury'],ARRAY[]::TEXT[],ARRAY['Hermes'],ARRAY['Willpower','Desire','Creation','Manifestation'],ARRAY['Trickery','Illusions','Out of touch'],'Manifestation'),
+('The High Priestess',ARRAY[]::TEXT[],ARRAY[]::TEXT[],ARRAY['Hecate','Demeter','Selene','Artemis','The Moon'],ARRAY['Intuition','Unconscious','Inner voice'],ARRAY['Lack of center','Lost inner voice','Repressed feelings'],'Intuition'),
+('The Empress',ARRAY['Venus'],ARRAY[]::TEXT[],ARRAY['Hera','Aphrodite'],ARRAY['Motherhood','Fertility','Nature'],ARRAY['Dependence','Smothering','Emptiness'],'Abundance'),
+('The Emperor',ARRAY[]::TEXT[],ARRAY['Aries'],ARRAY['Zeus','Ares','Athena'],ARRAY['Authority','Structure','Control','Fatherhood'],ARRAY['Tyranny','Rigidity','Coldness'],'Authority'),
+('The Hierophant',ARRAY[]::TEXT[],ARRAY['Taurus'],ARRAY['Dionysus','Zagreus'],ARRAY['Tradition','Conformity','Morality and ethics'],ARRAY['Rebellion','Subversiveness','New approaches'],'Tradition'),
+('The Lovers',ARRAY[]::TEXT[],ARRAY['Gemini'],ARRAY['Eros and Psyche','Aphrodite and Ares','Castor and Pollux'],ARRAY['Partnerships','Union','Duality','Choice'],ARRAY['Loss of balance','One-sidedness','Disharmony'],'Choice'),
+('The Chariot',ARRAY[]::TEXT[],ARRAY['Cancer'],ARRAY['Apollo'],ARRAY['Direction','Control','Willpower'],ARRAY['Lack of control','Lack of direction','Aggression'],'Willpower'),
+('Strength',ARRAY[]::TEXT[],ARRAY['Leo'],ARRAY['Heracles','Hestia'],ARRAY['Bravery','Compassion','Focus','Inner strength'],ARRAY['Self-doubt','Weakness','Insecurity'],'Courage'),
+('The Hermit',ARRAY[]::TEXT[],ARRAY['Virgo'],ARRAY['Cronos','Persephone','Astraea'],ARRAY['Contemplation','Search for truth','Inner guidance'],ARRAY['Loneliness','Isolation','Lost your way'],'Reflection'),
+('Wheel of Fortune',ARRAY['Jupiter'],ARRAY[]::TEXT[],ARRAY['Zeus','Tyche'],ARRAY['Change','Cycles','Inevitable fate'],ARRAY['No control','Clinging to control','Bad luck'],'Cycle'),
+('Justice',ARRAY[]::TEXT[],ARRAY['Libra'],ARRAY['Themis','Athena'],ARRAY['Cause and effect','Clarity','Truth'],ARRAY['Dishonesty','Unaccountability','Unfairness'],'Fairness'),
+('The Hanged Man',ARRAY['Neptune'],ARRAY[]::TEXT[],ARRAY['Adonis','Poseidon','Dionysus'],ARRAY['Sacrifice','Release','Martyrdom'],ARRAY['Stalling','Needless sacrifice','Fear of sacrifice'],'Perspective'),
+('Death',ARRAY[]::TEXT[],ARRAY['Scorpio'],ARRAY['Thanatos','Ares','Hades'],ARRAY['End of a cycle','Beginnings','Change','Metamorphosis'],ARRAY['Fear of change','Holding on','Stagnation'],'Transformation'),
+('Temperance',ARRAY[]::TEXT[],ARRAY['Sagittarius'],ARRAY['Artemis','Chiron','Iris','Hermaphroditus'],ARRAY['The middle path','Patience','Finding meaning'],ARRAY['Extremes','Excess','Lack of balance'],'Balance'),
+('The Devil',ARRAY[]::TEXT[],ARRAY['Capricorn'],ARRAY['Priapus','Pan'],ARRAY['Excess','Materialism','Playfulness'],ARRAY['Freedom','Release','Restoring control'],'Bondage'),
+('The Tower',ARRAY['Mars'],ARRAY[]::TEXT[],ARRAY['Ares'],ARRAY['Sudden upheaval','Pride','Disaster'],ARRAY['Disaster avoided','Delaying disaster','Fear of suffering'],'Upheaval'),
+('The Star',ARRAY[]::TEXT[],ARRAY['Aquarius'],ARRAY['Hebe','Ganymede','Astraea','Aphrodite'],ARRAY['Hope','Faith','Rejuvenation'],ARRAY['Insecurity','Discouragement','Faithlessness'],'Hope'),
+('The Moon',ARRAY[]::TEXT[],ARRAY['Pisces'],ARRAY['Selene','Artemis','Hecate','Poseidon'],ARRAY['Unconscious','Illusions','Intuition'],ARRAY['Confusion','Fear','Misinterpretation'],'Illusion'),
+('The Sun',ARRAY[]::TEXT[],ARRAY[]::TEXT[],ARRAY['Helios','Apollo','The Sun'],ARRAY['Joy','Success','Celebration','Positivity'],ARRAY['Negativity','Depression','Sadness'],'Joy'),
+('Judgement',ARRAY['Pluto'],ARRAY[]::TEXT[],ARRAY['Hephaestus'],ARRAY['Reflection','Reckoning','Inner voice'],ARRAY['Lack of self-awareness','Doubt','Self-loathing'],'Awakening'),
+('The World',ARRAY['Saturn'],ARRAY[]::TEXT[],ARRAY['Cronos','Gaea','Demeter'],ARRAY['Fulfillment','Harmony','Completion'],ARRAY['Unfinished','No closure','Incomplete goals'],'Completion')) AS d(name,planets,signs,representations,positive_associations,negative_associations,core_theme)
 JOIN cards c ON c.name=d.name
-ON CONFLICT (card_id) DO UPDATE SET planets=EXCLUDED.planets, signs=EXCLUDED.signs, representations=EXCLUDED.representations, positive_associations=EXCLUDED.positive_associations, negative_associations=EXCLUDED.negative_associations;
+ON CONFLICT (card_id) DO UPDATE SET planets=EXCLUDED.planets, signs=EXCLUDED.signs, representations=EXCLUDED.representations, positive_associations=EXCLUDED.positive_associations, negative_associations=EXCLUDED.negative_associations, core_theme=EXCLUDED.core_theme;
 
 UPDATE cards SET meaning_upright='Creation, willpower, inspiration, desire', meaning_reversed='Lack of energy, lack of passion, boredom' WHERE name='Ace of Wands';
 UPDATE cards SET meaning_upright='Planning, making plans, discovery', meaning_reversed='Lack of planning, disorganization, bad planning' WHERE name='Two of Wands';

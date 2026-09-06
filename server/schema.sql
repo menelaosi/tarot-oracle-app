@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS court_suit_correspondences (
 CREATE TABLE IF NOT EXISTS major_arcana_correspondences (
     card_id INTEGER PRIMARY KEY REFERENCES cards(id) ON DELETE CASCADE,
     element TEXT,
+    core_theme TEXT,
     planets TEXT[] NOT NULL DEFAULT '{}',
     signs TEXT[] NOT NULL DEFAULT '{}',
     representations TEXT[] NOT NULL DEFAULT '{}',
@@ -89,5 +90,8 @@ CREATE TABLE IF NOT EXISTS major_arcana_correspondences (
 
 ALTER TABLE major_arcana_correspondences
     ADD COLUMN IF NOT EXISTS representations TEXT[] NOT NULL DEFAULT '{}';
+
+ALTER TABLE major_arcana_correspondences
+    ADD COLUMN IF NOT EXISTS core_theme TEXT;
 
 COMMIT;

@@ -139,7 +139,7 @@ Returns the spread registry from `server/spreads.ts` as `[{ id, label, positions
 GET /api/cards/:cardId
 ```
 
-Returns a single card's stored meanings and correspondences (element, numerology, court rank, Major Arcana element/planets/signs/associations). Used by `TarotCard` on hover/focus.
+Returns a single card's stored meanings and correspondences (element, numerology, court rank, Major Arcana core theme/element/planets/signs/associations). Used by `TarotCard` on hover/focus.
 
 ### Draw a reading
 

@@ -110,10 +110,7 @@ function TarotCard({ card, includeReversals = false }: TarotCardProps) {
               />
               <DetailLine label="Planets" value={details.majorPlanets} />
               <DetailLine label="Signs" value={details.majorSigns} />
-              <DetailLine
-                label="Arcana energy"
-                value={pick(details.majorPositiveAssociations, details.majorNegativeAssociations)}
-              />
+              <DetailLine label="Core theme" value={details.majorCoreTheme} />
               <DetailLine
                 label="Symbols"
                 value={details.majorRepresentations}

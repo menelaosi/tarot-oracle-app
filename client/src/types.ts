@@ -26,6 +26,7 @@ export type CardDetails = {
   courtPositiveAssociations: string[]
   courtNegativeAssociations: string[]
   majorElement: string | null
+  majorCoreTheme: string | null
   majorPlanets: string[]
   majorSigns: string[]
   majorPositiveAssociations: string[]

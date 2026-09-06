@@ -15,6 +15,7 @@ export type CardDetailsRow = {
   court_positive: string[] | null;
   court_negative: string[] | null;
   major_element: string | null;
+  major_core_theme: string | null;
   major_planets: string[] | null;
   major_signs: string[] | null;
   major_positive: string[] | null;
@@ -47,6 +48,7 @@ export type CardDetailsDto = {
   courtPositiveAssociations: string[];
   courtNegativeAssociations: string[];
   majorElement: string | null;
+  majorCoreTheme: string | null;
   majorPlanets: string[];
   majorSigns: string[];
   majorPositiveAssociations: string[];
@@ -72,6 +74,7 @@ export function toCardDetails(row: CardDetailsRow): CardDetailsDto {
     courtPositiveAssociations: row.court_positive ?? [],
     courtNegativeAssociations: row.court_negative ?? [],
     majorElement: row.major_element,
+    majorCoreTheme: row.major_core_theme,
     majorPlanets: row.major_planets ?? [],
     majorSigns: row.major_signs ?? [],
     majorPositiveAssociations: row.major_positive ?? [],
@@ -92,6 +95,7 @@ export const selectCardDetails = `
          cp.associations AS court_positive,
          cn.associations AS court_negative,
          m.element AS major_element,
+         m.core_theme AS major_core_theme,
          m.planets AS major_planets,
          m.signs AS major_signs,
          m.positive_associations AS major_positive,
