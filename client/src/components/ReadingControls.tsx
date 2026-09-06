@@ -1,15 +1,15 @@
-import type { SpreadOption, SpreadType } from '../types';
+import type { SpreadOption } from '../types';
 
 type ReadingControlsProps = {
-  spreadType: SpreadType
-  question: string
-  includeReversals: boolean
-  spreadOptions: SpreadOption[]
-  isDrawing: boolean
-  onSpreadTypeChange: (value: SpreadType) => void
-  onQuestionChange: (value: string) => void
-  onIncludeReversalsChange: (value: boolean) => void
-  onDraw: () => void
+  spreadType: string;
+  question: string;
+  includeReversals: boolean;
+  spreadOptions: SpreadOption[];
+  isDrawing: boolean;
+  onSpreadTypeChange: (value: string) => void;
+  onQuestionChange: (value: string) => void;
+  onIncludeReversalsChange: (value: boolean) => void;
+  onDraw: () => void;
 };
 
 function ReadingControls({
@@ -25,23 +25,25 @@ function ReadingControls({
 }: ReadingControlsProps) {
   return (
     <section className="reading-controls" aria-labelledby="reading-controls-title">
-      <div className="section-heading">
-        <p className="eyebrow">01 / Choose a spread</p>
-      </div>
       <div className="control-grid">
         <label>
           <span>Spread type</span>
           <select
             value={spreadType}
-            onChange={(event) => onSpreadTypeChange(event.target.value as SpreadType)}
+            onChange={(event) => onSpreadTypeChange(event.target.value)}
+            disabled={spreadOptions.length === 0}
           >
             {spreadOptions.map((option) => (
-              <option value={option.value} key={option.value}>{option.label}</option>
+              <option value={option.id} key={option.id}>
+                {option.label} · {option.positions.length}-card
+              </option>
             ))}
           </select>
         </label>
         <label className="question-field">
-          <span>Question <em>optional</em></span>
+          <span>
+            Question <em>optional</em>
+          </span>
           <input
             value={question}
             onChange={(event) => onQuestionChange(event.target.value)}

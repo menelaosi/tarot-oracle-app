@@ -29,7 +29,6 @@ Based only on what's in this reading, the next step is to follow the present spa
 function Interpretation({ text }: InterpretationProps) {
   return (
     <section className="interpretation" aria-labelledby="interpretation-title">
-      <p className="eyebrow">03 / The reading</p>
       <h2 id="interpretation-title">What the pattern says</h2>
       <div className="interpretation-copy">
         <Markdown>{text}</Markdown>

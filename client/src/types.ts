@@ -1,5 +1,3 @@
-export type SpreadType = 'three_card' | 'yes_no' | 'mind_body_soul';
-
 export type Position = string;
 
 export type DrawnCard = {
@@ -37,13 +35,15 @@ export type CardDetails = {
 
 export type Reading = {
   id: string
-  spreadType: SpreadType
+  spreadType: string
   spreadLabel: string
   question: string | null
   cards: DrawnCard[]
 };
 
+// Mirrors an entry from GET /api/spreads, which is built from server/spreads.ts.
 export type SpreadOption = {
-  value: SpreadType
+  id: string
   label: string
+  positions: string[]
 };

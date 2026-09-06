@@ -31,8 +31,16 @@
   padding: 32px clamp(20px, 5vw, 76px) 24px;
   background: var(--paper);
   background-image:
-    radial-gradient(circle at 86% 7%, color-mix(in srgb, var(--indigo) 20%, transparent), transparent 22rem),
-    linear-gradient(115deg, color-mix(in srgb, var(--violet-deep) 28%, transparent), transparent 48%);
+    radial-gradient(
+      circle at 86% 7%,
+      color-mix(in srgb, var(--indigo) 20%, transparent),
+      transparent 22rem
+    ),
+    linear-gradient(
+      115deg,
+      color-mix(in srgb, var(--violet-deep) 28%, transparent),
+      transparent 48%
+    );
   border-left: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
   border-right: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
 }
@@ -270,15 +278,16 @@ button:disabled {
 
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
+  grid-template-columns: repeat(var(--card-columns, 3), minmax(0, 1fr));
+  gap: 14px;
   margin: 20px 0;
 }
 
 .tarot-card {
   position: relative;
   overflow: visible;
-  padding: 13px;
+  max-width: 260px;
+  padding: 11px;
   background: var(--plum);
   border: 1px solid var(--accent);
   box-shadow: 7px 8px 0 color-mix(in srgb, var(--shadow-card) 30%, transparent);
@@ -300,7 +309,7 @@ button:disabled {
 
 .image-frame {
   margin: 11px 0 16px;
-  height: clamp(220px, 28svh, 340px);
+  aspect-ratio: 3 / 5;
   overflow: hidden;
   background: var(--well-bg);
 }
@@ -324,8 +333,9 @@ button:disabled {
   position: absolute;
   z-index: 5;
   top: 12px;
-  right: 12px;
   left: 12px;
+  right: auto;
+  width: max(calc(100% - 24px), 240px);
   min-height: 120px;
   padding: 16px;
   color: var(--ink);
@@ -491,11 +501,6 @@ button:disabled {
 
   .cards-grid {
     gap: 28px;
-  }
-
-  .image-frame {
-    height: auto;
-    aspect-ratio: 3 / 5;
   }
 
   .tarot-card {

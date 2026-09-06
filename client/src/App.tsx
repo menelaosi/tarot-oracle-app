@@ -1,19 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import Header from './components/Header';
 import Interpretation, { sampleInterpretation } from './components/Interpretation';
 import ReadingControls from './components/ReadingControls';
 import Spread from './components/Spread';
-import type { Reading, SpreadOption, SpreadType } from './types';
-
-const spreadOptions: SpreadOption[] = [
-  { value: 'three_card', label: 'Past / Present / Future' },
-  { value: 'yes_no', label: 'One-card Yes / No' },
-  { value: 'mind_body_soul', label: 'Mind / Body / Soul' },
-];
+import type { Reading, SpreadOption } from './types';
 
 function App() {
-  const [spreadType, setSpreadType] = useState<SpreadType>('three_card');
+  const [spreadOptions, setSpreadOptions] = useState<SpreadOption[]>([]);
+  const [spreadType, setSpreadType] = useState('three_card');
   const [question, setQuestion] = useState('');
   const [includeReversals, setIncludeReversals] = useState(false);
   const [reading, setReading] = useState<Reading | null>(null);
@@ -21,6 +16,25 @@ function App() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [isInterpreting, setIsInterpreting] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetch('/api/spreads')
+      .then((response) => {
+        if (!response.ok) throw new Error('The spreads could not be loaded.');
+        return response.json() as Promise<SpreadOption[]>;
+      })
+      .then((options) => {
+        setSpreadOptions(options);
+        if (!options.some((option) => option.id === spreadType)) {
+          setSpreadType(options[0]?.id ?? '');
+        }
+      })
+      .catch((loadError: unknown) => {
+        setError(loadError instanceof Error ? loadError.message : 'Something went wrong.');
+      });
+    // Runs once on mount; spreadType is only read to keep a still-valid selection.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function drawCards() {
     setIsDrawing(true);

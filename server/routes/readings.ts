@@ -13,7 +13,7 @@ import {
 } from '../db/queries/readings.js';
 import { anthropic, claudeModel } from '../lib/anthropic-client.js';
 import { HttpError, toHttpError } from '../lib/http-error.js';
-import { getSpreadInstructions, isSupportedSpread, spreadDefinitions } from '../spreads.js';
+import { getSpreadInstructions, isSupportedSpread, spreads } from '../spreads.js';
 
 const router = Router();
 
@@ -38,7 +38,7 @@ router.post('/draw', async (request, response) => {
     throw new HttpError(400, 'includeReversals must be boolean.');
   }
 
-  const definition = spreadDefinitions[spreadType];
+  const definition = spreads[spreadType];
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -70,12 +70,12 @@ router.post('/draw', async (request, response) => {
     response.status(201).json({
       id: reading.id,
       spreadType,
+      spreadLabel: definition.label,
       question: reading.question,
       cards: result.rows.map((card) => ({
         ...card,
         positionLabel: definition.positions[card.position - 1],
       })),
-      spreadLabel: definition.label,
     });
   } catch (error) {
     await rollback(client);
@@ -120,7 +120,8 @@ router.post('/:readingId/interpret', async (request, response) => {
     ]);
 
     const firstRow = result.rows[0];
-    const definition = firstRow ? spreadDefinitions[firstRow.spread_type] : null;
+    const definition =
+      firstRow && isSupportedSpread(firstRow.spread_type) ? spreads[firstRow.spread_type] : null;
     if (!firstRow || !definition || result.rows.length !== definition.positions.length) {
       throw new HttpError(404, 'Reading not found.');
     }
@@ -140,7 +141,7 @@ router.post('/:readingId/interpret', async (request, response) => {
         'Treat correspondences as supporting context, not as permission to introduce outside tarot knowledge.',
         'Do not make medical, legal, financial, or guaranteed predictive claims.',
         'Use Markdown headings and paragraphs. Finish with a complete synthesis and final thought addressed to them.',
-        getSpreadInstructions(firstRow.spread_type),
+        getSpreadInstructions(definition),
       ].join(' '),
       messages: [
         {

@@ -3,6 +3,7 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import { HttpError } from './lib/http-error.js';
 import cardsRouter from './routes/cards.js';
 import readingsRouter from './routes/readings.js';
+import { spreadList } from './spreads.js';
 
 const app = express();
 
@@ -11,6 +12,10 @@ app.use(express.json());
 
 app.get('/api/health', (_request, response) => {
   response.json({ ok: true });
+});
+
+app.get('/api/spreads', (_request, response) => {
+  response.json(spreadList);
 });
 
 app.use('/api/cards', cardsRouter);

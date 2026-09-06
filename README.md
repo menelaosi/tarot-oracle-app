@@ -6,7 +6,7 @@ Card meanings and correspondences (suit, numerology, court rank, and Major Arcan
 
 ## Features
 
-- Draw one of three spreads: Past / Present / Future (three cards), one-card Yes / No, or Mind / Body / Soul (three cards)
+- Draw any spread defined in `server/spreads.ts` (one to four cards); the client picker is populated from `GET /api/spreads`. Ten spreads ship by default: Single card, Yes / No, Past / Present / Future, Thinking / Feeling / Doing, Situation / Action / Outcome, Mind / Body / Soul, The Oracle, Relationship Check, The Way Ahead, and Past / Present / Future / Advice
 - Ask an optional question that Claude answers directly
 - Optionally include reversed cards (off by default)
 - Hover or focus a drawn card to load its extended correspondences (element, numerology, court/Major Arcana associations) from the database
@@ -31,7 +31,7 @@ Important files:
 - `server/routes/cards.ts`, `server/routes/readings.ts`: route handlers, one file per resource
 - `server/db/pool.ts`: PostgreSQL connection pool and transaction rollback helper
 - `server/db/queries/`: SQL queries and row-to-response mapping, one file per resource
-- `server/spreads.ts`: spread definitions and the Claude prompt instructions built from them
+- `server/spreads.ts`: the spread registry (label, position labels, prompt guidance) — the single place to add a spread; the API, client picker, draw count, and prompt instructions all derive from it
 - `server/lib/http-error.ts`: `HttpError` used by routes; caught by `app.ts`'s error middleware
 - `server/lib/anthropic-client.ts`: Anthropic client and model configuration
 - `client/src/App.tsx`: frontend state and API orchestration
@@ -125,6 +125,14 @@ All error responses are `{ "error": "..." }` with an appropriate status code (40
 GET /api/health
 ```
 
+### List spreads
+
+```text
+GET /api/spreads
+```
+
+Returns the spread registry from `server/spreads.ts` as `[{ id, label, positions }]`, in display order. The client uses this to populate the spread picker, so adding a spread there needs no client change.
+
 ### Card details
 
 ```text
@@ -149,7 +157,7 @@ Example request:
 }
 ```
 
-`spreadType` is one of `three_card`, `yes_no`, or `mind_body_soul` (defaults to `three_card`); `question` and `includeReversals` are optional (`includeReversals` defaults to `false`). Draws the cards, stores the reading, and returns it with each card's position label and the spread's display label.
+`spreadType` is any spread `id` from `GET /api/spreads` (defaults to `three_card`); an unknown id is rejected with 400. `question` and `includeReversals` are optional (`includeReversals` defaults to `false`). The number of cards drawn is the length of that spread's `positions`. Draws the cards, stores the reading, and returns it with each card's position label and the spread's display label.
 
 ### Generate an interpretation
 
