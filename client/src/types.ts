@@ -23,6 +23,13 @@ export type CardDetails = {
   numerologyAssociations: string[]
   courtRank: string | null
   courtDescription: string | null
+  courtPositiveAssociations: string[]
+  courtNegativeAssociations: string[]
+  majorElement: string | null
+  majorPlanets: string[]
+  majorSigns: string[]
+  majorPositiveAssociations: string[]
+  majorNegativeAssociations: string[]
   majorRepresentations: string[]
 };
 

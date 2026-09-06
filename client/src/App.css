@@ -53,21 +53,21 @@ h3 {
 h1 {
   max-width: 700px;
   margin: 18px 0 14px;
-  font-size: clamp(46px, 7vw, 88px);
-  line-height: 0.9;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 0.95;
   letter-spacing: -0.04em;
 }
 
 h2 {
   margin: 8px 0 0;
-  font-size: clamp(30px, 4vw, 48px);
+  font-size: clamp(26px, 3vw, 38px);
   line-height: 1;
   letter-spacing: -0.03em;
 }
 
 h3 {
   margin: 7px 0 0;
-  font-size: 28px;
+  font-size: 22px;
   line-height: 1;
 }
 
@@ -348,6 +348,23 @@ button:disabled {
 .interpretation-copy h3 {
   margin-top: 1.5em;
   margin-bottom: 0.5em;
+  letter-spacing: 0;
+}
+
+.interpretation-copy h1 {
+  max-width: none;
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+.interpretation-copy h2 {
+  font-size: 28px;
+  line-height: 1.15;
+}
+
+.interpretation-copy h3 {
+  font-size: 22px;
+  line-height: 1.2;
 }
 
 .interpretation-copy h1:first-child,

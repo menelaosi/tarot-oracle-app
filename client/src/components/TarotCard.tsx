@@ -71,6 +71,46 @@ function TarotCard({ card }: TarotCardProps) {
                   Number: {details.numerologyAssociations.slice(0, 4).join(' · ')}
                 </p>
               )}
+              {details.courtRank && (
+                <p className="details-meta">
+                  Court: {details.courtRank} — {details.courtDescription}
+                </p>
+              )}
+              {(card.orientation === 'upright'
+                ? details.courtPositiveAssociations
+                : details.courtNegativeAssociations
+              ).length > 0 && (
+                <p className="details-meta">
+                  Court energy:{' '}
+                  {(card.orientation === 'upright'
+                    ? details.courtPositiveAssociations
+                    : details.courtNegativeAssociations
+                  )
+                    .slice(0, 4)
+                    .join(' · ')}
+                </p>
+              )}
+              {details.majorElement && (
+                <p className="details-meta">Arcana element: {details.majorElement}</p>
+              )}
+              {details.majorPlanets.length > 0 && (
+                <p className="details-meta">Planets: {details.majorPlanets.join(' · ')}</p>
+              )}
+              {details.majorSigns.length > 0 && (
+                <p className="details-meta">Signs: {details.majorSigns.join(' · ')}</p>
+              )}
+              {(details.majorPositiveAssociations.length > 0 ||
+                details.majorNegativeAssociations.length > 0) && (
+                <p className="details-meta">
+                  Arcana energy:{' '}
+                  {(card.orientation === 'upright'
+                    ? details.majorPositiveAssociations
+                    : details.majorNegativeAssociations
+                  )
+                    .slice(0, 4)
+                    .join(' · ')}
+                </p>
+              )}
               {details.majorRepresentations.length > 0 && (
                 <p className="details-meta">
                   Symbols: {details.majorRepresentations.join(' · ')}

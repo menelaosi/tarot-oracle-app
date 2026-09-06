@@ -83,6 +83,13 @@ app.get('/api/cards/:cardId', async (request: Request, response: Response) => {
       numerologyAssociations: card.numerology ?? [],
       courtRank: card.court_rank,
       courtDescription: card.court_description,
+      courtPositiveAssociations: card.court_positive ?? [],
+      courtNegativeAssociations: card.court_negative ?? [],
+      majorElement: card.major_element,
+      majorPlanets: card.major_planets ?? [],
+      majorSigns: card.major_signs ?? [],
+      majorPositiveAssociations: card.major_positive ?? [],
+      majorNegativeAssociations: card.major_negative ?? [],
       majorRepresentations: card.major_representations ?? [],
     });
   } catch (error) {
@@ -187,11 +194,16 @@ app.post('/api/readings/:readingId/interpret', async (request: Request, response
       element: card.element,
       suitAssociations: [...(card.suit_positive ?? []), ...(card.suit_negative ?? [])],
       numerology: card.number_associations ?? [],
-      majorArcanaAssociations: [
-        ...(card.major_positive ?? []),
-        ...(card.major_negative ?? []),
-        ...(card.representations ?? []),
-      ],
+      courtRank: card.court_rank,
+      courtDescription: card.court_description,
+      courtAssociations:
+        card.orientation === 'upright' ? (card.court_positive ?? []) : (card.court_negative ?? []),
+      majorArcanaElement: card.major_element,
+      majorArcanaPlanets: card.major_planets ?? [],
+      majorArcanaSigns: card.major_signs ?? [],
+      majorArcanaAssociations:
+        card.orientation === 'upright' ? (card.major_positive ?? []) : (card.major_negative ?? []),
+      majorArcanaRepresentations: card.representations ?? [],
     }));
 
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
