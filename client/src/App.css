@@ -1,0 +1,388 @@
+:root {
+  --ink: #eeeafd;
+  --muted: #aba4c5;
+  --paper: #17132a;
+  --line: #3b335b;
+  --accent: #a78bfa;
+  --accent-dark: #8065d8;
+  --indigo: #6f7bf7;
+  --plum: #241d40;
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  width: min(1180px, 100%);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: 32px clamp(20px, 5vw, 76px) 24px;
+  background: var(--paper);
+  background-image:
+    radial-gradient(circle at 86% 7%, rgba(111, 123, 247, 0.2), transparent 22rem),
+    linear-gradient(115deg, rgba(58, 45, 103, 0.28), transparent 48%);
+  border-left: 1px solid rgba(167, 139, 250, 0.2);
+  border-right: 1px solid rgba(167, 139, 250, 0.2);
+}
+
+.masthead {
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--line);
+}
+
+.eyebrow,
+.card-position,
+.reading-id {
+  margin: 0;
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3 {
+  font-family: Newsreader, Georgia, serif;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+h1 {
+  max-width: 700px;
+  margin: 18px 0 14px;
+  font-size: clamp(46px, 7vw, 88px);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+}
+
+h2 {
+  margin: 8px 0 0;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+h3 {
+  margin: 7px 0 0;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.intro {
+  max-width: 510px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 13px;
+}
+
+.moon-mark {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  flex: 0 0 auto;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  font-family: Georgia, serif;
+  font-size: 42px;
+  transform: rotate(-22deg);
+  box-shadow: 0 0 28px rgba(167, 139, 250, 0.15);
+}
+
+.reading-controls,
+.spread-section,
+.interpretation {
+  padding: 28px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.reading-output {
+  flex: 0 0 auto;
+}
+
+.section-heading {
+  margin-bottom: 24px;
+}
+
+.control-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.8fr) minmax(240px, 1.4fr) auto auto;
+  gap: 14px;
+  align-items: end;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+label em {
+  color: #827a9d;
+  font-style: normal;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  align-self: end;
+  min-height: 48px;
+  gap: 9px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.checkbox-field input {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+input,
+select {
+  width: 100%;
+  padding: 14px 13px;
+  color: var(--ink);
+  background: rgba(10, 8, 21, 0.28);
+  border: 1px solid var(--line);
+  border-radius: 0;
+  outline: none;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.14);
+}
+
+input::placeholder {
+  color: #716a8b;
+}
+
+.primary-action,
+.secondary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 48px;
+  padding: 13px 16px;
+  border: 1px solid var(--accent);
+  color: #110d20;
+  background: var(--accent);
+  transition:
+    background 0.2s,
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.primary-action:hover,
+.secondary-action:hover {
+  background: #c0adff;
+  box-shadow: 0 8px 24px rgba(167, 139, 250, 0.2);
+  transform: translateY(-2px);
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+  transform: none;
+}
+
+.spread-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.reading-id {
+  color: var(--muted);
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin: 20px 0;
+}
+
+.tarot-card {
+  padding: 13px;
+  background: var(--plum);
+  border: 1px solid #4d4272;
+  box-shadow: 7px 8px 0 rgba(7, 5, 17, 0.3);
+}
+
+.card-topline {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.image-frame {
+  margin: 11px 0 16px;
+  height: clamp(220px, 28svh, 340px);
+  overflow: hidden;
+  background: #0e0b19;
+}
+
+.image-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.image-frame .reversed-image {
+  transform: rotate(180deg);
+}
+
+.card-position {
+  color: var(--indigo);
+}
+
+.secondary-action {
+  min-width: 220px;
+  color: var(--accent);
+  background: transparent;
+  border-color: var(--accent);
+}
+
+.secondary-action:hover {
+  color: #110d20;
+  background: var(--accent);
+}
+
+.interpretation-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.sample-action {
+  min-height: 48px;
+  padding: 13px 16px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+}
+
+.sample-action:hover {
+  color: var(--ink);
+  border-color: var(--accent);
+}
+
+.interpretation {
+  max-width: 900px;
+}
+
+.interpretation-copy {
+  margin-top: 24px;
+  color: #cbc4df;
+  font-family: Newsreader, Georgia, serif;
+  font-size: 22px;
+  line-height: 1.45;
+}
+
+.interpretation-copy h1,
+.interpretation-copy h2,
+.interpretation-copy h3 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.interpretation-copy h1:first-child,
+.interpretation-copy h2:first-child,
+.interpretation-copy h3:first-child {
+  margin-top: 0;
+}
+
+.interpretation-copy p {
+  margin: 0 0 1.15em;
+}
+
+.interpretation-copy strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.interpretation-copy em {
+  color: var(--accent);
+}
+
+.interpretation-copy hr {
+  margin: 1.5em 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.error-message {
+  margin: 24px 0 0;
+  padding: 14px;
+  color: #ffb4c2;
+  background: #351b38;
+  border-left: 3px solid #d86b9b;
+  font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .app-shell {
+    padding-top: 28px;
+    padding-bottom: 20px;
+  }
+
+  .masthead {
+    padding-bottom: 38px;
+  }
+
+  .moon-mark {
+    width: 52px;
+    height: 52px;
+    font-size: 30px;
+  }
+
+  .control-grid,
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cards-grid {
+    gap: 28px;
+  }
+
+  .image-frame {
+    height: auto;
+    aspect-ratio: 3 / 5;
+  }
+
+  .tarot-card {
+    max-width: 360px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .spread-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .secondary-action {
+    width: 100%;
+  }
+}

@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+server/*.js
+server/*.js.map
+server/*.d.ts
+server/*.d.ts.map
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
