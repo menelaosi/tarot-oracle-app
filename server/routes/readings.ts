@@ -20,7 +20,7 @@ const router = Router();
 router.post('/draw', async (request, response) => {
   const {
     spreadType = 'three_card',
-    question,
+    question: rawQuestion,
     includeReversals = false,
   } = request.body as {
     spreadType?: unknown;
@@ -31,11 +31,8 @@ router.post('/draw', async (request, response) => {
   if (!isSupportedSpread(spreadType)) {
     throw new HttpError(400, 'Unsupported spread type.');
   }
-  if (question !== undefined && typeof question !== 'string') {
+  if (rawQuestion !== undefined && typeof rawQuestion !== 'string') {
     throw new HttpError(400, 'Question must be text.');
-  }
-  if (typeof includeReversals !== 'boolean') {
-    throw new HttpError(400, 'includeReversals must be boolean.');
   }
 
   const definition = spreads[spreadType];
@@ -44,10 +41,11 @@ router.post('/draw', async (request, response) => {
     await client.query('BEGIN');
     const readingResult = await client.query<ReadingRow>(insertReading, [
       spreadType,
-      question?.trim() || null,
+      rawQuestion?.trim() || null,
     ]);
     const reading = readingResult.rows[0];
     if (!reading) throw new Error('The reading was not created.');
+    const { id, question } = reading;
 
     const cardsResult = await client.query<{ id: number; name: string; image_path: string }>(
       selectRandomCards,
@@ -56,22 +54,22 @@ router.post('/draw', async (request, response) => {
 
     for (const [index, card] of cardsResult.rows.entries()) {
       await client.query(insertReadingCard, [
-        reading.id,
+        id,
         card.id,
         index + 1,
-        includeReversals && Math.random() < 0.5 ? 'reversed' : 'upright',
+        includeReversals && Math.random() < 0.25 ? 'reversed' : 'upright',
       ]);
     }
 
-    const result = await client.query<DrawnCardRow>(selectDrawnCards, [reading.id]);
+    const result = await client.query<DrawnCardRow>(selectDrawnCards, [id]);
     await client.query('COMMIT');
     client.release();
 
     response.status(201).json({
-      id: reading.id,
+      id,
       spreadType,
       spreadLabel: definition.label,
-      question: reading.question,
+      question,
       cards: result.rows.map((card) => ({
         ...card,
         positionLabel: definition.positions[card.position - 1],
