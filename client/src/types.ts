@@ -9,6 +9,23 @@ export type DrawnCard = {
   positionLabel: Position
 };
 
+export type CardDetails = {
+  id: number
+  name: string
+  arcana: 'major' | 'minor'
+  suit: string | null
+  number: number | null
+  meaningUpright: string
+  meaningReversed: string
+  element: string | null
+  suitPositiveAssociations: string[]
+  suitNegativeAssociations: string[]
+  numerologyAssociations: string[]
+  courtRank: string | null
+  courtDescription: string | null
+  majorRepresentations: string[]
+};
+
 export type Reading = {
   id: string
   spreadType: 'three_card'

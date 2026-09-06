@@ -6,6 +6,10 @@
   "scripts": {
     "build": "tsc",
     "dev": "npm run build && node index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.ts\"",
+    "format:check": "prettier --check \"**/*.ts\"",
     "start": "node index.js",
     "test": "echo \"Error: no test specified\""
   },
@@ -21,12 +25,18 @@
     "pg": "^8.23.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^26.4.1",
     "@types/pg": "^8.23.1",
-    "@types/cors": "^2.8.19",
+    "eslint": "^10.10.0",
+    "globals": "^17.12.0",
     "nodemon": "^3.1.14",
+    "prettier": "^3.9.6",
     "ts-node": "^10.9.2",
-    "typescript": "^7.0.2"
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.69.0"
   }
 }

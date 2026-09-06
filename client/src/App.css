@@ -219,10 +219,17 @@ button:disabled {
 }
 
 .tarot-card {
+  position: relative;
+  overflow: visible;
   padding: 13px;
   background: var(--plum);
   border: 1px solid #4d4272;
   box-shadow: 7px 8px 0 rgba(7, 5, 17, 0.3);
+}
+
+.tarot-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
 }
 
 .card-topline {
@@ -254,6 +261,42 @@ button:disabled {
 
 .card-position {
   color: var(--indigo);
+}
+
+.card-details {
+  position: absolute;
+  z-index: 5;
+  top: 12px;
+  right: 12px;
+  left: 12px;
+  min-height: 120px;
+  padding: 16px;
+  color: var(--ink);
+  background: rgba(22, 17, 43, 0.92);
+  border: 1px solid rgba(167, 139, 250, 0.7);
+  box-shadow: 0 16px 36px rgba(5, 3, 15, 0.55);
+  backdrop-filter: blur(8px);
+}
+
+.details-meaning,
+.details-meta,
+.details-status {
+  margin: 0;
+}
+
+.details-meaning {
+  color: var(--ink);
+  font-family: Newsreader, Georgia, serif;
+  font-size: 17px;
+  line-height: 1.25;
+}
+
+.details-meta,
+.details-status {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
 }
 
 .secondary-action {
