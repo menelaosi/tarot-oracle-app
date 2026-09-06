@@ -19,7 +19,7 @@ function Spread({
       <div className="section-heading spread-heading">
         <div>
           <p className="eyebrow">02 / The spread</p>
-          <h2 id="spread-title">Past · Present · Future</h2>
+          <h2 id="spread-title">{reading.spreadLabel}</h2>
         </div>
         <span className="reading-id">Reading {reading.id.slice(0, 8)}</span>
       </div>

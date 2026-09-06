@@ -15,7 +15,7 @@ export const selectDrawnCards = `
   ORDER BY rc.position
 `;
 export const selectInterpretationCards = `
-  SELECT r.question, rc.position, rc.orientation, c.name,
+  SELECT r.question, r.spread_type, rc.position, rc.orientation, c.name,
          c.meaning_upright, c.meaning_reversed, c.suit, c.number,
          s.element, s.positive_associations AS suit_positive,
          s.negative_associations AS suit_negative,

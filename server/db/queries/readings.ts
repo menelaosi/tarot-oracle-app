@@ -5,6 +5,7 @@ export type ReadingRow = {
 
 export type InterpretationCardRow = {
   question: string | null;
+  spread_type: 'three_card' | 'yes_no' | 'mind_body_soul';
   position: number;
   orientation: 'upright' | 'reversed';
   name: string;
@@ -48,7 +49,7 @@ export const selectDrawnCards = `
 `;
 
 export const selectInterpretationCards = `
-  SELECT r.question, rc.position, rc.orientation, c.name,
+  SELECT r.question, r.spread_type, rc.position, rc.orientation, c.name,
          c.meaning_upright, c.meaning_reversed, c.suit, c.number,
          s.element, s.positive_associations AS suit_positive,
          s.negative_associations AS suit_negative,

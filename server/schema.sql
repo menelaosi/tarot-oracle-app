@@ -22,11 +22,15 @@ CREATE TABLE IF NOT EXISTS cards (
 
 CREATE TABLE IF NOT EXISTS readings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    spread_type TEXT NOT NULL CHECK (spread_type IN ('three_card')),
+    spread_type TEXT NOT NULL CHECK (spread_type IN ('three_card', 'yes_no', 'mind_body_soul')),
     question TEXT,
     interpretation TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE readings DROP CONSTRAINT IF EXISTS readings_spread_type_check;
+ALTER TABLE readings ADD CONSTRAINT readings_spread_type_check
+    CHECK (spread_type IN ('three_card', 'yes_no', 'mind_body_soul'));
 
 CREATE TABLE IF NOT EXISTS reading_cards (
     id SERIAL PRIMARY KEY,

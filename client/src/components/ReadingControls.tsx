@@ -1,12 +1,12 @@
-import type { SpreadOption } from '../types';
+import type { SpreadOption, SpreadType } from '../types';
 
 type ReadingControlsProps = {
-  spreadType: string
+  spreadType: SpreadType
   question: string
   includeReversals: boolean
   spreadOptions: SpreadOption[]
   isDrawing: boolean
-  onSpreadTypeChange: (value: string) => void
+  onSpreadTypeChange: (value: SpreadType) => void
   onQuestionChange: (value: string) => void
   onIncludeReversalsChange: (value: boolean) => void
   onDraw: () => void
@@ -31,7 +31,10 @@ function ReadingControls({
       <div className="control-grid">
         <label>
           <span>Spread type</span>
-          <select value={spreadType} onChange={(event) => onSpreadTypeChange(event.target.value)}>
+          <select
+            value={spreadType}
+            onChange={(event) => onSpreadTypeChange(event.target.value as SpreadType)}
+          >
             {spreadOptions.map((option) => (
               <option value={option.value} key={option.value}>{option.label}</option>
             ))}
@@ -55,7 +58,7 @@ function ReadingControls({
           <span>Include reversals</span>
         </label>
         <button className="primary-action" type="button" onClick={onDraw} disabled={isDrawing}>
-          {isDrawing ? 'Drawing...' : 'Draw three cards'}
+          {isDrawing ? 'Drawing...' : 'Draw cards'}
           <span aria-hidden="true">↗</span>
         </button>
       </div>

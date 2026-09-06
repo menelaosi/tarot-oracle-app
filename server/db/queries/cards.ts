@@ -68,5 +68,5 @@ export const selectRandomCards = `
   SELECT id, name, image_path
   FROM cards
   ORDER BY random()
-  LIMIT 3
+  LIMIT $1
 `;

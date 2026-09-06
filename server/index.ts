@@ -24,7 +24,12 @@ dotenv.config({ path: fileURLToPath(new URL('../.env', import.meta.url)) });
 
 const app = express();
 const port = Number(process.env.PORT ?? 3001);
-const positions = ['Past', 'Present', 'Future'] as const;
+const spreadDefinitions = {
+  three_card: { label: 'Past / Present / Future', positions: ['Past', 'Present', 'Future'] },
+  yes_no: { label: 'One-card Yes / No', positions: ['Answer'] },
+  mind_body_soul: { label: 'Mind / Body / Soul', positions: ['Mind', 'Body', 'Soul'] },
+} as const;
+type SpreadType = keyof typeof spreadDefinitions;
 
 const pool = process.env.DATABASE_URL
   ? new Pool({ connectionString: process.env.DATABASE_URL })
@@ -36,8 +41,35 @@ const pool = process.env.DATABASE_URL
 app.use(cors({ origin: process.env.CLIENT_ORIGIN ?? 'http://localhost:5173' }));
 app.use(express.json());
 
-function isThreeCardSpread(value: unknown): value is 'three_card' {
-  return value === 'three_card';
+function isSupportedSpread(value: unknown): value is SpreadType {
+  return typeof value === 'string' && value in spreadDefinitions;
+}
+
+function getSpreadInstructions(spreadType: SpreadType): string {
+  switch (spreadType) {
+    case 'yes_no':
+      return [
+        'This is a one-card Yes / No reading.',
+        "Answer the querent's question directly with Yes, No, or Unclear.",
+        "Follow the answer with a brief explanation grounded only in the card's supplied meaning, orientation, and correspondences.",
+        'Do not treat the answer as a guaranteed prediction; frame it as the tendency or guidance shown by the card.',
+        'Use the headings "Answer" and "Context".',
+      ].join(' ');
+    case 'mind_body_soul':
+      return [
+        'This is a three-card Mind / Body / Soul reading.',
+        'Interpret Mind as how the querent is thinking, their mental perspective, and the beliefs or ideas shaping the situation.',
+        'Interpret Body as how the querent is feeling in their embodied and emotional experience, without making medical claims.',
+        "Interpret Soul as the querent's spiritual state, inner meaning, and connection to purpose or intuition.",
+        'Clearly separate the Mind, Body, and Soul sections, then provide a synthesis connecting them.',
+      ].join(' ');
+    case 'three_card':
+      return [
+        'This is a three-card Past / Present / Future reading.',
+        'Interpret Past as relevant background and patterns, Present as the current energy or situation, and Future as the likely direction or advice suggested by the cards.',
+        'Clearly separate the Past, Present, and Future sections, then provide a synthesis connecting them.',
+      ].join(' ');
+  }
 }
 
 async function rollback(client: PoolClient) {
@@ -102,14 +134,14 @@ app.post('/api/readings/draw', async (request: Request, response: Response) => {
   const {
     spreadType = 'three_card',
     question,
-    includeReversals = true,
+    includeReversals = false,
   } = request.body as {
     spreadType?: unknown;
     question?: unknown;
     includeReversals?: unknown;
   };
 
-  if (!isThreeCardSpread(spreadType)) {
+  if (!isSupportedSpread(spreadType)) {
     response.status(400).json({ error: 'Unsupported spread type.' });
     return;
   }
@@ -134,8 +166,10 @@ app.post('/api/readings/draw', async (request: Request, response: Response) => {
     const reading = readingResult.rows[0];
     if (!reading) throw new Error('The reading was not created.');
 
+    const definition = spreadDefinitions[spreadType];
     const cardsResult = await client.query<{ id: number; name: string; image_path: string }>(
       selectRandomCards,
+      [definition.positions.length],
     );
 
     for (const [index, card] of cardsResult.rows.entries()) {
@@ -157,8 +191,9 @@ app.post('/api/readings/draw', async (request: Request, response: Response) => {
       question: reading.question,
       cards: result.rows.map((card) => ({
         ...card,
-        positionLabel: positions[card.position - 1],
+        positionLabel: definition.positions[card.position - 1],
       })),
+      spreadLabel: definition.label,
     });
   } catch (error) {
     await rollback(client);
@@ -178,14 +213,16 @@ app.post('/api/readings/:readingId/interpret', async (request: Request, response
       request.params.readingId,
     ]);
 
-    if (result.rows.length !== 3) {
+    const firstRow = result.rows[0];
+    const definition = firstRow ? spreadDefinitions[firstRow.spread_type] : null;
+    if (!firstRow || !definition || result.rows.length !== definition.positions.length) {
       response.status(404).json({ error: 'Reading not found.' });
       return;
     }
+    const spreadType = firstRow.spread_type;
 
-    const firstRow = result.rows[0];
     const databaseContext = result.rows.map((card) => ({
-      position: positions[card.position - 1],
+      position: definition.positions[card.position - 1],
       card: card.name,
       orientation: card.orientation,
       meaning: card.orientation === 'upright' ? card.meaning_upright : card.meaning_reversed,
@@ -210,8 +247,16 @@ app.post('/api/readings/:readingId/interpret', async (request: Request, response
     const message = await anthropic.messages.create({
       model: process.env.CLAUDE_MODEL ?? 'claude-sonnet-5',
       max_tokens: 1400,
-      system:
-        'You are a tarot interpreter. Use only the supplied database context. Do not use general tarot knowledge or invent meanings, correspondences, or facts. Synthesize the supplied meanings into a grounded, reflective reading. Clearly distinguish the three positions. Do not claim certainty or predict guaranteed events. Finish the reading with a complete synthesis and final thought.',
+      system: [
+        'You are a tarot interpreter.',
+        'Use only the supplied database context. Do not use general tarot knowledge or invent meanings, correspondences, or facts.',
+        "Answer the querent's question when one is provided. If no question is provided, interpret the spread as general guidance.",
+        'Use the supplied upright or reversed meaning that matches each card orientation.',
+        'Treat correspondences as supporting context, not as permission to introduce outside tarot knowledge.',
+        'Do not make medical, legal, financial, or guaranteed predictive claims.',
+        'Use Markdown headings and paragraphs. Finish with a complete synthesis and final thought.',
+        getSpreadInstructions(spreadType),
+      ].join(' '),
       messages: [
         {
           role: 'user',

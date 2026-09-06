@@ -1,4 +1,6 @@
-export type Position = 'Past' | 'Present' | 'Future';
+export type SpreadType = 'three_card' | 'yes_no' | 'mind_body_soul';
+
+export type Position = string;
 
 export type DrawnCard = {
   id: number
@@ -35,12 +37,13 @@ export type CardDetails = {
 
 export type Reading = {
   id: string
-  spreadType: 'three_card'
+  spreadType: SpreadType
+  spreadLabel: string
   question: string | null
   cards: DrawnCard[]
 };
 
 export type SpreadOption = {
-  value: Reading['spreadType']
+  value: SpreadType
   label: string
 };

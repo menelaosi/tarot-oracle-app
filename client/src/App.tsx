@@ -4,16 +4,18 @@ import Header from './components/Header';
 import Interpretation, { sampleInterpretation } from './components/Interpretation';
 import ReadingControls from './components/ReadingControls';
 import Spread from './components/Spread';
-import type { Reading, SpreadOption } from './types';
+import type { Reading, SpreadOption, SpreadType } from './types';
 
 const spreadOptions: SpreadOption[] = [
   { value: 'three_card', label: 'Past / Present / Future' },
+  { value: 'yes_no', label: 'One-card Yes / No' },
+  { value: 'mind_body_soul', label: 'Mind / Body / Soul' },
 ];
 
 function App() {
-  const [spreadType, setSpreadType] = useState('three_card');
+  const [spreadType, setSpreadType] = useState<SpreadType>('three_card');
   const [question, setQuestion] = useState('');
-  const [includeReversals, setIncludeReversals] = useState(true);
+  const [includeReversals, setIncludeReversals] = useState(false);
   const [reading, setReading] = useState<Reading | null>(null);
   const [interpretation, setInterpretation] = useState('');
   const [isDrawing, setIsDrawing] = useState(false);
