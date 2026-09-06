@@ -82,8 +82,8 @@ function TarotCard({ card }: TarotCardProps) {
       <h3>{card.name}</h3>
       {isDetailsVisible && (
         <div className="card-details" aria-live="polite">
-          {isLoadingDetails && <p className="details-status">Loading details...</p>}
-          {detailsError && <p className="details-status">{detailsError}</p>}
+          {isLoadingDetails && <p className="details-meta">Loading details...</p>}
+          {detailsError && <p className="details-meta">{detailsError}</p>}
           {details && (
             <>
               <DetailLine

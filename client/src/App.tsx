@@ -83,8 +83,8 @@ function App() {
         onDraw={drawCards}
       />
 
-      {(reading || interpretation) && (
-        <div className="reading-output">
+      <div className="workspace">
+        <div className="workspace-left">
           {reading && (
             <Spread
               reading={reading}
@@ -93,10 +93,13 @@ function App() {
               onShowSampleInterpretation={() => setInterpretation(sampleInterpretation)}
             />
           )}
+          {error && <p className="error-message" role="alert">{error}</p>}
         </div>
-      )}
-      {interpretation && <Interpretation text={interpretation} />}
-      {error && <p className="error-message" role="alert">{error}</p>}
+
+        <div className="workspace-right">
+          {interpretation && <Interpretation text={interpretation} />}
+        </div>
+      </div>
     </main>
   );
 }

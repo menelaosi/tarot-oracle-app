@@ -209,6 +209,7 @@ npm --prefix client run format:css
 
 - Add additional spreads including custom spreads
 - Add Oracle cards and meanings
+- Add additional language support starting with Brazilian Portuguese
 - Add reading history and retrieval
 - Add automated backend and frontend tests
 - Improve error handling and loading states
