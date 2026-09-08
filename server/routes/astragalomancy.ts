@@ -23,8 +23,6 @@ const router = Router();
 
 type Mode = 'standard' | 'zodiac';
 
-// The 12 faces of each zodiac die. Planets are the ten classical bodies plus the
-// two lunar nodes (Chiron / Lilith have no seeded keywords, so they're left off).
 const PLANET_FACES = [
   'sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter',
   'saturn', 'uranus', 'neptune', 'pluto', 'nnode', 'snode',
