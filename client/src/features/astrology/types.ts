@@ -69,6 +69,21 @@ export const SIGN_COLOR: Record<ZodiacSign, string> = {
   Pisces: '#4682B4',
 };
 
+export const SIGN_EMOJI: Record<ZodiacSign, string> = {
+  Aries: '♈',
+  Taurus: '♉',
+  Gemini: '♊',
+  Cancer: '♋',
+  Leo: '♌',
+  Virgo: '♍',
+  Libra: '♎',
+  Scorpio: '♏',
+  Sagittarius: '♐',
+  Capricorn: '♑',
+  Aquarius: '♒',
+  Pisces: '♓',
+};
+
 export const ZODIAC_SIGNS = [
   'Aries',
   'Taurus',

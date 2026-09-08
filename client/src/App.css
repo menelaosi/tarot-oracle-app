@@ -246,12 +246,17 @@ button:disabled {
 }
 
 .workspace-left {
+  display: flex;
+  flex-direction: column;
   flex: 1 1 0%;
   min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .workspace-right {
-  flex: 0 0 clamp(300px, 34%, 440px);
+  flex: 0 0 clamp(360px, 42%, 620px);
   min-width: 0;
   padding-left: 32px;
   overflow-y: auto;

@@ -1,17 +1,10 @@
 /* Astrology-only styles. Shared tokens, shell, typography, form fields, buttons,
    and the .workspace / .interpretation layout live in ../../App.css. */
 
-.astrology-section {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-  padding: 28px 0;
-}
-
+/* Mirrors tarot's .reading-controls so the view starts at the same height. */
 .birth-form {
   flex: 0 0 auto;
-  padding-bottom: 28px;
+  padding: 28px 0;
   border-bottom: 1px solid var(--line);
 }
 
@@ -74,28 +67,24 @@
   background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
-/* The left column is a flex column so the chart can adapt to the height left
-   over after the birth form, without the page scrolling. */
-.astrology-section .workspace-left {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
+/* .workspace-left is a flex column (App.css); the chart adapts to the height
+   left over after the birth form, without the page scrolling. Padding, heading
+   alignment, and the h2 margin are kept in step with .spread-section /
+   .spread-heading in tarot.css so both panels start at the same height. */
 .astrology-reading {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
-  padding: 6px 0 0;
+  padding: 18px 0 0;
 }
 
 .astrology-reading-heading {
   display: flex;
-  align-items: end;
-  justify-content: flex-end;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 20px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 /* The chart SVG fills the height left in the column after the button; its
@@ -108,12 +97,6 @@
   width: 100%;
   max-width: 640px;
   margin: 0;
-}
-
-/* Give the astrology reader more room than the tarot one (which keeps the
-   shared .workspace-right width from App.css). */
-.astrology-section .workspace-right {
-  flex-basis: clamp(360px, 42%, 620px);
 }
 
 @media (max-width: 720px) {

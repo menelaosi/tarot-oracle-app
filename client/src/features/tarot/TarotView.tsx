@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import WorkspaceLayout from '../../components/WorkspaceLayout';
 import { useRetainedState } from '../../hooks/useRetainedState';
-import './tarot.css';
-import Interpretation from '../../components/Interpretation';
+import { messageFrom } from '../../lib/http';
+import { drawReading, interpretReading, loadSpreads } from './api';
 import ReadingControls from './ReadingControls';
 import Spread from './Spread';
+import './tarot.css';
 import type { Reading, SpreadOption } from './types';
 
 function TarotView() {
@@ -24,20 +26,14 @@ function TarotView() {
 
   useEffect(() => {
     if (spreadOptions.length > 0) return; // already loaded (retained across mounts)
-    fetch('/api/spreads')
-      .then((response) => {
-        if (!response.ok) throw new Error('The spreads could not be loaded.');
-        return response.json() as Promise<SpreadOption[]>;
-      })
+    loadSpreads()
       .then((options) => {
         setSpreadOptions(options);
         if (!options.some((option) => option.id === spreadType)) {
           setSpreadType(options[0]?.id ?? '');
         }
       })
-      .catch((loadError: unknown) => {
-        setError(loadError instanceof Error ? loadError.message : 'Something went wrong.');
-      });
+      .catch((loadError: unknown) => setError(messageFrom(loadError)));
     // Runs once on mount; spreadType is only read to keep a still-valid selection.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -48,16 +44,9 @@ function TarotView() {
     setInterpretation('');
 
     try {
-      const response = await fetch('/api/readings/draw', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ spreadType, question, includeReversals }),
-      });
-
-      if (!response.ok) throw new Error('The cards could not be drawn.');
-      setReading((await response.json()) as Reading);
+      setReading(await drawReading({ spreadType, question, includeReversals }));
     } catch (drawError) {
-      setError(drawError instanceof Error ? drawError.message : 'Something went wrong.');
+      setError(messageFrom(drawError));
     } finally {
       setIsDrawing(false);
     }
@@ -70,63 +59,43 @@ function TarotView() {
     setError('');
 
     try {
-      const response = await fetch(`/api/readings/${reading.id}/interpret`, { method: 'POST' });
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(payload?.error ?? 'The interpretation could not be generated.');
-      }
-
-      const payload = (await response.json()) as { interpretation: string };
-      setInterpretation(payload.interpretation);
+      setInterpretation(await interpretReading(reading.id));
     } catch (interpretationError) {
-      setError(
-        interpretationError instanceof Error
-          ? interpretationError.message
-          : 'Something went wrong.',
-      );
+      setError(messageFrom(interpretationError));
     } finally {
       setIsInterpreting(false);
     }
   }
 
   return (
-    <>
-      <ReadingControls
-        spreadType={spreadType}
-        question={question}
-        includeReversals={includeReversals}
-        spreadOptions={spreadOptions}
-        isDrawing={isDrawing}
-        onSpreadTypeChange={setSpreadType}
-        onQuestionChange={setQuestion}
-        onIncludeReversalsChange={setIncludeReversals}
-        onDraw={drawCards}
-      />
-
-      <div className="workspace">
-        <div className="workspace-left">
-          {reading && (
-            <Spread
-              reading={reading}
-              includeReversals={includeReversals}
-              isInterpreting={isInterpreting}
-              onGenerateInterpretation={generateInterpretation}
-            />
-          )}
-          {error && (
-            <p className="error-message" role="alert">
-              {error}
-            </p>
-          )}
-        </div>
-
-        <div className="workspace-right">
-          {interpretation && (
-            <Interpretation title="What the pattern says" text={interpretation} />
-          )}
-        </div>
-      </div>
-    </>
+    <WorkspaceLayout
+      controls={
+        <ReadingControls
+          spreadType={spreadType}
+          question={question}
+          includeReversals={includeReversals}
+          spreadOptions={spreadOptions}
+          isDrawing={isDrawing}
+          onSpreadTypeChange={setSpreadType}
+          onQuestionChange={setQuestion}
+          onIncludeReversalsChange={setIncludeReversals}
+          onDraw={drawCards}
+        />
+      }
+      main={
+        reading ? (
+          <Spread
+            reading={reading}
+            includeReversals={includeReversals}
+            isInterpreting={isInterpreting}
+            onGenerateInterpretation={generateInterpretation}
+          />
+        ) : null
+      }
+      error={error}
+      interpretationTitle="What the pattern says"
+      interpretation={interpretation}
+    />
   );
 }
 

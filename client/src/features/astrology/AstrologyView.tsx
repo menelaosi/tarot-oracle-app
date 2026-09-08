@@ -1,8 +1,10 @@
 import type { Horoscope } from 'circular-natal-horoscope-js';
 import { useState } from 'react';
-import Interpretation from '../../components/Interpretation';
+import WorkspaceLayout from '../../components/WorkspaceLayout';
 import { useRetainedState } from '../../hooks/useRetainedState';
+import { messageFrom } from '../../lib/http';
 import './astrology.css';
+import { interpretChart } from './api';
 import AstrologyReading from './components/AstrologyReading';
 import BirthdayControl from './components/BirthdayControl';
 import { buildChartSummary } from './lib/chartSummary';
@@ -10,8 +12,6 @@ import type { Place } from './lib/geocode';
 import { getHoroscope } from './lib/horoscope';
 
 function AstrologyView() {
-  // Retained across tab switches so the cast chart and its analysis are still
-  // here when you come back.
   const [birthMoment, setBirthMoment] = useRetainedState('astrology:birthMoment', '');
   const [place, setPlace] = useRetainedState<Place | null>('astrology:place', null);
   const [horoscope, setHoroscope] = useRetainedState<Horoscope | null>('astrology:horoscope', null);
@@ -37,7 +37,7 @@ function AstrologyView() {
         }),
       );
     } catch (chartError) {
-      setError(chartError instanceof Error ? chartError.message : 'Could not build the chart.');
+      setError(messageFrom(chartError, 'Could not build the chart.'));
     }
   }
 
@@ -54,58 +54,38 @@ function AstrologyView() {
         longitude: place.longitude,
         placeLabel: place.label,
       });
-
-      const response = await fetch('/api/astrology/interpret', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chart }),
-      });
-
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(payload?.error ?? 'The analysis could not be generated.');
-      }
-
-      const payload = (await response.json()) as { interpretation: string };
-      setInterpretation(payload.interpretation);
+      setInterpretation(await interpretChart(chart));
     } catch (analysisError) {
-      setError(analysisError instanceof Error ? analysisError.message : 'Something went wrong.');
+      setError(messageFrom(analysisError));
     } finally {
       setIsAnalyzing(false);
     }
   }
 
   return (
-    <section className="astrology-section" aria-labelledby="astrology-title">
-      <BirthdayControl
-        birthMoment={birthMoment}
-        place={place}
-        onBirthMomentChange={setBirthMoment}
-        onPlaceChange={setPlace}
-        onCast={castChart}
-      />
-
-      <div className="workspace">
-        <div className="workspace-left">
-          {horoscope && (
-            <AstrologyReading
-              horoscope={horoscope}
-              isAnalyzing={isAnalyzing}
-              onAnalyze={analyzeChart}
-            />
-          )}
-          {error && (
-            <p className="error-message" role="alert">
-              {error}
-            </p>
-          )}
-        </div>
-
-        <div className="workspace-right">
-          {interpretation && <Interpretation title="What the chart says" text={interpretation} />}
-        </div>
-      </div>
-    </section>
+    <WorkspaceLayout
+      controls={
+        <BirthdayControl
+          birthMoment={birthMoment}
+          place={place}
+          onBirthMomentChange={setBirthMoment}
+          onPlaceChange={setPlace}
+          onCast={castChart}
+        />
+      }
+      main={
+        horoscope ? (
+          <AstrologyReading
+            horoscope={horoscope}
+            isAnalyzing={isAnalyzing}
+            onAnalyze={analyzeChart}
+          />
+        ) : null
+      }
+      error={error}
+      interpretationTitle="What the chart says"
+      interpretation={interpretation}
+    />
   );
 }
 

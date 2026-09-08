@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import ReadingPanel from '../../components/ReadingPanel';
 import TarotCard from './TarotCard';
 import type { Reading } from './types';
 
@@ -16,29 +16,22 @@ function Spread({
   onGenerateInterpretation,
 }: SpreadProps) {
   return (
-    <section className="spread-section" aria-labelledby="spread-title">
-      <div className="section-heading spread-heading">
-        <h2 id="spread-title">{reading.spreadLabel}</h2>
-        <span className="reading-id">Reading {reading.id.slice(0, 8)}</span>
-      </div>
-      <div
-        className="cards-grid"
-        style={{ '--card-columns': reading.cards.length } as CSSProperties}
-      >
+    <ReadingPanel
+      sectionClassName="spread-section"
+      headingClassName="spread-heading"
+      titleId="spread-title"
+      title={reading.spreadLabel}
+      onAnalyze={onGenerateInterpretation}
+      isAnalyzing={isInterpreting}
+      buttonText="Generate interpretation"
+      loadingButtonText="Consulting the record..."
+    >
+      <div className="cards-grid">
         {reading.cards.map((card) => (
           <TarotCard card={card} includeReversals={includeReversals} key={card.id} />
         ))}
       </div>
-      <button
-        className="secondary-action"
-        type="button"
-        onClick={onGenerateInterpretation}
-        disabled={isInterpreting}
-      >
-        {isInterpreting ? 'Consulting the record...' : 'Generate interpretation'}
-        <span aria-hidden="true">✦</span>
-      </button>
-    </section>
+    </ReadingPanel>
   );
 }
 
