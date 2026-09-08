@@ -1,5 +1,6 @@
-import ControlsSection from '../../components/ControlsSection';
-import type { SpreadOption } from './types';
+import ControlsSection from '../../../components/ControlsSection';
+import QuestionInput from '../../../components/QuestionInput';
+import type { SpreadOption } from '../types';
 
 type ReadingControlsProps = {
   spreadType: string;
@@ -49,17 +50,7 @@ function ReadingControls({
           ))}
         </select>
       </label>
-      <label className="question-field">
-        <span>
-          Question <em>optional</em>
-        </span>
-        <input
-          value={question}
-          onChange={(event) => onQuestionChange(event.target.value)}
-          placeholder="What wants your attention?"
-          maxLength={500}
-        />
-      </label>
+      <QuestionInput question={question} onQuestionChange={onQuestionChange} />
       <label className="checkbox-field">
         <input
           type="checkbox"

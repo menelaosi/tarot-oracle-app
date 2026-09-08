@@ -8,6 +8,7 @@ import TabNav from './components/TabNav';
 const TarotView = lazy(() => import('./features/tarot/TarotView'));
 const AstrologyView = lazy(() => import('./features/astrology/AstrologyView'));
 const TransitView = lazy(() => import('./features/astrology/TransitView'));
+const GreekOracleView = lazy(() => import('./features/greek-oracle/GreekOracleView'));
 
 // Masthead copy per section, keyed by pathname. Unknown paths (including "/"
 // before it redirects, and the "*" catch-all) fall back to Tarot.
@@ -23,6 +24,10 @@ const HEADERS: Record<string, { title: string; intro: string }> = {
   '/transits': {
     title: "Today's Transits",
     intro: 'See how the current sky moves across your natal chart',
+  },
+  '/greek-oracle': {
+    title: 'Greek Alphabet Oracle',
+    intro: 'Ask a question, draw a letter, and read what it says',
   },
 };
 
@@ -42,6 +47,7 @@ function App() {
           <Route path="/tarot" element={<TarotView />} />
           <Route path="/astrology" element={<AstrologyView />} />
           <Route path="/transits" element={<TransitView />} />
+          <Route path="/greek-oracle" element={<GreekOracleView />} />
           <Route path="*" element={<Navigate to="/tarot" replace />} />
         </Routes>
       </Suspense>

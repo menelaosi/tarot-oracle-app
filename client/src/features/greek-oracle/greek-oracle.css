@@ -1,0 +1,73 @@
+/* Greek Alphabet Oracle styles. Shared tokens, shell, the form/button
+   primitives, and the .workspace / .interpretation layout live in ../../App.css;
+   .reading-controls is shared with tarot. Imported by GreekOracleView. */
+
+.greek-controls-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto;
+  gap: 14px;
+  align-items: end;
+}
+
+/* Same column rhythm as .spread-section / .astrology-reading: fills the height
+   left after the controls so the panel's foot stays near the page bottom. */
+.letter-reading {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 18px 0 16px;
+}
+
+.letter-reading-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+/* The drawn letter, centred in whatever height the column has left. */
+.letter-stage {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.letter-disc {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  width: min(100%, 260px);
+  color: var(--ink);
+  background: color-mix(in srgb, var(--field-bg) 22%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+}
+
+.letter-disc span {
+  font-family: Newsreader, Georgia, serif;
+  font-size: clamp(72px, 22vh, 150px);
+  line-height: 1;
+}
+
+/* Centre the shared .detail-panel over the disc (like the tarot panel over the
+   card art). Anywhere below or beside it gets clipped by .workspace-left's
+   scroll area or the narrow column; its translucent, blurred background keeps
+   the letter readable behind the text. */
+.letter-disc-details {
+  top: 50%;
+  left: 50%;
+  width: min(360px, 92%);
+  margin-top: 0;
+  transform: translate(-50%, -50%);
+}
+
+@media (max-width: 720px) {
+  .greek-controls-grid {
+    grid-template-columns: 1fr;
+  }
+}

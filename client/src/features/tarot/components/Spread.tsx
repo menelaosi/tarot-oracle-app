@@ -1,6 +1,6 @@
-import ReadingPanel from '../../components/ReadingPanel';
+import ReadingPanel from '../../../components/ReadingPanel';
 import TarotCard from './TarotCard';
-import type { Reading } from './types';
+import type { Reading } from '../types';
 
 type SpreadProps = {
   reading: Reading;

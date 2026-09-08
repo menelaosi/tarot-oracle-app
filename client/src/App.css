@@ -353,6 +353,46 @@ button:disabled {
   border-top: 1px solid var(--line);
 }
 
+/* Hover / focus details panel (DetailOverlay) — tarot cards, the Greek oracle
+   letter. This is just the floating look; each feature positions the panel with
+   its own panelClassName. */
+.detail-overlay {
+  position: relative;
+}
+
+.detail-panel {
+  position: absolute;
+  z-index: 5;
+  top: 100%;
+  left: 0;
+  width: max(100%, 240px);
+  margin-top: 8px;
+  padding: 16px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  box-shadow: 0 16px 36px color-mix(in srgb, var(--shadow-popup) 55%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.detail-row {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.detail-row + .detail-row {
+  margin-top: 7px;
+}
+
+.detail-row-lead {
+  color: var(--ink);
+  font-family: Newsreader, Georgia, serif;
+  font-size: 17px;
+  line-height: 1.25;
+}
+
 @media (max-width: 720px) {
   .workspace {
     flex-direction: column;

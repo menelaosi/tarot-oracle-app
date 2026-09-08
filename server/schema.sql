@@ -189,4 +189,26 @@ CREATE TABLE IF NOT EXISTS astrology_transit_readings (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- ---------------------------------------------------------------------------
+-- Greek Alphabet Oracle: the 24 letters of the Olympian inscription (seeded
+-- from server/seed.sql) and the draw history.
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS greek_oracle_letters (
+    letter TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    position INTEGER NOT NULL UNIQUE CHECK (position BETWEEN 1 AND 24),
+    oracle TEXT NOT NULL,
+    meaning TEXT NOT NULL,
+    keywords TEXT[] NOT NULL DEFAULT '{}'
+);
+
+CREATE TABLE IF NOT EXISTS greek_oracle_readings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    question TEXT,
+    letter TEXT NOT NULL REFERENCES greek_oracle_letters(letter),
+    interpretation TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 COMMIT;

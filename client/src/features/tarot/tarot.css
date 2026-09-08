@@ -125,39 +125,14 @@
   transform: rotate(180deg);
 }
 
-.card-details {
-  position: absolute;
-  z-index: 5;
+/* Anchor the shared .detail-panel (App.css) inside the card, top-left, rather
+   than hanging below it. The panel's look comes from .detail-panel. */
+.tarot-card-details {
   top: 12px;
   left: 12px;
-  right: auto;
   width: max(calc(100% - 24px), 240px);
   min-height: 120px;
-  padding: 16px;
-  color: var(--ink);
-  background: color-mix(in srgb, var(--paper) 92%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 70%, transparent);
-  box-shadow: 0 16px 36px color-mix(in srgb, var(--shadow-popup) 55%, transparent);
-  backdrop-filter: blur(8px);
-}
-
-.details-meaning,
-.details-meta {
-  margin: 0;
-}
-
-.details-meaning {
-  color: var(--ink);
-  font-family: Newsreader, Georgia, serif;
-  font-size: 17px;
-  line-height: 1.25;
-}
-
-.details-meta {
-  margin-top: 7px;
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.45;
+  margin-top: 0;
 }
 
 @media (max-width: 720px) {

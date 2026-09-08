@@ -4,8 +4,8 @@ import WorkspaceLayout from '../../components/WorkspaceLayout';
 import { useBirthChart } from '../../hooks/useBirthChart';
 import { useRetainedState } from '../../hooks/useRetainedState';
 import { messageFrom } from '../../lib/http';
-import './astrology.css';
 import { interpretTransits } from './api';
+import './astrology.css';
 import TransitControl from './components/TransitControl';
 import TransitReading from './components/TransitReading';
 import { buildChartSummary } from './lib/chartSummary';
@@ -97,7 +97,8 @@ function TransitView() {
       const now = getHoroscope({ date: at, ...coords });
       const next = getHoroscope({ date: new Date(at.getTime() + DAY_MS), ...coords });
       const frame: TransitFrame = { at: at.toISOString(), date: day, location };
-      return { now, next, frame, summary: buildTransitSummary(natal, now, next, frame) };
+      const summary = buildTransitSummary(natal, now, next, frame);
+      return { now, next, frame, summary };
     } catch {
       return null;
     }

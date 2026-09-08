@@ -3,8 +3,8 @@ import WorkspaceLayout from '../../components/WorkspaceLayout';
 import { useRetainedState } from '../../hooks/useRetainedState';
 import { messageFrom } from '../../lib/http';
 import { drawReading, interpretReading, loadSpreads } from './api';
-import ReadingControls from './ReadingControls';
-import Spread from './Spread';
+import ReadingControls from './components/ReadingControls';
+import Spread from './components/Spread';
 import './tarot.css';
 import type { Reading, SpreadOption } from './types';
 
