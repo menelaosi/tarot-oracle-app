@@ -1,8 +1,18 @@
-/* Astrology-only styles. Shared tokens, shell, typography, form fields, and
-   .primary-action live in ../../App.css. */
+/* Astrology-only styles. Shared tokens, shell, typography, form fields, buttons,
+   and the .workspace / .interpretation layout live in ../../App.css. */
 
 .astrology-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 28px 0;
+}
+
+.birth-form {
+  flex: 0 0 auto;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--line);
 }
 
 .birth-grid {
@@ -64,25 +74,55 @@
   background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
-.astrology-chart {
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid var(--line);
+/* The left column is a flex column so the chart can adapt to the height left
+   over after the birth form, without the page scrolling. */
+.astrology-section .workspace-left {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
-.astrology-chart-note {
-  margin-top: 8px;
-  color: var(--muted);
-  font-size: 13px;
+.astrology-reading {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 6px 0 0;
 }
 
-.astrology-chart-note code {
-  color: var(--ink);
-  font-size: 0.9em;
+.astrology-reading-heading {
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
+  gap: 20px;
+  margin-bottom: 6px;
+}
+
+/* The chart SVG fills the height left in the column after the button; its
+   viewBox + preserveAspectRatio="xMinYMin meet" keep the wheel square and
+   anchored top-left, so it grows and shrinks with the window without scrolling. */
+.astrology-reading svg {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 640px;
+  margin: 0;
+}
+
+/* Give the astrology reader more room than the tarot one (which keeps the
+   shared .workspace-right width from App.css). */
+.astrology-section .workspace-right {
+  flex-basis: clamp(360px, 42%, 620px);
 }
 
 @media (max-width: 720px) {
   .birth-grid {
     grid-template-columns: 1fr;
+  }
+
+  .astrology-reading-heading {
+    flex-direction: column;
+    align-items: start;
   }
 }

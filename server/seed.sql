@@ -232,4 +232,95 @@ UPDATE cards SET meaning_upright='Efficiency, hard work, routine', meaning_rever
 UPDATE cards SET meaning_upright='Practicality, creature comforts, financial security', meaning_reversed='Work life imbalance, smothering, work without reward' WHERE name='Queen of Pentacles';
 UPDATE cards SET meaning_upright='Abundance, power, security', meaning_reversed='Greed, indulgence, sensuality' WHERE name='King of Pentacles';
 
+-- ---------------------------------------------------------------------------
+-- Astrology reference data (transcribed from Astrology.md). Rerunnable.
+-- ---------------------------------------------------------------------------
+
+INSERT INTO astrology_signs (key, name, glyph, modality, element, ruling_planet, keywords, associations) VALUES
+('aries','Aries','♈','cardinal','fire','mars',ARRAY['courage','leader','energetic','impulse'],ARRAY['Competitive actions','Extreme scenarios','High anxiety','Letting things go','Impulsivity','Intense reactions and situations']),
+('taurus','Taurus','♉','fixed','earth','venus',ARRAY['sensual','security','patient','practical'],ARRAY['Stubbornness','Sensitive nature','Sadness caused by others','Emotional release']),
+('gemini','Gemini','♊','mutable','air','mercury',ARRAY['curious','adaptable','restless'],ARRAY['Mischievous actions','Curious nature','Clever thoughts','Emotional maturity','Duality','Emotions over rationality']),
+('cancer','Cancer','♋','cardinal','water','moon',ARRAY['nurturing','sensitive','receptive'],ARRAY['Nurturing attitude','Heavy emotional outpours','Loyal nature','Craving attention','Lost friendships']),
+('leo','Leo','♌','fixed','fire','sun',ARRAY['warm','expressive','creative','shine'],ARRAY['Confidence','Stamina','Leadership','Pride','Being the center of attention']),
+('virgo','Virgo','♍','mutable','earth','mercury',ARRAY['ordered','precise','analytical'],ARRAY['Being alone','Cynical thoughts','Rational actions','Taking on too much']),
+('libra','Libra','♎','cardinal','air','venus',ARRAY['mediator','balance','art','beauty'],ARRAY['Finding peace amid chaos','Channeling good feelings','Achieving a balance in life','Harmony or the need to harmonize']),
+('scorpio','Scorpio','♏','fixed','water','pluto',ARRAY['depth','intensity','passion'],ARRAY['Power grabbing','Firm ideals','Secret emotions','Truth and honesty','Transformative abilities']),
+('sagittarius','Sagittarius','♐','mutable','fire','jupiter',ARRAY['travel','optimistic','blunt'],ARRAY['Optimistic goals and positivity','Adventure-seeking','Looking for peace','Exposing the truth']),
+('capricorn','Capricorn','♑','cardinal','earth','saturn',ARRAY['disciplined','ambitious','cautious'],ARRAY['Possessive tendencies','Controlling attitude','Aptitude for business','Isolation']),
+('aquarius','Aquarius','♒','fixed','air','uranus',ARRAY['humanitarian','inventive','individual'],ARRAY['Longing for communication','Uncontrollable stress or anxiety','Self-evaluation and introspection','Unknown future events']),
+('pisces','Pisces','♓','mutable','water','neptune',ARRAY['dreamer','imaginative','compassion'],ARRAY['Sympathetic motives','Dishonest friends','Escaping reality','Innocent nature'])
+ON CONFLICT (key) DO UPDATE SET name=EXCLUDED.name, glyph=EXCLUDED.glyph, modality=EXCLUDED.modality, element=EXCLUDED.element, ruling_planet=EXCLUDED.ruling_planet, keywords=EXCLUDED.keywords, associations=EXCLUDED.associations;
+
+INSERT INTO astrology_planets (key, name, glyph, keywords, associations) VALUES
+('sun','Sun','☉',ARRAY['vitality','ego','consciousness'],ARRAY['Feelings of authority','Father figures','The ego','Inner self','Vital force','Staying power','Origination']),
+('moon','Moon','☽',ARRAY['emotions','instincts','nurturing'],ARRAY['Instinctual impulses','Health of your emotions','The unconscious mind','Natural rhythms','Habitual patterns']),
+('mercury','Mercury','☿',ARRAY['communication','intellect','logic'],ARRAY['Use of language','Conveying information (verbal and non-verbal)','Brilliance of the mind','Use of reason and intelligence']),
+('venus','Venus','♀',ARRAY['relationships','love','beauty','art'],ARRAY['Physical and mental attractions','True love','Inner beauty','Artistic harmony']),
+('mars','Mars','♂',ARRAY['desire','drive','action','aggression'],ARRAY['Competitive forces','Aggressive acts','Craving','Sex','Courageous attitudes']),
+('jupiter','Jupiter','♃',ARRAY['abundance','luck','excess','prosperity'],ARRAY['An optimistic attitude','Spiritual expansion','Inner growth','Abundant luck','Sympathy and understanding']),
+('saturn','Saturn','♄',ARRAY['structure','authority','boundaries','discipline'],ARRAY['Responsible acts','Aspiration or ambition','Indebtedness or obligation','Rule of law']),
+('uranus','Uranus','♅',ARRAY['freedom','liberation','science'],ARRAY['Reforming old habits','Drastic change','Chaotic feelings','Inspiring acts','Rebellious nature']),
+('neptune','Neptune','♆',ARRAY['dreams','intuition','illusion','hidden','fantasy'],ARRAY['Imaginary insights','Predictions','Dream states','Instinctive knowledge and psychic ability','Spirituality and mysticism','Delusions']),
+('pluto','Pluto','♇',ARRAY['transformation','death','depth','power'],ARRAY['Extreme power','Transformative acts','Reborn faith','Modifying lifestyle','Death','Evolution']),
+('nnode','North Node','☊',ARRAY['destiny','fate','lessons'],ARRAY['The road ahead','Future knowledge and lessons that must be learned','Rational and irrational fear including of the unknown','Destiny and fate']),
+('snode','South Node','☋',ARRAY['past','karma','release'],ARRAY['Cosmic past','Spiritual misgivings','Examining past mistakes','Karmic baggage']),
+('chiron','Chiron','⚷',ARRAY[]::TEXT[],ARRAY[]::TEXT[]),
+('lilith','Lilith','⚸',ARRAY[]::TEXT[],ARRAY[]::TEXT[])
+ON CONFLICT (key) DO UPDATE SET name=EXCLUDED.name, glyph=EXCLUDED.glyph, keywords=EXCLUDED.keywords, associations=EXCLUDED.associations;
+
+INSERT INTO astrology_houses (number, name, keywords, associations) VALUES
+(1,'1st House',ARRAY['self','beginnings','appearance','body','identity','character'],ARRAY['Outer beauty and how you look','Intimate details of your personal life','Second chances or new beginnings','Warnings of future mishaps or accidents']),
+(2,'2nd House',ARRAY['money','finances','values','possessions','income'],ARRAY['Drastic financial changes either good or bad','Destitution or poverty','Riches or wealth','Material needs','Pilfered or lost possessions','Business transactions']),
+(3,'3rd House',ARRAY['early education','short trips','neighbors','communication','siblings','errands'],ARRAY['Family, siblings, people tied to your blood and location','Need to venture to new places','School and education especially early childhood education','Expecting correspondence from unlikely places','Warns of future gossip, ridicule, or harassment from unknown sources']),
+(4,'4th House',ARRAY['home','roots','family','private life','property','parents'],ARRAY['Bond between you and your parents or parental figures','Signals that you question your domestic situation','Possible land acquisition or inheritance','Endings of any situation']),
+(5,'5th House',ARRAY['children','creativity','sex','romance','play','self-expression'],ARRAY['Displays romantic love','The joys of children','Length of pregnancy','Creative nature','Rain','Water','Education','Gambling','Hobbies']),
+(6,'6th House',ARRAY['injuries','health','work','coworkers','service','daily routines','self-improvement','fitness'],ARRAY['Signifies the condition of your pets, co-workers, and subordinates','Hygienic routines','Specific details related to your health','Injuries']),
+(7,'7th House',ARRAY['relationships','marriage','partnerships','contracts'],ARRAY['Personal and business-related relationships in your life','Could signify an upcoming court case','Marriage separation','Surprising new friends','Antagonizing competitor','New contract on the horizon']),
+(8,'8th House',ARRAY['sudden losses','inheritance','death','shared finances','regeneration','secrets','debt'],ARRAY['Ominous signs of death','Revitalization','Black magic or the occult','Uncollected taxes','Unpaid debts','Potential dangers','Criminal and civil investigations','Long suffering']),
+(9,'9th House',ARRAY['higher education','foreign travel','philosophy','law and religion','foreigners','publishing','ethics'],ARRAY['Vital to astrologers','Successful divination','Religious virtues','Philosophical pursuits','Artistic talent','Writing competence']),
+(10,'10th House',ARRAY['career','reputation','long-term goals','public image','superiors','status'],ARRAY['Involves your future success','Personal wealth','Attaining glory','Improving your reputation','Environmental awareness']),
+(11,'11th House',ARRAY['friends','networking','dreams','hopes','alliances','groups','humanitarianism','technology'],ARRAY['Focused on the value of good luck','Involves strangers becoming friends','New-found wealth','Surprise presents and money','True faith in improvement']),
+(12,'12th House',ARRAY['endings','healing','loss','sickness','confinement','hidden enemies','solitude','subconscious','closure','spirituality'],ARRAY['Worst elements of humankind','Crippling addictions','Violent death','Extreme loss and pain','Suicidal tendencies','Secret thoughts','Solitude'])
+ON CONFLICT (number) DO UPDATE SET name=EXCLUDED.name, keywords=EXCLUDED.keywords, associations=EXCLUDED.associations;
+
+INSERT INTO astrology_aspects (key, name, glyph, angle, meaning) VALUES
+('conjunction','Conjunction','☌',0,'conflict / contradicting'),
+('sextile','Sextile','⚹',60,'blended / integrated energies'),
+('trine','Trine','△',120,'natural flowing energy'),
+('square','Square','□',90,'friction / tension'),
+('opposition','Opposition','☍',180,'harmonious')
+ON CONFLICT (key) DO UPDATE SET name=EXCLUDED.name, glyph=EXCLUDED.glyph, angle=EXCLUDED.angle, meaning=EXCLUDED.meaning;
+
+INSERT INTO astrology_dignities (planet_key, sign_key, dignity) VALUES
+('sun','leo','rulership'),('moon','cancer','rulership'),('mercury','gemini','rulership'),('mercury','virgo','rulership'),
+('venus','taurus','rulership'),('venus','libra','rulership'),('mars','aries','rulership'),('mars','scorpio','rulership'),
+('jupiter','sagittarius','rulership'),('jupiter','pisces','rulership'),('saturn','capricorn','rulership'),('saturn','aquarius','rulership'),
+('sun','aquarius','detriment'),('moon','capricorn','detriment'),('mercury','sagittarius','detriment'),('mercury','pisces','detriment'),
+('venus','aries','detriment'),('venus','scorpio','detriment'),('mars','libra','detriment'),('mars','taurus','detriment'),
+('jupiter','gemini','detriment'),('jupiter','virgo','detriment'),('saturn','cancer','detriment'),('saturn','leo','detriment'),
+('sun','aries','exaltation'),('moon','taurus','exaltation'),('mercury','virgo','exaltation'),('venus','pisces','exaltation'),
+('mars','capricorn','exaltation'),('jupiter','cancer','exaltation'),('saturn','libra','exaltation'),
+('sun','libra','fall'),('moon','scorpio','fall'),('mercury','pisces','fall'),('venus','virgo','fall'),
+('mars','cancer','fall'),('jupiter','capricorn','fall'),('saturn','aries','fall')
+ON CONFLICT (planet_key, sign_key, dignity) DO NOTHING;
+
+INSERT INTO astrology_modalities (key, name, keywords, signs) VALUES
+('cardinal','Cardinal',ARRAY['Create','take action','initiate relationships'],ARRAY['capricorn','libra','cancer','aries']),
+('fixed','Fixed',ARRAY['Build','maintain','control'],ARRAY['taurus','aquarius','scorpio','leo']),
+('mutable','Mutable',ARRAY['Adapt','organize','change/transform'],ARRAY['virgo','gemini','pisces','sagittarius'])
+ON CONFLICT (key) DO UPDATE SET name=EXCLUDED.name, keywords=EXCLUDED.keywords, signs=EXCLUDED.signs;
+
+INSERT INTO astrology_elements (key, name, keywords, signs) VALUES
+('earth','Earth',ARRAY['Sensation','security','managing reality'],ARRAY['capricorn','taurus','virgo']),
+('air','Air',ARRAY['Thought','communication','social interaction'],ARRAY['libra','aquarius','gemini']),
+('water','Water',ARRAY['Emotion','response','instinctual depth'],ARRAY['cancer','scorpio','pisces']),
+('fire','Fire',ARRAY['Intuition','ego recognition','possibility'],ARRAY['aries','leo','sagittarius'])
+ON CONFLICT (key) DO UPDATE SET name=EXCLUDED.name, keywords=EXCLUDED.keywords, signs=EXCLUDED.signs;
+
+INSERT INTO astrology_reference_notes (key, title, body) VALUES
+('angles','Angles & Elements','ASC: Ascendant. DSC: Descendant. MC: Midheaven. IC: Imum Coeli.'),
+('critical_degrees','Critical Degrees','Cardinal signs: 0, 13, 26. Fixed signs: 8-9, 21-22. Mutable signs: 4, 17. All signs: 0 and 29 are critical degrees.'),
+('degree_theory','Nikola Stojanovic Degree Theory','Degrees carry the flavour of a sign regardless of the sign a planet is actually in. 1, 13, 25 = Aries. 2, 14, 26 = Taurus. 3, 15, 27 = Gemini. 4, 16, 28 = Cancer. 5, 17, 29 = Leo. 6, 18 = Virgo. 7, 19 = Libra. 8, 20 = Scorpio. 9, 21 = Sagittarius. 10, 22 = Capricorn. 11, 23 = Aquarius. 12, 24 = Pisces. 0 = the truest expression of the sign it is in.')
+ON CONFLICT (key) DO UPDATE SET title=EXCLUDED.title, body=EXCLUDED.body;
+
 COMMIT;

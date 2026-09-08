@@ -1,10 +1,15 @@
-function Header() {
+interface HeaderProps {
+  title: string;
+  intro: string;
+}
+
+function Header({ title, intro }: HeaderProps) {
   return (
     <header className="masthead">
       <div>
-        <h1>Tarot Reader LLM</h1>
+        <h1>{title} LLM</h1>
         <p className="intro">
-          Draw a small spread to let the cards make a pattern. Every interpretation is grounded from
+          {intro}. You can then ask for an interpretation, grounded from
           curated meanings and interpreted by Claude.
         </p>
       </div>

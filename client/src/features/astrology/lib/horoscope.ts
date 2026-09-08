@@ -57,6 +57,21 @@ export function getHoroscope(birth: BirthDetails): Horoscope {
   });
 }
 
+// circular-natal-horoscope-js splits its results: the Sun through Pluto plus
+// Chiron live in CelestialBodies, while the lunar node and Lilith are in
+// CelestialPoints under their own key names.
+const CELESTIAL_POINT_KEY: Partial<Record<Planet, string>> = {
+  [Planet.NorthNode]: 'northnode',
+};
+
+/** The raw library object for a planet/point, from whichever collection holds it. */
+export function getCelestialBody(horoscope: Horoscope, planet: Planet) {
+  return (
+    horoscope?.CelestialBodies?.[planet] ??
+    horoscope?.CelestialPoints?.[CELESTIAL_POINT_KEY[planet] ?? planet]
+  );
+}
+
 export const WHITE = '#ffffff'; // BACKGROUND_RULER
 export const DARK_GRAY = '#333333'; // LINE_COLOR AND CIRCLE_COLOR AND SYMBOL_AXIS_FONT_COLOR
 export const LIGHT_GRAY = '#d8dae6'; // marks in the margin, outside the white wheel, on the dark page

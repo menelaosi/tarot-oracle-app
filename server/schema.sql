@@ -94,4 +94,80 @@ ALTER TABLE major_arcana_correspondences
 ALTER TABLE major_arcana_correspondences
     ADD COLUMN IF NOT EXISTS core_theme TEXT;
 
+-- ---------------------------------------------------------------------------
+-- Astrology reference data (seeded from server/seed.sql) and chart history.
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS astrology_signs (
+    key TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    glyph TEXT NOT NULL,
+    modality TEXT NOT NULL CHECK (modality IN ('cardinal', 'fixed', 'mutable')),
+    element TEXT NOT NULL CHECK (element IN ('fire', 'earth', 'air', 'water')),
+    ruling_planet TEXT NOT NULL,
+    keywords TEXT[] NOT NULL DEFAULT '{}',
+    associations TEXT[] NOT NULL DEFAULT '{}'
+);
+
+CREATE TABLE IF NOT EXISTS astrology_planets (
+    key TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    glyph TEXT NOT NULL,
+    keywords TEXT[] NOT NULL DEFAULT '{}',
+    associations TEXT[] NOT NULL DEFAULT '{}'
+);
+
+CREATE TABLE IF NOT EXISTS astrology_houses (
+    number INTEGER PRIMARY KEY CHECK (number BETWEEN 1 AND 12),
+    name TEXT NOT NULL,
+    keywords TEXT[] NOT NULL DEFAULT '{}',
+    associations TEXT[] NOT NULL DEFAULT '{}'
+);
+
+CREATE TABLE IF NOT EXISTS astrology_aspects (
+    key TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    glyph TEXT NOT NULL,
+    angle INTEGER NOT NULL,
+    meaning TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS astrology_dignities (
+    planet_key TEXT NOT NULL,
+    sign_key TEXT NOT NULL,
+    dignity TEXT NOT NULL CHECK (dignity IN ('rulership', 'detriment', 'exaltation', 'fall')),
+    PRIMARY KEY (planet_key, sign_key, dignity)
+);
+
+CREATE TABLE IF NOT EXISTS astrology_modalities (
+    key TEXT PRIMARY KEY CHECK (key IN ('cardinal', 'fixed', 'mutable')),
+    name TEXT NOT NULL,
+    keywords TEXT[] NOT NULL DEFAULT '{}',
+    signs TEXT[] NOT NULL DEFAULT '{}'
+);
+
+CREATE TABLE IF NOT EXISTS astrology_elements (
+    key TEXT PRIMARY KEY CHECK (key IN ('fire', 'earth', 'air', 'water')),
+    name TEXT NOT NULL,
+    keywords TEXT[] NOT NULL DEFAULT '{}',
+    signs TEXT[] NOT NULL DEFAULT '{}'
+);
+
+CREATE TABLE IF NOT EXISTS astrology_reference_notes (
+    key TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS astrology_readings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    birth_datetime TEXT NOT NULL,
+    latitude DOUBLE PRECISION NOT NULL,
+    longitude DOUBLE PRECISION NOT NULL,
+    place_label TEXT,
+    summary JSONB NOT NULL,
+    interpretation TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 COMMIT;

@@ -236,7 +236,135 @@ button:disabled {
   text-transform: uppercase;
 }
 
+/* Two-column workspace: subject on the left, scrolling Claude reading on the
+   right. Shared by the Tarot and Astrology views. */
+.workspace {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 40px;
+}
+
+.workspace-left {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.workspace-right {
+  flex: 0 0 clamp(300px, 34%, 440px);
+  min-width: 0;
+  padding-left: 32px;
+  overflow-y: auto;
+  border-left: 1px solid var(--line);
+  scrollbar-color: var(--accent) transparent;
+  scrollbar-width: thin;
+}
+
+.workspace-right::-webkit-scrollbar {
+  width: 8px;
+}
+
+.workspace-right::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.workspace-right::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 4px;
+}
+
+.workspace-right::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-light);
+}
+
+.secondary-action {
+  min-width: 220px;
+  color: var(--accent);
+  background: transparent;
+  border-color: var(--accent);
+}
+
+.secondary-action:hover {
+  color: var(--ink-inverse);
+  background: var(--accent);
+}
+
+.interpretation {
+  padding: 28px 0;
+  max-width: 900px;
+}
+
+.interpretation-copy {
+  margin-top: 24px;
+  color: var(--copy);
+  font-family: Newsreader, Georgia, serif;
+  font-size: 22px;
+  line-height: 1.45;
+}
+
+.interpretation-copy h1,
+.interpretation-copy h2,
+.interpretation-copy h3 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  letter-spacing: 0;
+}
+
+.interpretation-copy h1 {
+  max-width: none;
+  line-height: 1.1;
+}
+
+.interpretation-copy h2 {
+  line-height: 1.15;
+}
+
+.interpretation-copy h3 {
+  line-height: 1.2;
+}
+
+.interpretation-copy h1:first-child,
+.interpretation-copy h2:first-child,
+.interpretation-copy h3:first-child {
+  margin-top: 0;
+}
+
+.interpretation-copy p {
+  margin: 0 0 1.15em;
+}
+
+.interpretation-copy strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.interpretation-copy em {
+  color: var(--accent);
+}
+
+.interpretation-copy hr {
+  margin: 1.5em 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
 @media (max-width: 720px) {
+  .workspace {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .workspace-right {
+    flex: 1 1 auto;
+    padding-left: 0;
+    overflow-y: visible;
+    border-left: none;
+  }
+
+  .secondary-action {
+    width: 100%;
+  }
+
   .app-shell {
     height: auto;
     padding-top: 28px;

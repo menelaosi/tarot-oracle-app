@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { HttpError } from './lib/http-error.js';
+import astrologyRouter from './routes/astrology.js';
 import cardsRouter from './routes/cards.js';
 import readingsRouter from './routes/readings.js';
 import { spreadList } from './spreads.js';
@@ -20,6 +21,7 @@ app.get('/api/spreads', (_request, response) => {
 
 app.use('/api/cards', cardsRouter);
 app.use('/api/readings', readingsRouter);
+app.use('/api/astrology', astrologyRouter);
 
 app.use((err: unknown, _request: Request, response: Response, _next: NextFunction) => {
   if (err instanceof HttpError) {

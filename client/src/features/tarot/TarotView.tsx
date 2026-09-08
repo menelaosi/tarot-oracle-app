@@ -1,22 +1,29 @@
 import { useEffect, useState } from 'react';
+import { useRetainedState } from '../../hooks/useRetainedState';
 import './tarot.css';
-import Interpretation from './Interpretation';
+import Interpretation from '../../components/Interpretation';
 import ReadingControls from './ReadingControls';
 import Spread from './Spread';
 import type { Reading, SpreadOption } from './types';
 
 function TarotView() {
-  const [spreadOptions, setSpreadOptions] = useState<SpreadOption[]>([]);
-  const [spreadType, setSpreadType] = useState('three_card');
-  const [question, setQuestion] = useState('');
-  const [includeReversals, setIncludeReversals] = useState(false);
-  const [reading, setReading] = useState<Reading | null>(null);
-  const [interpretation, setInterpretation] = useState('');
+  // Retained across tab switches so the drawn spread and its interpretation are
+  // still here when you come back.
+  const [spreadOptions, setSpreadOptions] = useRetainedState<SpreadOption[]>(
+    'tarot:spreadOptions',
+    [],
+  );
+  const [spreadType, setSpreadType] = useRetainedState('tarot:spreadType', 'three_card');
+  const [question, setQuestion] = useRetainedState('tarot:question', '');
+  const [includeReversals, setIncludeReversals] = useRetainedState('tarot:includeReversals', false);
+  const [reading, setReading] = useRetainedState<Reading | null>('tarot:reading', null);
+  const [interpretation, setInterpretation] = useRetainedState('tarot:interpretation', '');
   const [isDrawing, setIsDrawing] = useState(false);
   const [isInterpreting, setIsInterpreting] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (spreadOptions.length > 0) return; // already loaded (retained across mounts)
     fetch('/api/spreads')
       .then((response) => {
         if (!response.ok) throw new Error('The spreads could not be loaded.');
@@ -114,7 +121,9 @@ function TarotView() {
         </div>
 
         <div className="workspace-right">
-          {interpretation && <Interpretation text={interpretation} />}
+          {interpretation && (
+            <Interpretation title="What the pattern says" text={interpretation} />
+          )}
         </div>
       </div>
     </>

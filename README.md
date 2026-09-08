@@ -14,6 +14,7 @@ Card meanings and correspondences (suit, numerology, court rank, and Major Arcan
 - Generate database-grounded, personally-addressed interpretations with Claude
 - Preview sample Markdown interpretation text without making an API call
 - Render Claude's Markdown with `react-markdown`
+- Cast a natal chart from a birth date, time, and place (computed in the browser), then have Claude analyze it against seeded astrology reference data (planets, signs, houses, aspects, dignities, modalities, elements)
 
 ## Project Structure
 
@@ -25,7 +26,9 @@ server/   Express and TypeScript backend
 Important files:
 
 - `server/schema.sql`: PostgreSQL table definitions
-- `server/seed.sql`: tarot cards, meanings, and correspondences
+- `server/seed.sql`: tarot cards, meanings, and correspondences; astrology reference data (transcribed from `Astrology.md`)
+- `server/routes/astrology.ts`, `server/db/queries/astrology.ts`: the `POST /api/astrology/interpret` handler and its reference-data queries
+- `client/src/features/astrology/`: the natal chart feature — `AstrologyView` (state), the SVG chart components, and `lib/chartSummary.ts` (flattens the horoscope for the API)
 - `server/index.ts`: process entrypoint — loads env, then starts the Express app
 - `server/app.ts`: Express app assembly — middleware, routes, centralized error handling
 - `server/routes/cards.ts`, `server/routes/readings.ts`: route handlers, one file per resource
@@ -166,6 +169,14 @@ POST /api/readings/:readingId/interpret
 ```
 
 Loads the reading's cards and their stored meanings, suit data, numerology, court-card data, and Major Arcana correspondences, then asks Claude to interpret them using only that context — addressing the reader directly in the second person rather than describing them in the third person. The spread-specific instructions (opening framing, per-position guidance, and, for multi-card spreads, the closing synthesis prompt) are generated from `server/spreads.ts`. Requires `ANTHROPIC_API_KEY`.
+
+### Analyze a birth chart
+
+```text
+POST /api/astrology/interpret
+```
+
+Body: `{ "chart": ChartSummary }`, where the chart summary is built in the browser from the computed horoscope (`client/src/features/astrology/lib/chartSummary.ts`) — planet placements (sign, house, degree, retrograde), the four angles, and the major aspects. The whole seeded reference library (`astrology_signs`, `astrology_planets`, `astrology_houses`, `astrology_aspects`, `astrology_dignities`, `astrology_modalities`, `astrology_elements`, `astrology_reference_notes`) is rendered into a **cached** system prefix (`cache_control: ephemeral`); only the chart itself varies per request. Claude reads the chart against that reference in the second person. Because a birth chart is deterministic, an identical chart is served from its stored `astrology_readings` row (`{ "reused": true }`) without a new generation; otherwise a new row is written. Returns `{ "interpretation": "...markdown..." }`. Requires `ANTHROPIC_API_KEY`.
 
 ## Validation
 

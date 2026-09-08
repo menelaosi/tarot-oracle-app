@@ -1,5 +1,5 @@
 import { Horoscope } from 'circular-natal-horoscope-js';
-import { COLLISION_RADIUS, FULL_CIRCLE, INDOOR_CIRCLE_RADIUS_RATIO, INNER_CIRCLE_RADIUS_RATIO, MARGIN, PADDING, RULER_RADIUS, assembleLocatedPoints, getPointPosition } from '../lib/horoscope';
+import { COLLISION_RADIUS, FULL_CIRCLE, INDOOR_CIRCLE_RADIUS_RATIO, INNER_CIRCLE_RADIUS_RATIO, MARGIN, PADDING, RULER_RADIUS, assembleLocatedPoints, getCelestialBody, getPointPosition } from '../lib/horoscope';
 import type { CelestialBodyPosition, LocatedPoint, Point } from '../types';
 import { Planet } from '../types';
 import AstrologyAxis from './AstrologyAxis';
@@ -22,18 +22,6 @@ interface Cusp {
       Horizon: { DecimalDegrees: number; },
     },
   };
-}
-
-// circular-natal-horoscope-js splits its results: the Sun through Pluto plus
-// Chiron live in CelestialBodies, while the lunar node and Lilith are in
-// CelestialPoints under their own key names.
-const CELESTIAL_POINT_KEY: Partial<Record<Planet, string>> = {
-  [Planet.NorthNode]: 'northnode',
-};
-
-function getCelestialBody(horoscope: Horoscope, planet: Planet) {
-  return horoscope?.CelestialBodies?.[planet]
-    ?? horoscope?.CelestialPoints?.[CELESTIAL_POINT_KEY[planet] ?? planet];
 }
 
 function getCelestialBodyPositions(horoscope: Horoscope): Record<Planet, CelestialBodyPosition | undefined> {
@@ -131,9 +119,8 @@ function AstrologyChart({ horoscope, height = 800, width = 800 }: AstrologyChart
   return (
     <svg
       id='chart'
-      height={height}
-      width={width}
       viewBox={`0 0 ${height} ${width}`}
+      preserveAspectRatio='xMinYMin meet'
     >
       <g id='aspects' />
       <g id='radix'>
