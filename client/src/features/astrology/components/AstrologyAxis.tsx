@@ -1,0 +1,47 @@
+import { INNER_CIRCLE_RADIUS_RATIO, LIGHT_GRAY, SYMBOL_AXIS_STROKE, getPointPosition } from '../lib/horoscope';
+import { Axis, type Point } from '../types';
+import AstrologyLine from './AstrologySymbols/AstrologyLine';
+import AxisGlyph from './AstrologySymbols/AxisGlyph';
+
+interface AstrologyAxisProps {
+  readonly point: Point;
+  readonly radius: number;
+  readonly cuspPositions: number[];
+  readonly shift: number;
+}
+
+/** The four angles drawn, in cusp order, with how far past the wheel their label sits. */
+const AXES: readonly { axis: Axis; labelOffset: number }[] = [
+  { axis: Axis.Ascendant, labelOffset: 20 },
+  { axis: Axis.ImmumCoeli, labelOffset: 2 },
+  { axis: Axis.Descendant, labelOffset: 10 },
+  { axis: Axis.Midheaven, labelOffset: 10 },
+];
+
+function AstrologyAxis({ point, radius, cuspPositions, shift }: AstrologyAxisProps) {
+  const axisRadius = radius + (radius / INNER_CIRCLE_RADIUS_RATIO / 4);
+
+  return (
+    <g>
+      {AXES.map(({ axis, labelOffset }) => {
+        const shiftPosition = cuspPositions[axis] + shift;
+        return (
+          <g key={axis}>
+            <AstrologyLine
+              startingPoint={getPointPosition(point, radius, shiftPosition)}
+              endingPoint={getPointPosition(point, axisRadius, shiftPosition)}
+              stroke={LIGHT_GRAY}
+              strokeWidth={SYMBOL_AXIS_STROKE}
+            />
+            <AxisGlyph
+              axis={axis}
+              point={getPointPosition(point, axisRadius + labelOffset, shiftPosition)}
+            />
+          </g>
+        );
+      })}
+    </g>
+  );
+}
+
+export default AstrologyAxis;

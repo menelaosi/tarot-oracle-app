@@ -1,0 +1,24 @@
+import { POINTS_STROKE } from '../../lib/horoscope';
+import type { Point, ZodiacSign } from '../../types';
+import { SIGN_COLOR } from '../../types';
+import Glyph from './Glyph';
+import { ZODIAC_GLYPHS } from './glyphs/zodiacGlyphs';
+
+interface ZodiacGlyphProps {
+  readonly sign: ZodiacSign;
+  readonly point: Point;
+}
+
+/** Draws a zodiac sign glyph in its sign colour at the given anchor point. */
+function ZodiacGlyph({ sign, point }: ZodiacGlyphProps) {
+  return (
+    <Glyph
+      point={point}
+      spec={ZODIAC_GLYPHS[sign]}
+      stroke={SIGN_COLOR[sign]}
+      strokeWidth={POINTS_STROKE}
+    />
+  );
+}
+
+export default ZodiacGlyph;

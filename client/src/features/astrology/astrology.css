@@ -1,0 +1,88 @@
+/* Astrology-only styles. Shared tokens, shell, typography, form fields, and
+   .primary-action live in ../../App.css. */
+
+.astrology-section {
+  padding: 28px 0;
+}
+
+.birth-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(240px, 1.6fr) auto;
+  gap: 14px;
+  align-items: end;
+}
+
+.birth-grid input[type='datetime-local']::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.8);
+}
+
+.place-search {
+  position: relative;
+}
+
+.place-search-status {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  color: var(--hint);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.place-search-list {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: color-mix(in srgb, var(--paper) 96%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  box-shadow: 0 16px 36px color-mix(in srgb, var(--shadow-popup) 55%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.place-search-list button {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  color: var(--copy);
+  background: transparent;
+  border: 0;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.place-search-list button:hover {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.astrology-chart {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.astrology-chart-note {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.astrology-chart-note code {
+  color: var(--ink);
+  font-size: 0.9em;
+}
+
+@media (max-width: 720px) {
+  .birth-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,7 +1,7 @@
 import Markdown from 'react-markdown';
 
 type InterpretationProps = {
-  text: string
+  text: string;
 };
 
 function Interpretation({ text }: InterpretationProps) {

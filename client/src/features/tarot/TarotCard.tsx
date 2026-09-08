@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { CardDetails, DrawnCard } from '../types';
+import type { CardDetails, DrawnCard } from './types';
 
 type TarotCardProps = {
   card: DrawnCard;
@@ -92,10 +92,7 @@ function TarotCard({ card, includeReversals = false }: TarotCardProps) {
                 value={pick(details.meaningUpright, details.meaningReversed)}
               />
               <DetailLine label="Element" value={details.element} />
-              <DetailLine
-                label="Number"
-                value={details.numerologyAssociations}
-              />
+              <DetailLine label="Number" value={details.numerologyAssociations} />
               <DetailLine
                 label="Court"
                 value={details.courtRank && `${details.courtRank} — ${details.courtDescription}`}
@@ -104,17 +101,11 @@ function TarotCard({ card, includeReversals = false }: TarotCardProps) {
                 label="Court energy"
                 value={pick(details.courtPositiveAssociations, details.courtNegativeAssociations)}
               />
-              <DetailLine
-                label="Arcana element"
-                value={details.majorElement}
-              />
+              <DetailLine label="Arcana element" value={details.majorElement} />
               <DetailLine label="Planets" value={details.majorPlanets} />
               <DetailLine label="Signs" value={details.majorSigns} />
               <DetailLine label="Core theme" value={details.majorCoreTheme} />
-              <DetailLine
-                label="Symbols"
-                value={details.majorRepresentations}
-              />
+              <DetailLine label="Symbols" value={details.majorRepresentations} />
             </>
           )}
         </div>

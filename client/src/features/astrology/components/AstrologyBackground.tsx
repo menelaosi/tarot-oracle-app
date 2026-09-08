@@ -1,0 +1,28 @@
+import { WHITE } from '../lib/horoscope';
+import type { Point } from '../types';
+import AstrologySegment from './AstrologySymbols/AstrologySegment';
+
+interface AstrologyBackgroundProps {
+  readonly id: string;
+  readonly point: Point;
+  readonly radius: number;
+  readonly thickness: number;
+}
+
+function AstrologyBackground({ id, point, radius, thickness }: AstrologyBackgroundProps) {
+  return (
+    <g id={id}>
+      <AstrologySegment
+        point={point}
+        radius={radius}
+        angleFrom={0}
+        angleTo={359.99}
+        thickness={thickness}
+        lFlag={1}
+        fill={WHITE}
+      />
+    </g>
+  );
+};
+
+export default AstrologyBackground;

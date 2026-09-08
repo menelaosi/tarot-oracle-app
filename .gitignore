@@ -20,3 +20,8 @@ server/**/*.d.ts.map
 
 # Logs
 *.log
+
+# Editor — personal VSCode settings stay local; .editorconfig is the shared
+# style source, and extensions.json is worth sharing.
+.vscode/*
+!.vscode/extensions.json

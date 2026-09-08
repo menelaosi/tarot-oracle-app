@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import type { Reading } from '../types';
+import type { Reading } from './types';
 import TarotCard from './TarotCard';
 
 type SpreadProps = {

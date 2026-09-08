@@ -1,4 +1,4 @@
-import type { SpreadOption } from '../types';
+import type { SpreadOption } from './types';
 
 type ReadingControlsProps = {
   spreadType: string;
