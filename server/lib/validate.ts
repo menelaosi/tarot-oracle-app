@@ -13,7 +13,17 @@ export async function loadRow<T extends QueryResultRow>(
   params: unknown[],
   notFound: string,
 ): Promise<T> {
+  const [row] = await loadRows<T>(text, params, notFound);
+  if (!row) throw new HttpError(404, notFound);
+  return row;
+};
+
+export async function loadRows<T extends QueryResultRow>(
+  text: string,
+  params: unknown[],
+  notFound: string,
+): Promise<T[]> {
   const result = await pool.query<T>(text, params);
   if (!result.rows.length) throw new HttpError(404, notFound);
-  return result.rows[0]!;
-};
+  return result.rows;
+}

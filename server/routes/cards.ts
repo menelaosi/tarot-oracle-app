@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { pool } from '../db/pool.js';
 import { selectCardDetails, toCardDetails, type CardDetailsRow } from '../db/queries/cards.js';
-import { HttpError, toHttpError } from '../lib/http-error.js';
+import { HttpError } from '../lib/http-error.js';
+import { loadRow } from '../lib/validate.js';
 
 const router = Router();
 
@@ -13,17 +13,11 @@ router.get('/:cardId', async (request, response) => {
     throw new HttpError(400, 'Card ID must be an integer.');
   }
 
-  let result;
-  try {
-    result = await pool.query<CardDetailsRow>(selectCardDetails, [cardId]);
-  } catch (error) {
-    throw toHttpError(error, 'Could not load card details.');
-  }
-
-  const card = result.rows[0];
-  if (!card) {
-    throw new HttpError(404, 'Card not found.');
-  }
+  const card = await loadRow<CardDetailsRow>(
+    selectCardDetails,
+    [cardId],
+    'Card not found.',
+  );
 
   response.json(toCardDetails(card));
 });

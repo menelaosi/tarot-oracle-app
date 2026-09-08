@@ -6,6 +6,12 @@ export type ReadingRow = {
   question: string | null;
 };
 
+export type CardResultRow = {
+  id: number;
+  name: string;
+  image_path: string;
+};
+
 export type InterpretationCardRow = {
   question: string | null;
   spread_type: string;

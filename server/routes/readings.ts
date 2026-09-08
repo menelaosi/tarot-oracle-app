@@ -13,7 +13,7 @@ import {
 import { createSystemRules, generateReading } from '../lib/claude.js';
 import { HttpError } from '../lib/http-error.js';
 import { handler } from '../lib/route.js';
-import { optionalText } from '../lib/validate.js';
+import { loadRows, optionalText } from '../lib/validate.js';
 import { getSpreadInstructions, isSupportedSpread, spreads } from '../spreads.js';
 
 const router = Router();
@@ -119,20 +119,23 @@ router.post(
   '/:readingId/interpret',
   handler(async (request, response) => {
     const { readingId } = request.params;
-    const result = await pool.query<InterpretationCardRow>(selectInterpretationCards, [readingId]);
+    const rows = await loadRows<InterpretationCardRow>(
+      selectInterpretationCards,
+      [readingId],
+      'Reading not found',
+    );
 
-    const firstRow = result.rows[0];
-    const definition =
-      firstRow && isSupportedSpread(firstRow.spread_type) ? spreads[firstRow.spread_type] : null;
-    if (!firstRow || !definition || result.rows.length !== definition.positions.length) {
-      throw new HttpError(404, 'Reading not found.');
+    const { spread_type, question } = rows[0]!;
+    const definition = isSupportedSpread(spread_type) ? spreads[spread_type] : null;
+    if (!definition || rows.length !== definition.positions.length) {
+      throw new HttpError(400, 'Invalid definition.');
     }
 
-    const cards = result.rows.map((card) => toInterpretationContext(card, definition));
+    const cards = rows.map((card) => toInterpretationContext(card, definition));
     const system = createSystemRules([...READING_RULES, ...getSpreadInstructions(definition)]);
     const interpretation = await generateReading({
       system,
-      prompt: { question: firstRow.question, cards },
+      prompt: { question, cards },
       maxTokens: 1400,
       label: 'tarot interpret',
     });
