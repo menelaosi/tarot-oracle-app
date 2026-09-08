@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import Interpretation from './Interpretation';
+import Markdown from 'react-markdown';
 
 type WorkspaceLayoutProps = {
   /** the controls section — ReadingControls / BirthdayControl (both wrap ControlsSection) */
@@ -36,7 +36,12 @@ function WorkspaceLayout({
         </div>
         <div className="workspace-right">
           {interpretation && (
-            <Interpretation title={interpretationTitle} text={interpretation} />
+            <section className="interpretation" aria-labelledby="interpretation-title">
+              <h2 id="interpretation-title">{interpretationTitle}</h2>
+              <div className="interpretation-copy">
+                <Markdown>{interpretation}</Markdown>
+              </div>
+            </section>
           )}
         </div>
       </div>

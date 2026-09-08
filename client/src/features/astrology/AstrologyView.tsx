@@ -1,6 +1,6 @@
-import type { Horoscope } from 'circular-natal-horoscope-js';
 import { useState } from 'react';
 import WorkspaceLayout from '../../components/WorkspaceLayout';
+import { useBirthChart } from '../../hooks/useBirthChart';
 import { useRetainedState } from '../../hooks/useRetainedState';
 import { messageFrom } from '../../lib/http';
 import './astrology.css';
@@ -8,14 +8,11 @@ import { interpretChart } from './api';
 import AstrologyReading from './components/AstrologyReading';
 import BirthdayControl from './components/BirthdayControl';
 import { buildChartSummary } from './lib/chartSummary';
-import type { Place } from './lib/geocode';
 import { getHoroscope } from './lib/horoscope';
 
 /** Astrology section: birth form, the cast chart, and Claude's analysis. */
 function AstrologyView() {
-  const [birthMoment, setBirthMoment] = useRetainedState('astrology:birthMoment', '');
-  const [place, setPlace] = useRetainedState<Place | null>('astrology:place', null);
-  const [horoscope, setHoroscope] = useRetainedState<Horoscope | null>('astrology:horoscope', null);
+  const { birthMoment, setBirthMoment, place, setPlace, horoscope, setHoroscope } = useBirthChart();
   const [interpretation, setInterpretation] = useRetainedState('astrology:interpretation', '');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState('');

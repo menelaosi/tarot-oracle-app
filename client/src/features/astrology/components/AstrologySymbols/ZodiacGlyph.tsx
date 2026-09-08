@@ -4,10 +4,10 @@ import { SIGN_COLOR } from '../../types';
 import Glyph from './Glyph';
 import { ZODIAC_GLYPHS } from './glyphs/zodiacGlyphs';
 
-interface ZodiacGlyphProps {
+type ZodiacGlyphProps = {
   readonly sign: ZodiacSign;
   readonly point: Point;
-}
+};
 
 /** Draws a zodiac sign glyph in its sign colour at the given anchor point. */
 function ZodiacGlyph({ sign, point }: ZodiacGlyphProps) {

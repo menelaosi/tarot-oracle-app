@@ -3,12 +3,18 @@ import { Axis, type Point } from '../types';
 import AstrologyLine from './AstrologySymbols/AstrologyLine';
 import AxisGlyph from './AstrologySymbols/AxisGlyph';
 
-interface AstrologyAxisProps {
+type AstrologyAxisProps = {
   readonly point: Point;
   readonly radius: number;
   readonly cuspPositions: number[];
   readonly shift: number;
-}
+  /**
+   * Spoke + label colour. Defaults to the margin grey that reads on the dark
+   * page; the bi-wheel overrides it because these now sit on the light transit
+   * band.
+   */
+  readonly stroke?: string;
+};
 
 /** The four angles drawn, in cusp order, with how far past the wheel their label sits. */
 const AXES: readonly { axis: Axis; labelOffset: number }[] = [
@@ -19,7 +25,7 @@ const AXES: readonly { axis: Axis; labelOffset: number }[] = [
 ];
 
 /** The four angle spokes (AC/IC/DC/MC) and their labels, past the wheel's rim. */
-function AstrologyAxis({ point, radius, cuspPositions, shift }: AstrologyAxisProps) {
+function AstrologyAxis({ point, radius, cuspPositions, shift, stroke = LIGHT_GRAY }: AstrologyAxisProps) {
   const axisRadius = radius + (radius / INNER_CIRCLE_RADIUS_RATIO / 4);
 
   return (
@@ -31,12 +37,13 @@ function AstrologyAxis({ point, radius, cuspPositions, shift }: AstrologyAxisPro
             <AstrologyLine
               startingPoint={getPointPosition(point, radius, shiftPosition)}
               endingPoint={getPointPosition(point, axisRadius, shiftPosition)}
-              stroke={LIGHT_GRAY}
+              stroke={stroke}
               strokeWidth={SYMBOL_AXIS_STROKE}
             />
             <AxisGlyph
               axis={axis}
               point={getPointPosition(point, axisRadius + labelOffset, shiftPosition)}
+              stroke={stroke}
             />
           </g>
         );

@@ -1,6 +1,6 @@
 import ControlsSection from '../../../components/ControlsSection';
 import type { Place } from '../lib/geocode';
-import PlaceSearch from './PlaceSearch';
+import BirthInput from './BirthInput';
 
 type BirthdayControlProps = {
   birthMoment: string;
@@ -30,20 +30,12 @@ function BirthdayControl({
       isSubmitting={false}
       submitText="Cast chart"
     >
-      <label>
-        <span>Birth date &amp; time</span>
-        <input
-          type="datetime-local"
-          value={birthMoment}
-          max="9999-12-31T23:59"
-          onChange={(event) => onBirthMomentChange(event.target.value)}
-        />
-      </label>
-
-      <label>
-        <span>Birthplace</span>
-        <PlaceSearch value={place} onChange={onPlaceChange} />
-      </label>
+      <BirthInput
+        birthMoment={birthMoment}
+        onBirthMomentChange={onBirthMomentChange}
+        place={place}
+        onPlaceChange={onPlaceChange}
+      />
     </ControlsSection>
   );
 }

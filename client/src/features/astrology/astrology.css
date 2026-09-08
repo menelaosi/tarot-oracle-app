@@ -15,7 +15,24 @@
   align-items: end;
 }
 
-.birth-grid input[type='datetime-local']::-webkit-calendar-picker-indicator {
+/* Four inputs + the button on a single row; fields give up width first so the
+   line never wraps until the mobile breakpoint stacks it. */
+.transit-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(140px, 1fr) minmax(170px, 1.7fr) minmax(120px, auto) minmax(150px, 1.1fr) auto;
+  gap: 14px;
+  align-items: end;
+}
+
+/* Let every track honour its max — content (a long place name) can't force a
+   column wider than its share. */
+.transit-grid > * {
+  min-width: 0;
+}
+
+.birth-grid input[type='datetime-local']::-webkit-calendar-picker-indicator,
+.transit-grid input[type='datetime-local']::-webkit-calendar-picker-indicator {
   cursor: pointer;
   filter: invert(0.8);
 }
@@ -99,8 +116,63 @@
   margin: 0;
 }
 
+/* Transit-location field: styled like the other inputs (bordered box, same
+   height) so the row lines up, holding the place in effect plus a text button
+   to switch between the birthplace and the browser's current-location fix. */
+.transit-location {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  /* Never let a long place name stretch the column past its grid track. */
+  min-width: 0;
+  max-width: 100%;
+  min-height: 46px;
+  padding: 0 13px;
+  background: color-mix(in srgb, var(--field-bg) 28%, transparent);
+  border: 1px solid var(--line);
+}
+
+.transit-location-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.transit-location .link-button {
+  white-space: nowrap;
+}
+
+.link-button {
+  flex: none;
+  padding: 0;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}
+
+.link-button:disabled {
+  color: var(--muted);
+  cursor: default;
+  text-decoration: none;
+}
+
 @media (max-width: 720px) {
-  .birth-grid {
+  .birth-grid,
+  .transit-grid {
     grid-template-columns: 1fr;
   }
 

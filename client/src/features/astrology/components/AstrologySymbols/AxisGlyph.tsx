@@ -3,18 +3,20 @@ import type { Axis, Point } from '../../types';
 import Glyph from './Glyph';
 import { AXIS_GLYPHS } from './glyphs/axisGlyphs';
 
-interface AxisGlyphProps {
+type AxisGlyphProps = {
   readonly axis: Axis;
   readonly point: Point;
-}
+  /** Overrides the default margin grey — the bi-wheel needs a dark label on its light band. */
+  readonly stroke?: string;
+};
 
 /** Draws a chart-angle label (AC / IC / DC / MC) at the given anchor point. */
-function AxisGlyph({ axis, point }: AxisGlyphProps) {
+function AxisGlyph({ axis, point, stroke = LIGHT_GRAY }: AxisGlyphProps) {
   return (
     <Glyph
       point={point}
       spec={AXIS_GLYPHS[axis]}
-      stroke={LIGHT_GRAY}
+      stroke={stroke}
       strokeWidth={SYMBOL_AXIS_STROKE}
     />
   );

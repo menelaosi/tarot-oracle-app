@@ -1,7 +1,7 @@
 import { convertShiftInDegrees } from '../../lib/horoscope';
 import type { Point } from '../../types';
 
-interface AstrologySegmentProps {
+type AstrologySegmentProps = {
   readonly point: Point;
   readonly radius: number;
   readonly angleFrom: number;
@@ -12,7 +12,7 @@ interface AstrologySegmentProps {
   readonly fill?: string;
   readonly stroke?: string;
   readonly strokeWidth?: number;
-}
+};
 
 /**
  * A ring (donut) segment: the wedge between radii `thickness`..`radius` and

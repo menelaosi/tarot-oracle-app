@@ -170,4 +170,23 @@ CREATE TABLE IF NOT EXISTS astrology_readings (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- One row per "what does this day look like for this natal chart" analysis.
+-- natal_summary + transit_date is the reuse key: re-opening the same day for
+-- the same birth chart returns the stored reading instead of paying again, and
+-- the key rolls over on its own at midnight.
+CREATE TABLE IF NOT EXISTS astrology_transit_readings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    birth_datetime TEXT NOT NULL,
+    latitude DOUBLE PRECISION NOT NULL,
+    longitude DOUBLE PRECISION NOT NULL,
+    place_label TEXT,
+    transit_location JSONB,
+    transit_at TIMESTAMPTZ NOT NULL,
+    transit_date DATE NOT NULL,
+    natal_summary JSONB NOT NULL,
+    transit_summary JSONB NOT NULL,
+    interpretation TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 COMMIT;

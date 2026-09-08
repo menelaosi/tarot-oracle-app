@@ -4,6 +4,7 @@ import { NavLink } from 'react-router-dom';
 const tabs = [
   { to: '/tarot', label: 'Tarot' },
   { to: '/astrology', label: 'Astrology' },
+  { to: '/transits', label: 'Transits' },
 ];
 
 /** Top-level section switcher. NavLink handles the active-tab styling. */

@@ -4,7 +4,7 @@ import AstrologyLine from './AstrologySymbols/AstrologyLine';
 import AstrologyText from './AstrologySymbols/AstrologyText';
 import PlanetGlyph from './AstrologySymbols/PlanetGlyph';
 
-interface AstrologyPlanetsProps {
+type AstrologyPlanetsProps = {
   readonly point: Point;
   readonly radius: number;
   readonly planets: Record<Planet, CelestialBodyPosition | undefined>;
@@ -12,7 +12,7 @@ interface AstrologyPlanetsProps {
   readonly rulerRadius: number;
   readonly pointRadius: number;
   readonly shift: number;
-}
+};
 
 /** Planet glyphs at their spread (collision-adjusted) positions, each with a pointer back to its true degree and its degree/retrograde/dignity label. */
 function AstrologyPlanets({

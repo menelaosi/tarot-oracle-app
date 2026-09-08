@@ -7,6 +7,7 @@ import TabNav from './components/TabNav';
 // Each feature is its own chunk — the astrology ephemeris only loads on /astrology.
 const TarotView = lazy(() => import('./features/tarot/TarotView'));
 const AstrologyView = lazy(() => import('./features/astrology/AstrologyView'));
+const TransitView = lazy(() => import('./features/astrology/TransitView'));
 
 // Masthead copy per section, keyed by pathname. Unknown paths (including "/"
 // before it redirects, and the "*" catch-all) fall back to Tarot.
@@ -18,6 +19,10 @@ const HEADERS: Record<string, { title: string; intro: string }> = {
   '/astrology': {
     title: 'Astrology Chart',
     intro: 'Enter your birth info to generate your chart',
+  },
+  '/transits': {
+    title: "Today's Transits",
+    intro: 'See how the current sky moves across your natal chart',
   },
 };
 
@@ -36,6 +41,7 @@ function App() {
           <Route path="/" element={<Navigate to="/tarot" replace />} />
           <Route path="/tarot" element={<TarotView />} />
           <Route path="/astrology" element={<AstrologyView />} />
+          <Route path="/transits" element={<TransitView />} />
           <Route path="*" element={<Navigate to="/tarot" replace />} />
         </Routes>
       </Suspense>

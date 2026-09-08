@@ -1,41 +1,60 @@
 import { Horoscope } from 'circular-natal-horoscope-js';
-import { COLLISION_RADIUS, FULL_CIRCLE, INDOOR_CIRCLE_RADIUS_RATIO, INNER_CIRCLE_RADIUS_RATIO, MARGIN, PADDING, RULER_RADIUS, WHITE, assembleLocatedPoints, getCelestialBody, getPointPosition } from '../lib/horoscope';
+import type { AspectLine } from '../lib/aspectStyle';
+import { COLLISION_RADIUS, DARK_GRAY, FULL_CIRCLE, INDOOR_CIRCLE_RADIUS_RATIO, INNER_CIRCLE_RADIUS_RATIO, LIGHT_GRAY, MARGIN, PADDING, RULER_RADIUS, WHITE, assembleLocatedPoints, getCelestialBody, getPointPosition } from '../lib/horoscope';
+import type { TransitContact } from '../lib/transits';
 import type { CelestialBodyPosition, LocatedPoint, Point } from '../types';
 import { Planet } from '../types';
-import AstrologyAspects, { type AspectLine } from './AstrologyAspects';
+import AstrologyAspects from './AstrologyAspects';
 import AstrologyAxis from './AstrologyAxis';
 import AstrologyBackground from './AstrologyBackground';
 import AstrologyCircles from './AstrologyCircles';
 import AstrologyCusps from './AstrologyCusps';
 import AstrologyPlanets from './AstrologyPlanets';
 import AstrologyRuler from './AstrologyRuler';
+import AstrologyTransits from './AstrologyTransits';
 import AstrologyUniverse from './AstrologyUniverse';
 
-interface AstrologyChartProps {
+type AstrologyChartProps = {
   readonly horoscope: Horoscope;
   readonly height?: number;
   readonly width?: number;
-}
-interface Cusp {
+  /**
+   * When set, draws the bi-wheel: a ring of the transiting planets outside the
+   * natal wheel and dashed chords to the natal points they contact. `horoscope`
+   * stays the natal chart; `transit.horoscope` is the sky for the chosen moment.
+   */
+  readonly transit?: {
+    horoscope: Horoscope;
+    contacts: readonly TransitContact[];
+  };
+};
+
+// Extra breathing room outside the natal wheel for the transit ring; the wheel
+// shrinks by this much when the bi-wheel is shown.
+const TRANSIT_MARGIN = MARGIN + 48;
+// The transit band hugs the wheel edge (small gap) rather than floating in the
+// margin; AstrologyTransits derives the band width from this centre line.
+const TRANSIT_RING_OFFSET = 18;
+type Cusp = {
   ChartPosition: {
     StartPosition:{
       Ecliptic: { DecimalDegrees: number; },
       Horizon: { DecimalDegrees: number; },
     },
   };
-}
+};
 
 // One entry of horoscope.Aspects.all — the pairing the library found between two
 // points, plus how far off exact it is (`orb`) and the widest orb it allowed for
 // that aspect type (`orbUsed`).
-interface RawAspect {
+type RawAspect = {
   point1Key: string;
   point2Key: string;
   aspectKey: string;
   aspectLevel: 'major' | 'minor';
   orb: number;
   orbUsed: number;
-}
+};
 
 function getCelestialBodyPositions(horoscope: Horoscope): Record<Planet, CelestialBodyPosition | undefined> {
   return Object.values(Planet).reduce<Record<Planet, CelestialBodyPosition | undefined>>(
@@ -95,6 +114,26 @@ function getAspectLines(
     .filter((line): line is AspectLine => line !== undefined);
 }
 
+/**
+ * Natal longitudes keyed the way transit contacts name their target: a Planet
+ * value ('sun', 'nnode', …) or 'ascendant' / 'midheaven' for the angles.
+ */
+function getNatalLongitudes(
+  horoscope: Horoscope,
+  positions: Record<Planet, CelestialBodyPosition | undefined>,
+): Record<string, number> {
+  const longitudes: Record<string, number> = {};
+  for (const planet of Object.values(Planet)) {
+    const longitude = positions[planet]?.longitude;
+    if (longitude !== undefined) longitudes[planet] = longitude;
+  }
+  const ascendant = horoscope.Ascendant?.ChartPosition?.Ecliptic?.DecimalDegrees;
+  if (ascendant !== undefined) longitudes.ascendant = ascendant;
+  const midheaven = horoscope.Midheaven?.ChartPosition?.Ecliptic?.DecimalDegrees;
+  if (midheaven !== undefined) longitudes.midheaven = midheaven;
+  return longitudes;
+}
+
 function getLocatedPoints(
   celestialBodyPositions: Record<Planet, CelestialBodyPosition | undefined>,
   point: Point,
@@ -134,25 +173,20 @@ function getLocatedPoints(
  * background / signs / ruler / planets / cusps / axis subcomponents. `shift`
  * rotates the whole wheel so the Ascendant sits on the left.
  */
-function AstrologyChart({ horoscope, height = 800, width = 800 }: AstrologyChartProps) {
+function AstrologyChart({ horoscope, height = 800, width = 800, transit }: AstrologyChartProps) {
   const x = width / 2;
   const y = height / 2;
   const point: Point = { x, y };
 
-  const radius = y - MARGIN;
-
+  const radius = y - (transit ? TRANSIT_MARGIN : MARGIN);
   const radiusRatio = radius / INNER_CIRCLE_RADIUS_RATIO;
   const radixRadius = radius - radiusRatio;
-
   const thickness = radius / INDOOR_CIRCLE_RADIUS_RATIO;
-
   const rulerRadius = radiusRatio / RULER_RADIUS;
   const pointRadius = radius - (radiusRatio + (2 * rulerRadius) + PADDING);
   const numbersRadius = (radius / INDOOR_CIRCLE_RADIUS_RATIO) + COLLISION_RADIUS;
   const endDashedLineRadius = radius - (radiusRatio + rulerRadius);
-
   const celestialBodyPositions = getCelestialBodyPositions(horoscope);
-
   const cuspPositions = getCuspPositions(horoscope);
 
   const shift = (cuspPositions && cuspPositions[0])
@@ -166,6 +200,19 @@ function AstrologyChart({ horoscope, height = 800, width = 800 }: AstrologyChart
   );
 
   const aspectLines = getAspectLines(horoscope, celestialBodyPositions);
+
+  // Transit overlay geometry: a glyph band just outside the wheel edge, with the
+  // moving planets collision-spread the same way the natal ones are.
+  const transitRingRadius = radius + TRANSIT_RING_OFFSET;
+  const transitPositions = transit
+    ? getCelestialBodyPositions(transit.horoscope)
+    : undefined;
+  const transitLocatedPoints = transitPositions
+    ? getLocatedPoints(transitPositions, point, transitRingRadius, shift)
+    : [];
+  const natalLongitudes = transit
+    ? getNatalLongitudes(horoscope, celestialBodyPositions)
+    : {};
 
   return (
     <svg
@@ -185,6 +232,19 @@ function AstrologyChart({ horoscope, height = 800, width = 800 }: AstrologyChart
         shift={shift}
         lines={aspectLines}
       />
+      {transit && transitPositions && (
+        <AstrologyTransits
+          point={point}
+          hubRadius={thickness}
+          wheelRadius={radius}
+          ringRadius={transitRingRadius}
+          shift={shift}
+          transitPositions={transitPositions}
+          natalLongitudes={natalLongitudes}
+          locatedPoints={transitLocatedPoints}
+          contacts={transit.contacts}
+        />
+      )}
       <g id='radix'>
         <AstrologyBackground
           id={'radix-background'}
@@ -227,6 +287,7 @@ function AstrologyChart({ horoscope, height = 800, width = 800 }: AstrologyChart
           radius={radius}
           cuspPositions={cuspPositions}
           shift={shift}
+          stroke={transit ? DARK_GRAY : LIGHT_GRAY}
         />
         <AstrologyCircles
           point={point}
@@ -235,12 +296,6 @@ function AstrologyChart({ horoscope, height = 800, width = 800 }: AstrologyChart
           backgroundRadius={radixRadius}
         />
       </g>
-      {/*
-        The transit ring (outer wheel of moving planets against the natal chart)
-        needs a transit date and its own body positions. This view only has the
-        birth moment, so there is nothing to draw here yet — restore a
-        <g id='transits'> group once transit data is wired through.
-      */}
     </svg>
   );
 };

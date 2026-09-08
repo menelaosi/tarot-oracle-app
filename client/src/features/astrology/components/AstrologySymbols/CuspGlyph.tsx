@@ -3,10 +3,10 @@ import type { Point } from '../../types';
 import Glyph from './Glyph';
 import { CUSP_GLYPHS, type CuspNumber } from './glyphs/cuspGlyphs';
 
-interface CuspGlyphProps {
+type CuspGlyphProps = {
   readonly house: CuspNumber;
   readonly point: Point;
-}
+};
 
 /** Draws a house cusp numeral (1-12) at the given anchor point. */
 function CuspGlyph({ house, point }: CuspGlyphProps) {

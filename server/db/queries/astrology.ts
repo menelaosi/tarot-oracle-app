@@ -69,6 +69,27 @@ export const insertAstrologyReading = `
   RETURNING id
 `;
 
+/**
+ * Stored transit reading for this exact natal chart on this calendar day, if
+ * one exists. Transits move daily, so the date is part of the key — yesterday's
+ * reading is never served for today.
+ */
+export const selectExistingTransitReading = `
+  SELECT interpretation
+  FROM astrology_transit_readings
+  WHERE natal_summary = $1::jsonb AND transit_date = $2::date AND interpretation IS NOT NULL
+  ORDER BY created_at DESC
+  LIMIT 1
+`;
+
+export const insertTransitReading = `
+  INSERT INTO astrology_transit_readings
+    (birth_datetime, latitude, longitude, place_label, transit_location,
+     transit_at, transit_date, natal_summary, transit_summary, interpretation)
+  VALUES ($1, $2, $3, $4, $5, $6, $7::date, $8, $9, $10)
+  RETURNING id
+`;
+
 // ---------------------------------------------------------------------------
 // Chart summary sent by the client (client/src/features/astrology/lib/chartSummary.ts)
 // ---------------------------------------------------------------------------
@@ -96,6 +117,42 @@ export type ChartSummary = {
     imumCoeli: AngleSummary;
   };
   aspects: AspectSummary[];
+};
+
+// ---------------------------------------------------------------------------
+// Transit summary sent by the client
+// (client/src/features/astrology/lib/transitSummary.ts)
+// ---------------------------------------------------------------------------
+
+/** Where a transiting body currently sits, and which natal house it falls in. */
+export type TransitingPlacement = {
+  body: string;
+  sign: string;
+  degreeInSign: number;
+  retrograde: boolean;
+  /** Natal house the transiting body is passing through, if resolvable. */
+  natalHouse: number | null;
+};
+
+/** A transiting body forming a major aspect to a natal body or angle. */
+export type TransitContact = {
+  transiting: string;
+  natal: string;
+  type: string;
+  orb: number;
+  /** true = tightening toward exact (intensifying), false = separating. */
+  applying: boolean;
+};
+
+export type TransitSummary = {
+  /** ISO instant the transit chart was cast for. */
+  at: string;
+  /** Calendar day (YYYY-MM-DD) the reading is for — the reuse key with the natal chart. */
+  date: string;
+  location: { latitude: number; longitude: number; label: string | null; source: 'birth' | 'current' };
+  transitingPlacements: TransitingPlacement[];
+  /** Ranked most-significant-first by the client. */
+  contacts: TransitContact[];
 };
 
 // ---------------------------------------------------------------------------

@@ -1,12 +1,14 @@
 import type { Point } from '../../types';
 
-interface AstrologyLineProps {
+type AstrologyLineProps = {
   readonly startingPoint: Point;
   readonly endingPoint: Point;
   readonly stroke?: string;
   readonly strokeWidth?: number;
   readonly opacity?: number;
-}
+  /** Render as a dashed line — used to tell transit aspects apart from natal ones. */
+  readonly dashed?: boolean;
+};
 
 /** SVG <line> primitive between two points. */
 function AstrologyLine({
@@ -15,6 +17,7 @@ function AstrologyLine({
   stroke,
   strokeWidth,
   opacity,
+  dashed,
 }: AstrologyLineProps) {
   const { x: x1, y: y1 } = startingPoint;
   const { x: x2, y: y2 } = endingPoint;
@@ -27,6 +30,7 @@ function AstrologyLine({
       stroke={stroke}
       strokeWidth={strokeWidth}
       strokeOpacity={opacity}
+      strokeDasharray={dashed ? '3 3' : undefined}
     />
   );
 };

@@ -1,11 +1,11 @@
 import type { Point } from '../../types';
 
-interface AstrologyTextProps {
+type AstrologyTextProps = {
   readonly text: string;
   readonly point: Point;
   readonly size: string | number;
   readonly color: string;
-}
+};
 
 /** SVG <text> primitive, vertically centred on its point. */
 function AstrologyText({ text, point, size, color }: AstrologyTextProps) {

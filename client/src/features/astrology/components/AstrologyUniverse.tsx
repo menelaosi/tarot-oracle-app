@@ -4,12 +4,12 @@ import { ZODIAC_SIGNS } from '../types';
 import AstrologySegment from './AstrologySymbols/AstrologySegment';
 import ZodiacGlyph from './AstrologySymbols/ZodiacGlyph';
 
-interface AstrologyUniverseProps {
+type AstrologyUniverseProps = {
   readonly point: Point;
   readonly shift: number;
   readonly radius: number;
   readonly backgroundRadius: number;
-}
+};
 
 /** Degrees of arc each zodiac sign occupies on the wheel. */
 const SIGN_ARC = 360 / ZODIAC_SIGNS.length;

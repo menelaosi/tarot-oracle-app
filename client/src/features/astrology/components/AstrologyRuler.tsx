@@ -3,13 +3,13 @@ import type { Point } from '../types';
 import AstrologyCircle from './AstrologySymbols/AstrologyCircle';
 import AstrologyLine from './AstrologySymbols/AstrologyLine';
 
-interface AstrologyRulerProps {
+type AstrologyRulerProps = {
   readonly point: Point;
   readonly startRadius: number;
   readonly rulerRadius: number;
   readonly startAngle: number;
   readonly isTransit?: boolean;
-}
+};
 
 function getRulerPositions(
   point: Point,

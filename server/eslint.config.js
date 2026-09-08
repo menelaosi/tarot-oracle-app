@@ -17,6 +17,8 @@ export default defineConfig([
     },
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      // Object shapes are `type X = {}`; interface only for real merging / extends.
+      '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       '@stylistic/array-bracket-spacing': ['error', 'never'],
       '@stylistic/brace-style': ['error', '1tbs', { allowSingleLine: true }],
       '@stylistic/comma-dangle': ['error', 'always-multiline'],

@@ -1,12 +1,12 @@
 import type { Point } from '../../types';
 
-interface CircleProps {
+type CircleProps = {
   readonly point: Point;
   readonly radius: number;
   readonly stroke: string;
   readonly strokeWidth: number;
   readonly fill?: string;
-}
+};
 
 /** SVG <circle> primitive; `fill` defaults to none so callers get an outline. */
 function AstrologyCircle({

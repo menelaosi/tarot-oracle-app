@@ -1,4 +1,4 @@
-interface ButtonComponentProps {
+type ButtonComponentProps = {
   /** Picks the CSS class: primary-action (filled) vs secondary-action (outline). */
   actionType: 'primary' | 'secondary';
   onClick: () => void;
@@ -6,7 +6,7 @@ interface ButtonComponentProps {
   isLoading: boolean;
   buttonText?: string;
   loadingButtonText?: string;
-}
+};
 
 /** The app's single action button (draw / cast / interpret / analyze). */
 function ButtonComponent({

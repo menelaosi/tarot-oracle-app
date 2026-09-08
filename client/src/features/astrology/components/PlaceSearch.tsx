@@ -53,45 +53,48 @@ function PlaceSearch({ value, onChange }: PlaceSearchProps) {
   }
 
   return (
-    <div className="place-search">
-      <input
-        type="text"
-        role="combobox"
-        aria-expanded={open}
-        aria-controls={listId}
-        autoComplete="off"
-        placeholder="Start typing a city…"
-        value={value ? value.label : query}
-        onChange={(event) => {
-          const next = event.target.value;
-          setQuery(next);
-          if (value) onChange(null);
-          if (next.trim().length < MIN_QUERY) setOpen(false);
-        }}
-        onFocus={() => {
-          if (results.length > 0) setOpen(true);
-        }}
-        // Delay the close so an option's onMouseDown (below) fires before the list unmounts.
-        onBlur={() => window.setTimeout(() => setOpen(false), 120)}
-      />
-      {loading && <span className="place-search-status">Searching…</span>}
-      {open && results.length > 0 && (
-        <ul className="place-search-list" id={listId} role="listbox">
-          {results.map((place) => (
-            <li key={`${place.latitude},${place.longitude}`}>
-              <button
-                type="button"
-                role="option"
-                aria-selected={false}
-                onMouseDown={() => choose(place)}
-              >
-                {place.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <label>
+      <span>Birthplace</span>
+      <div className="place-search">
+        <input
+          type="text"
+          role="combobox"
+          aria-expanded={open}
+          aria-controls={listId}
+          autoComplete="off"
+          placeholder="Start typing a city…"
+          value={value ? value.label : query}
+          onChange={(event) => {
+            const next = event.target.value;
+            setQuery(next);
+            if (value) onChange(null);
+            if (next.trim().length < MIN_QUERY) setOpen(false);
+          }}
+          onFocus={() => {
+            if (results.length > 0) setOpen(true);
+          }}
+          // Delay the close so an option's onMouseDown (below) fires before the list unmounts.
+          onBlur={() => window.setTimeout(() => setOpen(false), 120)}
+        />
+        {loading && <span className="place-search-status">Searching…</span>}
+        {open && results.length > 0 && (
+          <ul className="place-search-list" id={listId} role="listbox">
+            {results.map((place) => (
+              <li key={`${place.latitude},${place.longitude}`}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={false}
+                  onMouseDown={() => choose(place)}
+                >
+                  {place.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </label>
   );
 }
 

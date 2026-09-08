@@ -4,7 +4,7 @@ import AstrologyLine from './AstrologySymbols/AstrologyLine';
 import CuspGlyph from './AstrologySymbols/CuspGlyph';
 import type { CuspNumber } from './AstrologySymbols/glyphs/cuspGlyphs';
 
-interface AstrologyCuspsProps {
+type AstrologyCuspsProps = {
   readonly point: Point;
   readonly numbersRadius: number;
   readonly pointRadius: number;
@@ -12,7 +12,7 @@ interface AstrologyCuspsProps {
   readonly cuspPositions: number[];
   readonly shift: number;
   readonly locatedPoints: LocatedPoint[];
-}
+};
 
 function isInCollision(angle: number, locatedPoints: LocatedPoint[]): boolean {
   const collisionRadius = COLLISION_RADIUS / 2;

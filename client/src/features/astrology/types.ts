@@ -1,35 +1,35 @@
 // Domain types + lookup tables shared by the SVG chart, the chart summary, and
 // the reading title. Sign labels match the library's capitalised Sign.label.
 
-export interface Point {
+export type Point = {
   x: number;
   y: number;
-}
+};
 
-export interface LocatedPoint {
+export type LocatedPoint = {
   planetName: Planet;
   point: Point;
   radius: number;
   angle: number;
   pointer: number;
-}
+};
 
 /** A celestial body's ecliptic longitude plus whether it is retrograde at the chart's moment. */
-export interface CelestialBodyPosition {
+export type CelestialBodyPosition = {
   longitude: number;
   retrograde: boolean;
-}
+};
 
-export interface DescriptionPosition {
+export type DescriptionPosition = {
   text: string;
   point: Point;
-}
+};
 
-export interface DefaultDignities {
+export type DefaultDignities = {
   name: string;
   position: number;
   orbit: number;
-}
+};
 
 export const Dignity = {
   Rulership: 'r',

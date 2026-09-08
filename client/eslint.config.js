@@ -23,6 +23,10 @@ export default defineConfig([
       globals: globals.browser,
     },
     rules: {
+      // Object shapes and component props are written as `type X = {}`, matching
+      // the shared components/ layer; interface is only for real declaration
+      // merging / extends, which nothing here needs.
+      '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       '@stylistic/array-bracket-spacing': ['error', 'never'],
       '@stylistic/brace-style': ['error', '1tbs', { allowSingleLine: true }],
       '@stylistic/comma-dangle': ['error', 'always-multiline'],
