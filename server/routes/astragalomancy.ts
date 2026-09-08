@@ -1,4 +1,3 @@
-import type Anthropic from '@anthropic-ai/sdk';
 import { Router } from 'express';
 import { pool } from '../db/pool.js';
 import {
@@ -15,8 +14,10 @@ import {
   type SignRefRow,
   type StandardMeaningRow,
 } from '../db/queries/astragalomancy.js';
-import { anthropic, claudeModel } from '../lib/anthropic-client.js';
-import { HttpError, toHttpError } from '../lib/http-error.js';
+import { createSystemRules, generateReading } from '../lib/claude.js';
+import { HttpError } from '../lib/http-error.js';
+import { handler } from '../lib/route.js';
+import { loadRow, optionalText } from '../lib/validate.js';
 
 const router = Router();
 
@@ -40,16 +41,19 @@ function pick<T>(items: readonly T[]): T {
   return items[Math.floor(Math.random() * items.length)] as T;
 }
 
+function isMode(value: unknown): value is Mode {
+  return value === 'standard' || value === 'zodiac';
+}
+
 /** Zodiac dice reading: planet = the situation, sign = the emotions, house = where it lands. */
 const ZODIAC_RULES = [
   'You are giving an astragalomancy (dice divination) reading directly to the person who rolled.',
   'Three zodiac dice landed: a planet, a sign, and a house.',
   'Read the PLANET as the situation at hand, the SIGN as the emotions involved, and the HOUSE as the area of life where the impact is being felt.',
   'Ground each one only in its supplied keywords and associations — do not add outside astrology knowledge or invent meanings. Weave the keywords into ordinary sentences.',
-  'Address them as "you" and "your". If they asked a question, answer it by reading the three dice together. If not, read the roll as guidance for them now.',
+  'If they asked a question, answer it by reading the three dice together. If not, read the roll as guidance for them now.',
   'Keep it to a short few sentences or two or three short paragraphs. Plain text — no headings, no lists.',
-  'No medical, legal, financial, or guaranteed predictive claims.',
-].join(' ');
+];
 
 /** Standard dice reading: the sum points to one traditional meaning. */
 const STANDARD_RULES = [
@@ -58,12 +62,7 @@ const STANDARD_RULES = [
   'Stay with the supplied meaning — do not invent additional omens or add outside divination lore.',
   'Address them as "you" and "your". Answer their question through the meaning if one was asked.',
   'Keep it to two or three sentences. Plain text — no headings.',
-  'No medical, legal, financial, or guaranteed predictive claims.',
-].join(' ');
-
-function isMode(value: unknown): value is Mode {
-  return value === 'standard' || value === 'zodiac';
-}
+];
 
 async function resolveStandardMeaning(total: number): Promise<string> {
   const result = await pool.query<StandardMeaningRow>(selectStandardMeaning, [total]);
@@ -90,11 +89,15 @@ async function resolveZodiacRefs(planet: string, sign: string, house: number) {
   };
 }
 
+function getTotalViaReduce(values: number[]): number {
+  return values.reduce((sum, n) => sum + n, 0);
+}
+
 /** The client-facing roll object — a discriminated union on `mode`. */
 async function toRollDto(row: Pick<AstragalomancyReadingRow, 'mode' | 'dice'>) {
   if (row.mode === 'standard') {
     const values = row.dice.values ?? [];
-    const total = row.dice.total ?? values.reduce((sum, n) => sum + n, 0);
+    const total = row.dice.total ?? getTotalViaReduce(values);
     return { mode: 'standard' as const, values, total, meaning: await resolveStandardMeaning(total) };
   }
   const refs = await resolveZodiacRefs(row.dice.planet ?? '', row.dice.sign ?? '', row.dice.house ?? 0);
@@ -103,95 +106,68 @@ async function toRollDto(row: Pick<AstragalomancyReadingRow, 'mode' | 'dice'>) {
 
 // POST /api/astragalomancy/roll — body { mode?, question? }. Rolls the dice,
 // stores the reading, and returns the resolved result for the client to animate.
-router.post('/roll', async (request, response) => {
-  const { mode: rawMode, question: rawQuestion } = request.body as {
-    mode?: unknown;
-    question?: unknown;
-  };
-  const mode: Mode = isMode(rawMode) ? rawMode : 'zodiac';
-  if (rawQuestion !== undefined && typeof rawQuestion !== 'string') {
-    throw new HttpError(400, 'Question must be text.');
-  }
+router.post(
+  '/roll',
+  handler(async (request, response) => {
+    const question = optionalText(request.body.question, 'Question');
+    const mode: Mode = isMode(request.body.mode) ? request.body.mode : 'zodiac';
 
-  const dice =
-    mode === 'standard'
-      ? (() => {
-          const values = [rollDie(6), rollDie(6), rollDie(6)];
-          return { values, total: values.reduce((sum, n) => sum + n, 0) };
-        })()
-      : { planet: pick(PLANET_FACES), sign: pick(SIGN_FACES), house: rollDie(12) };
+    const dice =
+      mode === 'standard'
+        ? (() => {
+            const values = [rollDie(6), rollDie(6), rollDie(6)];
+            return { values, total: getTotalViaReduce(values) };
+          })()
+        : { planet: pick(PLANET_FACES), sign: pick(SIGN_FACES), house: rollDie(12) };
 
-  try {
-    const readingResult = await pool.query<{ id: string; question: string | null }>(
+    const reading = await loadRow<Pick<AstragalomancyReadingRow, 'id' | 'question'>>(
       insertAstragalomancyReading,
-      [rawQuestion?.trim() || null, mode, JSON.stringify(dice)],
+      [question, mode, JSON.stringify(dice)],
+      'The reading was not created.',
     );
-    const reading = readingResult.rows[0];
-    if (!reading) throw new Error('The reading was not created.');
 
     response.status(201).json({
       id: reading.id,
       question: reading.question,
       roll: await toRollDto({ mode, dice }),
     });
-  } catch (error) {
-    throw toHttpError(error, 'Could not roll the dice.');
-  }
-});
+  }, 'Could not roll the dice.'),
+);
 
 // POST /api/astragalomancy/:readingId/interpret — re-resolve the roll and ask
 // Claude to read it, grounded only in the supplied meaning / reference data.
-router.post('/:readingId/interpret', async (request, response) => {
-  if (!anthropic) {
-    throw new HttpError(503, 'ANTHROPIC_API_KEY is not configured.');
-  }
-
-  try {
-    const result = await pool.query<AstragalomancyReadingRow>(selectAstragalomancyReading, [
-      request.params.readingId,
-    ]);
-    const reading = result.rows[0];
-    if (!reading) {
-      throw new HttpError(404, 'Reading not found.');
-    }
+router.post(
+  '/:readingId/interpret',
+  handler(async (request, response) => {
+    const { readingId } = request.params;
+    const reading = await loadRow<AstragalomancyReadingRow>(
+      selectAstragalomancyReading,
+      [readingId],
+      'Reading not found.',
+    );
 
     const roll = await toRollDto(reading);
-    const isStandard = roll.mode === 'standard';
+    const prompt =
+      roll.mode === 'standard'
+        ? { question: reading.question, dice: roll.values, total: roll.total, meaning: roll.meaning }
+        : {
+            question: reading.question,
+            situation: { planet: roll.planet.name, keywords: roll.planet.keywords, associations: roll.planet.associations },
+            emotions: { sign: roll.sign.name, keywords: roll.sign.keywords, associations: roll.sign.associations },
+            impact: { house: roll.house.name, keywords: roll.house.keywords, associations: roll.house.associations },
+          };
 
-    const message = await anthropic.messages.create({
-      model: claudeModel,
-      max_tokens: 600,
-      system: isStandard ? STANDARD_RULES : ZODIAC_RULES,
-      messages: [
-        {
-          role: 'user',
-          content: JSON.stringify(
-            isStandard
-              ? { question: reading.question, dice: roll.values, total: roll.total, meaning: roll.meaning }
-              : {
-                  question: reading.question,
-                  situation: { planet: roll.planet.name, keywords: roll.planet.keywords, associations: roll.planet.associations },
-                  emotions: { sign: roll.sign.name, keywords: roll.sign.keywords, associations: roll.sign.associations },
-                  impact: { house: roll.house.name, keywords: roll.house.keywords, associations: roll.house.associations },
-                },
-          ),
-        },
-      ],
+    const system = createSystemRules(roll.mode === 'standard' ? STANDARD_RULES : ZODIAC_RULES);
+    const interpretation = await generateReading({
+      system,
+      prompt,
+      maxTokens: 600,
+      label: 'astragalomancy interpret',
     });
-    if (message.stop_reason === 'max_tokens') {
-      console.warn('Claude astragalomancy interpretation reached the max token limit.');
-    }
 
-    const interpretation = message.content
-      .filter((block): block is Anthropic.TextBlock => block.type === 'text')
-      .map((block) => block.text)
-      .join('\n');
-
-    await pool.query(updateAstragalomancyInterpretation, [interpretation, request.params.readingId]);
+    await pool.query(updateAstragalomancyInterpretation, [interpretation, readingId]);
     response.json({ interpretation });
-  } catch (error) {
-    throw toHttpError(error, 'Could not generate the interpretation.');
-  }
-});
+  }, 'Could not generate the interpretation.'),
+);
 
 export default router;

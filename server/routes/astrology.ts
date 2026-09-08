@@ -1,4 +1,3 @@
-import type Anthropic from '@anthropic-ai/sdk';
 import { Router } from 'express';
 import { pool } from '../db/pool.js';
 import {
@@ -29,8 +28,9 @@ import {
   type TransitingPlacement,
   type TransitSummary,
 } from '../db/queries/astrology.js';
-import { anthropic, claudeModel } from '../lib/anthropic-client.js';
-import { HttpError, toHttpError } from '../lib/http-error.js';
+import { createSystemRules, generateReading } from '../lib/claude.js';
+import { HttpError } from '../lib/http-error.js';
+import { handler } from '../lib/route.js';
 
 const router = Router();
 
@@ -43,27 +43,19 @@ const round = (value: number, places = 2) => {
 
 const READING_RULES = [
   'You are an astrologer giving a natal chart reading directly to the person whose chart this is.',
-  '',
-  'Voice: address them as "you" and "your", never the third person. Warm and personal, like a conversation, not a clinical report.',
-  '',
   'Grounding: read the chart using only the ASTROLOGY REFERENCE below. For each placement look up its body, sign, and house there; for each aspect look up its meaning. Do not add outside astrology knowledge or invent meanings, correspondences, or degrees. Weave the reference keywords and associations into ordinary sentences — never quote them as lists or write phrases like "the associations say".',
-  '',
   'Structure: cover the Sun, Moon, and Ascendant first; then the remaining planets and points by sign and house; then the major aspects together as one section; then a short synthesis and a closing thought to them. Keep each placement to two or three sentences. Call out retrograde planets and any dignity (rulership, detriment, exaltation, fall) the reference lists for that body in that sign.',
-  '',
-  'Limits: no medical, legal, financial, or guaranteed predictive claims. Use Markdown headings and short paragraphs.',
-].join('\n');
+  'Use Markdown headings and short paragraphs.',
+];
 
 const TRANSIT_RULES = [
-  "You are an astrologer telling this person what to expect on a specific day, based on how today's transiting planets contact their natal chart.",
-  '',
-  'Voice: address them as "you" and "your". Warm, direct, practical — this is a day-ahead briefing, not a life reading.',
-  '',
+  'You are an astrologer telling this person what to expect on a specific day, based on how today is transiting planets contact their natal chart.',
+  'This is a day-ahead briefing, not a life reading.',
   'Grounding: use only the ASTROLOGY REFERENCE below. For each transit, look up the transiting planet, the natal point it contacts, the aspect, and the natal house involved, and build the meaning from those. Do not invent correspondences or add outside astrology knowledge. Weave keywords into ordinary sentences rather than listing them.',
-  '',
   'Structure: open with the single most significant transit and what it means for the day (the CONTACTS list is already ordered most-significant-first). Then cover the next two or three. Note whether each is applying (building, intensifying) or separating (fading). Keep the whole thing to two to four short paragraphs, then one line on the overall tone of the day.',
-  '',
-  'Scope: keep it to this day — near-term mood, energy, and what to lean into or watch for. Do not describe permanent traits or make guaranteed predictions. No medical, legal, or financial advice. Use Markdown with short paragraphs; a heading is optional.',
-].join('\n');
+  'Scope: keep it to this day — near-term mood, energy, and what to lean into or watch for.',
+  'Do not describe permanent traits or make guaranteed predictions. Use Markdown with short paragraphs; a heading is optional.',
+];
 
 /**
  * Loads the whole reference library and renders it as the compact digest that
@@ -94,6 +86,18 @@ async function loadReferenceDigest(): Promise<string> {
     elements: elements.rows,
     notes: notes.rows,
   });
+}
+
+/**
+ * The system prompt as two blocks: the per-reading rules, then the full
+ * reference digest marked `cache_control: ephemeral`. The digest is byte-stable
+ * across requests, so this prefix is a prompt-cache hit after the first call.
+ */
+function buildSystemPrompt(rules: string[], referenceDigest: string) {
+  return [
+    { type: 'text' as const, text: createSystemRules(rules) },
+    { type: 'text' as const, text: referenceDigest, cache_control: { type: 'ephemeral' as const } },
+  ];
 }
 
 function isAngle(value: unknown): value is AngleSummary {
@@ -154,16 +158,13 @@ function toChartPayload(chart: ChartSummary) {
 // POST /api/astrology/interpret — body { chart: ChartSummary }. Returns a stored
 // reading for an identical chart, or asks Claude against the cached reference
 // digest and persists the result.
-router.post('/interpret', async (request, response) => {
-  if (!anthropic) {
-    throw new HttpError(503, 'ANTHROPIC_API_KEY is not configured.');
-  }
+router.post(
+  '/interpret',
+  handler(async (request, response) => {
+    const { chart } = request.body as { chart?: unknown };
+    assertChartSummary(chart);
+    const summaryJson = JSON.stringify(chart);
 
-  const { chart } = request.body as { chart?: unknown };
-  assertChartSummary(chart);
-  const summaryJson = JSON.stringify(chart);
-
-  try {
     // A birth chart is deterministic — if this exact one was analysed before,
     // return the stored reading instead of paying for another generation.
     const existing = await pool.query<{ interpretation: string }>(selectExistingInterpretation, [
@@ -174,13 +175,12 @@ router.post('/interpret', async (request, response) => {
       return;
     }
 
-    const referenceDigest = await loadReferenceDigest();
-    const interpretation = await generateReading(
-      READING_RULES,
-      referenceDigest,
-      `CHART\n${JSON.stringify(toChartPayload(chart))}`,
-      'interpret',
-    );
+    const interpretation = await generateReading({
+      system: buildSystemPrompt(READING_RULES, await loadReferenceDigest()),
+      prompt: `CHART\n${JSON.stringify(toChartPayload(chart))}`,
+      maxTokens: 4000,
+      label: 'astrology interpret',
+    });
 
     await pool.query(insertAstrologyReading, [
       chart.birth.dateTime,
@@ -192,10 +192,8 @@ router.post('/interpret', async (request, response) => {
     ]);
 
     response.json({ interpretation });
-  } catch (error) {
-    throw toHttpError(error, 'Could not generate the analysis.');
-  }
-});
+  }, 'Could not generate the analysis.'),
+);
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -271,17 +269,14 @@ function toTransitPayload(natal: ChartSummary, transit: TransitSummary) {
 // POST /api/astrology/transits — body { natal: ChartSummary, transit: TransitSummary }.
 // Returns a stored reading for the same natal chart on the same calendar day, or
 // asks Claude against the cached reference digest and persists the result.
-router.post('/transits', async (request, response) => {
-  if (!anthropic) {
-    throw new HttpError(503, 'ANTHROPIC_API_KEY is not configured.');
-  }
+router.post(
+  '/transits',
+  handler(async (request, response) => {
+    const { natal, transit } = request.body as { natal?: unknown; transit?: unknown };
+    assertChartSummary(natal);
+    assertTransitSummary(transit);
+    const natalJson = JSON.stringify(natal);
 
-  const { natal, transit } = request.body as { natal?: unknown; transit?: unknown };
-  assertChartSummary(natal);
-  assertTransitSummary(transit);
-  const natalJson = JSON.stringify(natal);
-
-  try {
     // The natal chart is fixed and the transiting sky is fixed for a given day,
     // so an identical (chart, day) pair has a deterministic reading — reuse it.
     const existing = await pool.query<{ interpretation: string }>(selectExistingTransitReading, [
@@ -293,13 +288,12 @@ router.post('/transits', async (request, response) => {
       return;
     }
 
-    const referenceDigest = await loadReferenceDigest();
-    const interpretation = await generateReading(
-      TRANSIT_RULES,
-      referenceDigest,
-      `TODAY FOR THIS CHART\n${JSON.stringify(toTransitPayload(natal, transit))}`,
-      'transits',
-    );
+    const interpretation = await generateReading({
+      system: buildSystemPrompt(TRANSIT_RULES, await loadReferenceDigest()),
+      prompt: `TODAY FOR THIS CHART\n${JSON.stringify(toTransitPayload(natal, transit))}`,
+      maxTokens: 4000,
+      label: 'astrology transits',
+    });
 
     await pool.query(insertTransitReading, [
       natal.birth.dateTime,
@@ -315,51 +309,7 @@ router.post('/transits', async (request, response) => {
     ]);
 
     response.json({ interpretation });
-  } catch (error) {
-    throw toHttpError(error, 'Could not generate the analysis.');
-  }
-});
-
-/**
- * One Claude call for an astrology reading: the stable rules + cached reference
- * digest as the system prefix, the chart-specific text as the user turn. Logs
- * cache/token usage and returns the concatenated text.
- */
-async function generateReading(
-  rules: string,
-  referenceDigest: string,
-  userContent: string,
-  label: string,
-): Promise<string> {
-  if (!anthropic) throw new HttpError(503, 'ANTHROPIC_API_KEY is not configured.');
-
-  const message = await anthropic.messages.create({
-    model: claudeModel,
-    max_tokens: 4000,
-    // Stable prefix (rules + full reference) is cached; only the chart varies.
-    system: [
-      { type: 'text', text: rules },
-      { type: 'text', text: referenceDigest, cache_control: { type: 'ephemeral' } },
-    ],
-    messages: [{ role: 'user', content: userContent }],
-  });
-
-  if (message.stop_reason === 'max_tokens') {
-    console.warn('Claude astrology %s reached the max token limit.', label);
-  }
-  console.info(
-    'astrology %s — cache write %d, cache read %d, input %d, output %d',
-    label,
-    message.usage.cache_creation_input_tokens ?? 0,
-    message.usage.cache_read_input_tokens ?? 0,
-    message.usage.input_tokens,
-    message.usage.output_tokens,
-  );
-
-  return message.content
-    .filter((block): block is Anthropic.TextBlock => block.type === 'text')
-    .map((block) => block.text)
-    .join('\n');
-}
+  }, 'Could not generate the analysis.'),
+);
 
 export default router;

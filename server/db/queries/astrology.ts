@@ -42,16 +42,19 @@ export type ModalityRow = { key: string; name: string; keywords: string[]; signs
 export type ElementRow = { key: string; name: string; keywords: string[]; signs: string[] };
 export type NoteRow = { key: string; title: string; body: string };
 
+function selectOrder(table: string, key: string = 'key'): string {
+  return `SELECT * FROM astrology_${table} ORDER BY ${key}`;
+}
 // ORDER BY on every reference query keeps the serialized digest byte-stable
 // across requests, so the cached system prefix actually hits (see routes/astrology.ts).
-export const selectSigns = 'SELECT * FROM astrology_signs ORDER BY key';
-export const selectPlanets = 'SELECT * FROM astrology_planets ORDER BY key';
-export const selectHouses = 'SELECT * FROM astrology_houses ORDER BY number';
-export const selectAspects = 'SELECT * FROM astrology_aspects ORDER BY angle';
-export const selectDignities = 'SELECT * FROM astrology_dignities ORDER BY planet_key, dignity, sign_key';
-export const selectModalities = 'SELECT * FROM astrology_modalities ORDER BY key';
-export const selectElements = 'SELECT * FROM astrology_elements ORDER BY key';
-export const selectReferenceNotes = 'SELECT * FROM astrology_reference_notes ORDER BY key';
+export const selectSigns = selectOrder('signs');
+export const selectPlanets = selectOrder('planets');
+export const selectHouses = selectOrder('houses', 'number');
+export const selectAspects = selectOrder('aspects', 'angle');
+export const selectDignities = selectOrder('dignities', 'planet_key, dignity, sign_key');
+export const selectModalities = selectOrder('modalities');
+export const selectElements = selectOrder('elements');
+export const selectReferenceNotes = selectOrder('reference_notes');
 
 /** Most recent stored analysis for an identical chart, if one exists. */
 export const selectExistingInterpretation = `

@@ -9,7 +9,7 @@ export class HttpError extends Error {
 }
 
 /** Wraps an unexpected error as a 500 HttpError, passing HttpErrors through unchanged. */
-export function toHttpError(error: unknown, message: string): HttpError {
+export function toHttpError(error: unknown, message: string, code: number = 500): HttpError {
   if (error instanceof HttpError) return error;
-  return new HttpError(500, message, { cause: error });
+  return new HttpError(code, message, { cause: error });
 }
