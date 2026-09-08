@@ -5,10 +5,17 @@ interface AstrologyLineProps {
   readonly endingPoint: Point;
   readonly stroke?: string;
   readonly strokeWidth?: number;
+  readonly opacity?: number;
 }
 
 /** SVG <line> primitive between two points. */
-function AstrologyLine({ startingPoint, endingPoint, stroke, strokeWidth }: AstrologyLineProps) {
+function AstrologyLine({
+  startingPoint,
+  endingPoint,
+  stroke,
+  strokeWidth,
+  opacity,
+}: AstrologyLineProps) {
   const { x: x1, y: y1 } = startingPoint;
   const { x: x2, y: y2 } = endingPoint;
   return (
@@ -19,6 +26,7 @@ function AstrologyLine({ startingPoint, endingPoint, stroke, strokeWidth }: Astr
       y2={y2}
       stroke={stroke}
       strokeWidth={strokeWidth}
+      strokeOpacity={opacity}
     />
   );
 };

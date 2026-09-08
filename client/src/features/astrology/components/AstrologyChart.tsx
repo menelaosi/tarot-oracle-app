@@ -1,7 +1,8 @@
 import { Horoscope } from 'circular-natal-horoscope-js';
-import { COLLISION_RADIUS, FULL_CIRCLE, INDOOR_CIRCLE_RADIUS_RATIO, INNER_CIRCLE_RADIUS_RATIO, MARGIN, PADDING, RULER_RADIUS, assembleLocatedPoints, getCelestialBody, getPointPosition } from '../lib/horoscope';
+import { COLLISION_RADIUS, FULL_CIRCLE, INDOOR_CIRCLE_RADIUS_RATIO, INNER_CIRCLE_RADIUS_RATIO, MARGIN, PADDING, RULER_RADIUS, WHITE, assembleLocatedPoints, getCelestialBody, getPointPosition } from '../lib/horoscope';
 import type { CelestialBodyPosition, LocatedPoint, Point } from '../types';
 import { Planet } from '../types';
+import AstrologyAspects, { type AspectLine } from './AstrologyAspects';
 import AstrologyAxis from './AstrologyAxis';
 import AstrologyBackground from './AstrologyBackground';
 import AstrologyCircles from './AstrologyCircles';
@@ -22,6 +23,18 @@ interface Cusp {
       Horizon: { DecimalDegrees: number; },
     },
   };
+}
+
+// One entry of horoscope.Aspects.all — the pairing the library found between two
+// points, plus how far off exact it is (`orb`) and the widest orb it allowed for
+// that aspect type (`orbUsed`).
+interface RawAspect {
+  point1Key: string;
+  point2Key: string;
+  aspectKey: string;
+  aspectLevel: 'major' | 'minor';
+  orb: number;
+  orbUsed: number;
 }
 
 function getCelestialBodyPositions(horoscope: Horoscope): Record<Planet, CelestialBodyPosition | undefined> {
@@ -45,6 +58,41 @@ function getCuspPositions(horoscope: Horoscope): number[] {
       .Ecliptic
       .DecimalDegrees,
     );
+}
+
+/**
+ * Resolves each major aspect from `horoscope.Aspects` into a drawable chord by
+ * looking up the ecliptic longitude of both endpoints. Endpoints the wheel does
+ * not plot (south node, fixed stars) are dropped. `orbUsed` rides along so the
+ * renderer can fade aspects out as they approach the edge of orb.
+ */
+function getAspectLines(
+  horoscope: Horoscope,
+  celestialBodyPositions: Record<Planet, CelestialBodyPosition | undefined>,
+): AspectLine[] {
+  const longitudeByKey: Record<string, number> = {};
+  for (const planet of Object.values(Planet)) {
+    const longitude = celestialBodyPositions[planet]?.longitude;
+    if (longitude === undefined) continue;
+    // Aspects name the lunar node 'northnode'; every other library key already
+    // matches the Planet value we store positions under.
+    longitudeByKey[planet === Planet.NorthNode ? 'northnode' : planet] = longitude;
+  }
+  const ascendant = horoscope.Ascendant?.ChartPosition?.Ecliptic?.DecimalDegrees;
+  if (ascendant !== undefined) longitudeByKey.ascendant = ascendant;
+  const midheaven = horoscope.Midheaven?.ChartPosition?.Ecliptic?.DecimalDegrees;
+  if (midheaven !== undefined) longitudeByKey.midheaven = midheaven;
+
+  const rawAspects: RawAspect[] = horoscope?.Aspects?.all ?? [];
+  return rawAspects
+    .filter((aspect) => aspect.aspectLevel === 'major')
+    .map((aspect) => {
+      const from = longitudeByKey[aspect.point1Key];
+      const to = longitudeByKey[aspect.point2Key];
+      if (from === undefined || to === undefined) return undefined;
+      return { aspect: aspect.aspectKey, from, to, orb: aspect.orb, orbUsed: aspect.orbUsed };
+    })
+    .filter((line): line is AspectLine => line !== undefined);
 }
 
 function getLocatedPoints(
@@ -117,13 +165,26 @@ function AstrologyChart({ horoscope, height = 800, width = 800 }: AstrologyChart
     shift,
   );
 
+  const aspectLines = getAspectLines(horoscope, celestialBodyPositions);
+
   return (
     <svg
       id='chart'
       viewBox={`0 0 ${height} ${width}`}
       preserveAspectRatio='xMinYMin meet'
     >
-      <g id='aspects' />
+      {/*
+        The wheel's rings stop at the inner circle, leaving the middle open. Fill
+        it with the band colour first so the aspect chords drawn over it read
+        against the same background as the rest of the chart, not the page.
+      */}
+      <circle cx={x} cy={y} r={thickness} fill={WHITE} />
+      <AstrologyAspects
+        point={point}
+        radius={thickness}
+        shift={shift}
+        lines={aspectLines}
+      />
       <g id='radix'>
         <AstrologyBackground
           id={'radix-background'}
