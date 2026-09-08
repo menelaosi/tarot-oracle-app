@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { pool } from '../db/pool.js';
 import {
   insertGreekReading,
   selectGreekReading,
@@ -9,8 +8,9 @@ import {
   type GreekReadingRow,
 } from '../db/queries/greekOracle.js';
 import { createSystemRules, generateReading } from '../lib/claude.js';
+import { loadRow, run } from '../lib/db.js';
 import { handler } from '../lib/route.js';
-import { loadRow, optionalText } from '../lib/validate.js';
+import { optionalText } from '../lib/validate.js';
 
 const router = Router();
 
@@ -74,14 +74,14 @@ router.post(
        'Reading not found',
       );
 
-    const interpretation = await generateReading({
-      system: createSystemRules([
+    const interpretation = await generateReading(
+      createSystemRules([
         'You are delivering a Greek Alphabet Oracle reading directly to the person who drew this letter.',
         'Ground everything in the supplied oracle line, meaning, and keywords only. Do not add outside divination lore, Greek mythology, or invented correspondences.',
         'If they asked a question, answer it directly through the letter. If not, read the letter as general guidance for them now.',
         'Keep it to a short few sentences (2 to 4). Plain text — no headings, no lists.',
       ]),
-      prompt: {
+      {
         question,
         letter,
         name,
@@ -89,11 +89,11 @@ router.post(
         meaning,
         keywords,
       },
-      maxTokens: 500,
-      label: 'greek-oracle interpret',
-    });
+      500,
+      'greek-oracle',
+    );
 
-    await pool.query(updateGreekInterpretation, [interpretation, readingId]);
+    await run(updateGreekInterpretation, [interpretation, readingId]);
     response.json({ interpretation });
   }, 'Could not generate the interpretation.'),
 );

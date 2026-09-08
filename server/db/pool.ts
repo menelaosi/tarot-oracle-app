@@ -9,10 +9,21 @@ export const pool = process.env.DATABASE_URL
       user: process.env.PGUSER ?? process.env.USER,
     });
 
-/** Roll back a transaction and always return the client to the pool. */
-export async function rollback(client: PoolClient) {
+/**
+ * Runs `work` inside a transaction on a dedicated client: BEGIN, then COMMIT on
+ * success or ROLLBACK on throw, and always releases the client back to the pool.
+ */
+export async function withTransaction<T>(work: (client: PoolClient) => Promise<T>): Promise<T> {
+  const client = await pool.connect();
   try {
-    await client.query('ROLLBACK');
+    await client.query('BEGIN');
+    const result = await work(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (error) {
+    // Don't let a failed rollback mask the original error.
+    await client.query('ROLLBACK').catch(() => {});
+    throw error;
   } finally {
     client.release();
   }

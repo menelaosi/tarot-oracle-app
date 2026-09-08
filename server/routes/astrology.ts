@@ -29,6 +29,7 @@ import {
   type TransitSummary,
 } from '../db/queries/astrology.js';
 import { createSystemRules, generateReading } from '../lib/claude.js';
+import { run } from '../lib/db.js';
 import { HttpError } from '../lib/http-error.js';
 import { handler } from '../lib/route.js';
 
@@ -88,18 +89,6 @@ async function loadReferenceDigest(): Promise<string> {
   });
 }
 
-/**
- * The system prompt as two blocks: the per-reading rules, then the full
- * reference digest marked `cache_control: ephemeral`. The digest is byte-stable
- * across requests, so this prefix is a prompt-cache hit after the first call.
- */
-function buildSystemPrompt(rules: string[], referenceDigest: string) {
-  return [
-    { type: 'text' as const, text: createSystemRules(rules) },
-    { type: 'text' as const, text: referenceDigest, cache_control: { type: 'ephemeral' as const } },
-  ];
-}
-
 function isAngle(value: unknown): value is AngleSummary {
   return (
     typeof value === 'object' &&
@@ -154,46 +143,6 @@ function toChartPayload(chart: ChartSummary) {
       .map((a) => ({ from: a.from, to: a.to, type: a.type, orb: round(a.orb, 1) })),
   };
 }
-
-// POST /api/astrology/interpret — body { chart: ChartSummary }. Returns a stored
-// reading for an identical chart, or asks Claude against the cached reference
-// digest and persists the result.
-router.post(
-  '/interpret',
-  handler(async (request, response) => {
-    const { chart } = request.body as { chart?: unknown };
-    assertChartSummary(chart);
-    const summaryJson = JSON.stringify(chart);
-
-    // A birth chart is deterministic — if this exact one was analysed before,
-    // return the stored reading instead of paying for another generation.
-    const existing = await pool.query<{ interpretation: string }>(selectExistingInterpretation, [
-      summaryJson,
-    ]);
-    if (existing.rows[0]) {
-      response.json({ interpretation: existing.rows[0].interpretation, reused: true });
-      return;
-    }
-
-    const interpretation = await generateReading({
-      system: buildSystemPrompt(READING_RULES, await loadReferenceDigest()),
-      prompt: `CHART\n${JSON.stringify(toChartPayload(chart))}`,
-      maxTokens: 4000,
-      label: 'astrology interpret',
-    });
-
-    await pool.query(insertAstrologyReading, [
-      chart.birth.dateTime,
-      chart.birth.latitude,
-      chart.birth.longitude,
-      chart.birth.placeLabel || null,
-      summaryJson,
-      interpretation,
-    ]);
-
-    response.json({ interpretation });
-  }, 'Could not generate the analysis.'),
-);
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -266,6 +215,62 @@ function toTransitPayload(natal: ChartSummary, transit: TransitSummary) {
   };
 }
 
+async function astrologyGenerateReading(
+  rules: string[],
+  prompt: string,
+  label: string,
+) {
+  return generateReading(
+    [
+      { type: 'text' as const, text: createSystemRules(rules) },
+      { type: 'text' as const, text: await loadReferenceDigest(), cache_control: { type: 'ephemeral' as const } },
+    ],
+    prompt,
+    4000,
+    `astrology ${label}`,
+  );
+}
+
+
+// POST /api/astrology/interpret — body { chart: ChartSummary }. Returns a stored
+// reading for an identical chart, or asks Claude against the cached reference
+// digest and persists the result.
+router.post(
+  '/interpret',
+  handler(async (request, response) => {
+    const { chart } = request.body as { chart?: unknown };
+    assertChartSummary(chart);
+    const summaryJson = JSON.stringify(chart);
+
+    // A birth chart is deterministic — if this exact one was analysed before,
+    // return the stored reading instead of paying for another generation.
+    const existing = await pool.query<{ interpretation: string }>(selectExistingInterpretation, [
+      summaryJson,
+    ]);
+    if (existing.rows[0]) {
+      response.json({ interpretation: existing.rows[0].interpretation, reused: true });
+      return;
+    }
+
+    const interpretation = await astrologyGenerateReading(
+      READING_RULES,
+      `CHART\n${JSON.stringify(toChartPayload(chart))}`,
+      'birthchart',
+    );
+
+    await run(insertAstrologyReading, [
+      chart.birth.dateTime,
+      chart.birth.latitude,
+      chart.birth.longitude,
+      chart.birth.placeLabel || null,
+      summaryJson,
+      interpretation,
+    ]);
+
+    response.json({ interpretation });
+  }, 'Could not generate the analysis.'),
+);
+
 // POST /api/astrology/transits — body { natal: ChartSummary, transit: TransitSummary }.
 // Returns a stored reading for the same natal chart on the same calendar day, or
 // asks Claude against the cached reference digest and persists the result.
@@ -288,14 +293,13 @@ router.post(
       return;
     }
 
-    const interpretation = await generateReading({
-      system: buildSystemPrompt(TRANSIT_RULES, await loadReferenceDigest()),
-      prompt: `TODAY FOR THIS CHART\n${JSON.stringify(toTransitPayload(natal, transit))}`,
-      maxTokens: 4000,
-      label: 'astrology transits',
-    });
+    const interpretation = await astrologyGenerateReading(
+      TRANSIT_RULES,
+      `TODAY FOR THIS CHART\n${JSON.stringify(toTransitPayload(natal, transit))}`,
+      'transit',
+    );
 
-    await pool.query(insertTransitReading, [
+    await run(insertTransitReading, [
       natal.birth.dateTime,
       natal.birth.latitude,
       natal.birth.longitude,

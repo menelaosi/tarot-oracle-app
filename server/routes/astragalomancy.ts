@@ -15,9 +15,10 @@ import {
   type StandardMeaningRow,
 } from '../db/queries/astragalomancy.js';
 import { createSystemRules, generateReading } from '../lib/claude.js';
+import { loadRow, run } from '../lib/db.js';
 import { HttpError } from '../lib/http-error.js';
 import { handler } from '../lib/route.js';
-import { loadRow, optionalText } from '../lib/validate.js';
+import { optionalText } from '../lib/validate.js';
 
 const router = Router();
 
@@ -156,14 +157,14 @@ router.post(
           };
 
     const system = createSystemRules(roll.mode === 'standard' ? STANDARD_RULES : ZODIAC_RULES);
-    const interpretation = await generateReading({
+    const interpretation = await generateReading(
       system,
       prompt,
-      maxTokens: 600,
-      label: 'astragalomancy interpret',
-    });
+      600,
+      'astragalomancy',
+    );
 
-    await pool.query(updateAstragalomancyInterpretation, [interpretation, readingId]);
+    await run(updateAstragalomancyInterpretation, [interpretation, readingId]);
     response.json({ interpretation });
   }, 'Could not generate the interpretation.'),
 );

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { selectCardDetails, toCardDetails, type CardDetailsRow } from '../db/queries/cards.js';
+import { loadRow } from '../lib/db.js';
 import { HttpError } from '../lib/http-error.js';
-import { loadRow } from '../lib/validate.js';
 
 const router = Router();
 

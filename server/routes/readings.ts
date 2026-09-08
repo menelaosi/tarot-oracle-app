@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { pool, rollback } from '../db/pool.js';
+import { withTransaction } from '../db/pool.js';
 import { selectRandomCards, type DrawnCardRow } from '../db/queries/cards.js';
 import {
   insertReading,
@@ -11,9 +11,10 @@ import {
   type ReadingRow,
 } from '../db/queries/readings.js';
 import { createSystemRules, generateReading } from '../lib/claude.js';
+import { loadRows, run } from '../lib/db.js';
 import { HttpError } from '../lib/http-error.js';
 import { handler } from '../lib/route.js';
-import { loadRows, optionalText } from '../lib/validate.js';
+import { optionalText } from '../lib/validate.js';
 import { getSpreadInstructions, isSupportedSpread, spreads } from '../spreads.js';
 
 const router = Router();
@@ -31,46 +32,36 @@ router.post(
     }
     const definition = spreads[spreadType];
 
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-      const readingResult = await client.query<ReadingRow>(insertReading, [spreadType, question]);
-      const reading = readingResult.rows[0];
-      if (!reading) throw new Error('The reading was not created.');
-      const { id } = reading;
+    const { reading, drawn } = await withTransaction(async (client) => {
+      const { rows: [row] } = await client.query<ReadingRow>(insertReading, [spreadType, question]);
+      if (!row) throw new Error('The reading was not created.');
 
-      const cardsResult = await client.query<{ id: number; name: string; image_path: string }>(
-        selectRandomCards,
-        [definition.positions.length],
-      );
-
-      for (const [index, card] of cardsResult.rows.entries()) {
+      const { rows: picked } = await client.query<{ id: number }>(selectRandomCards, [
+        definition.positions.length,
+      ]);
+      for (const [index, card] of picked.entries()) {
         await client.query(insertReadingCard, [
-          id,
+          row.id,
           card.id,
           index + 1,
           includeReversals && Math.random() < 0.25 ? 'reversed' : 'upright',
         ]);
       }
 
-      const result = await client.query<DrawnCardRow>(selectDrawnCards, [id]);
-      await client.query('COMMIT');
-      client.release();
+      const { rows } = await client.query<DrawnCardRow>(selectDrawnCards, [row.id]);
+      return { reading: row, drawn: rows };
+    });
 
-      response.status(201).json({
-        id,
-        spreadType,
-        spreadLabel: definition.label,
-        question: reading.question,
-        cards: result.rows.map((card) => ({
-          ...card,
-          positionLabel: definition.positions[card.position - 1],
-        })),
-      });
-    } catch (error) {
-      await rollback(client);
-      throw error;
-    }
+    response.status(201).json({
+      id: reading.id,
+      spreadType,
+      spreadLabel: definition.label,
+      question: reading.question,
+      cards: drawn.map((card) => ({
+        ...card,
+        positionLabel: definition.positions[card.position - 1],
+      })),
+    });
   }, 'Could not draw the cards.'),
 );
 
@@ -110,7 +101,7 @@ const READING_RULES = [
   'Use the supplied upright or reversed meaning that matches each card orientation.',
   'Treat correspondences as supporting context, not as permission to introduce outside tarot knowledge.',
   'Use Markdown headings and paragraphs. Finish with a complete synthesis and final thought addressed to them.',
-].join(' ');
+];
 
 // POST /api/readings/:readingId/interpret — load the reading's cards + stored
 // correspondences, ask Claude to read them (second person, DB context only),
@@ -122,25 +113,24 @@ router.post(
     const rows = await loadRows<InterpretationCardRow>(
       selectInterpretationCards,
       [readingId],
-      'Reading not found',
+      'Reading not found.',
     );
 
     const { spread_type, question } = rows[0]!;
     const definition = isSupportedSpread(spread_type) ? spreads[spread_type] : null;
     if (!definition || rows.length !== definition.positions.length) {
-      throw new HttpError(400, 'Invalid definition.');
+      throw new HttpError(404, 'Reading not found.');
     }
 
     const cards = rows.map((card) => toInterpretationContext(card, definition));
-    const system = createSystemRules([...READING_RULES, ...getSpreadInstructions(definition)]);
-    const interpretation = await generateReading({
-      system,
-      prompt: { question, cards },
-      maxTokens: 1400,
-      label: 'tarot interpret',
-    });
+    const interpretation = await generateReading(
+      createSystemRules([...READING_RULES, getSpreadInstructions(definition)]),
+      { question, cards },
+      1400,
+      'tarot',
+    );
 
-    await pool.query(updateInterpretation, [interpretation, readingId]);
+    await run(updateInterpretation, [interpretation, readingId]);
     response.json({ interpretation });
   }, 'Could not generate the interpretation.'),
 );
