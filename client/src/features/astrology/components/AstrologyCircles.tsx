@@ -9,6 +9,7 @@ interface AstrologyCirclesProps {
   readonly backgroundRadius: number;
 }
 
+/** The concentric outline circles that separate the wheel's rings. */
 function AstrologyCircles({ point, radius, thickness, backgroundRadius }: AstrologyCirclesProps) {
   return (
     <g id='circles'>

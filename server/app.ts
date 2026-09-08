@@ -23,6 +23,9 @@ app.use('/api/cards', cardsRouter);
 app.use('/api/readings', readingsRouter);
 app.use('/api/astrology', astrologyRouter);
 
+// Centralized error handler — must be registered last, and needs all four args
+// for Express to treat it as an error handler. Every failed request ends up here
+// as `{ error }`; only unexpected (>= 500) errors are logged.
 app.use((err: unknown, _request: Request, response: Response, _next: NextFunction) => {
   if (err instanceof HttpError) {
     if (err.status >= 500) console.error(err.cause ?? err);

@@ -13,6 +13,7 @@ type ReadingControlsProps = {
   onDraw: () => void;
 };
 
+/** Spread picker, optional question, reversals toggle, and the draw button. */
 function ReadingControls({
   spreadType,
   question,

@@ -18,6 +18,7 @@ const AXES: readonly { axis: Axis; labelOffset: number }[] = [
   { axis: Axis.Midheaven, labelOffset: 10 },
 ];
 
+/** The four angle spokes (AC/IC/DC/MC) and their labels, past the wheel's rim. */
 function AstrologyAxis({ point, radius, cuspPositions, shift }: AstrologyAxisProps) {
   const axisRadius = radius + (radius / INNER_CIRCLE_RADIUS_RATIO / 4);
 

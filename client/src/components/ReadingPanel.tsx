@@ -3,7 +3,9 @@ import ButtonComponent from './ButtonComponent';
 
 type ReadingPanelProps = {
   sectionClassName: string;
+  /** Extra heading classes; "section-heading" is always prepended. */
   headingClassName: string;
+  /** Links the <h2> to the section via aria-labelledby. */
   titleId: string;
   title: ReactNode;
   onAnalyze: () => void;
@@ -13,6 +15,10 @@ type ReadingPanelProps = {
   children: ReactNode;
 };
 
+/**
+ * Shared shell for the drawn spread and the cast chart: a titled section with an
+ * analyze action in the heading and the visual content ({children}) below.
+ */
 function ReadingPanel({
   sectionClassName,
   headingClassName,

@@ -14,6 +14,7 @@ interface AstrologyPlanetsProps {
   readonly shift: number;
 }
 
+/** Planet glyphs at their spread (collision-adjusted) positions, each with a pointer back to its true degree and its degree/retrograde/dignity label. */
 function AstrologyPlanets({
   point,
   radius,

@@ -9,6 +9,7 @@ interface AstrologyBackgroundProps {
   readonly thickness: number;
 }
 
+/** The opaque disc behind a wheel (radix or transit), drawn as one wide ring segment. */
 function AstrologyBackground({ id, point, radius, thickness }: AstrologyBackgroundProps) {
   return (
     <g id={id}>

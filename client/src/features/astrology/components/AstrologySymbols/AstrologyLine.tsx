@@ -7,6 +7,7 @@ interface AstrologyLineProps {
   readonly strokeWidth?: number;
 }
 
+/** SVG <line> primitive between two points. */
 function AstrologyLine({ startingPoint, endingPoint, stroke, strokeWidth }: AstrologyLineProps) {
   const { x: x1, y: y1 } = startingPoint;
   const { x: x2, y: y2 } = endingPoint;

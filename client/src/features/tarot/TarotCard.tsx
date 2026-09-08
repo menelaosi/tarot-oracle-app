@@ -8,6 +8,8 @@ type TarotCardProps = {
 
 type DetailValue = string | string[] | null | undefined;
 
+/** One row in the hover panel; renders nothing for empty/absent values so
+ *  cards with sparse correspondences don't show blank lines. */
 function DetailLine({
   className = 'meta',
   label,
@@ -22,19 +24,22 @@ function DetailLine({
   return <p className={`details-${className}`}>{label ? `${label}: ${text}` : text}</p>;
 }
 
+/** A drawn card. Its extended correspondences load lazily from the API the first
+ *  time the card is hovered or focused, then stay cached on the component. */
 function TarotCard({ card, includeReversals = false }: TarotCardProps) {
   const [details, setDetails] = useState<CardDetails | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [detailsError, setDetailsError] = useState('');
   const [isDetailsVisible, setIsDetailsVisible] = useState(false);
 
+  // When reversals are turned off, a card drawn reversed is still read upright.
   const isUpright = card.orientation === 'upright' || !includeReversals;
   function pick<T>(upright: T, reversed: T) {
     return isUpright ? upright : reversed;
   }
 
   async function loadDetails() {
-    if (details || isLoadingDetails) return;
+    if (details || isLoadingDetails) return; // fetch once, on first reveal
 
     setIsLoadingDetails(true);
     setDetailsError('');

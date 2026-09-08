@@ -10,6 +10,10 @@ type BirthdayControlProps = {
   onCast: () => void;
 };
 
+/**
+ * Birth date/time input + place autocomplete. `isSubmitting` is always false —
+ * casting the chart is synchronous, so there's nothing to wait on.
+ */
 function BirthdayControl({
   birthMoment,
   place,

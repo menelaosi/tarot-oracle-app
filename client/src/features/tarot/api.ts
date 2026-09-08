@@ -1,3 +1,4 @@
+// Tarot endpoints. Thin typed wrappers over lib/http so views only handle state.
 import { getJson, postJson } from '../../lib/http';
 import type { Reading, SpreadOption } from './types';
 

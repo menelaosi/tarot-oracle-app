@@ -22,6 +22,7 @@ function isInCollision(angle: number, locatedPoints: LocatedPoint[]): boolean {
   });
 }
 
+/** House cusp spokes and their numerals; a spoke near a planet cluster is drawn shorter to clear the glyphs. */
 function AstrologyCusps({
   point,
   numbersRadius,

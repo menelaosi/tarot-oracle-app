@@ -58,6 +58,7 @@ function getRulerPositions(
   return resultArray;
 }
 
+/** The degree tick ring just inside a wheel's rim (72 ticks, every 5°). */
 function AstrologyRuler({
   point,
   startRadius,

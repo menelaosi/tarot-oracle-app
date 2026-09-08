@@ -1,3 +1,5 @@
+// Side-effect import: loads .env into process.env. Must stay first so every
+// module below sees the vars when it initializes (db pool, Anthropic client).
 import './env.js';
 import app from './app.js';
 

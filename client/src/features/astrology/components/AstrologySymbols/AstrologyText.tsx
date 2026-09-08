@@ -7,6 +7,7 @@ interface AstrologyTextProps {
   readonly color: string;
 }
 
+/** SVG <text> primitive, vertically centred on its point. */
 function AstrologyText({ text, point, size, color }: AstrologyTextProps) {
   const { x, y } = point;
   return (

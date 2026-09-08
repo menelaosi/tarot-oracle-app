@@ -1,3 +1,6 @@
+// Wraps circular-natal-horoscope-js and holds the geometry + drawing constants
+// the SVG chart uses. Angles are wheel degrees (0° left, counter-clockwise);
+// convertShiftInDegrees turns them into the radians getPointPosition needs.
 import { Horoscope, Origin } from 'circular-natal-horoscope-js';
 import {
   Dignity,
@@ -198,6 +201,11 @@ function hasConjunction(planetPosition: number, pointPosition: number, orbit: nu
   return planetPosition <= maximumOrbit || planetPosition >= minimumOrbit;
 }
 
+/**
+ * Dignities for a planet at a longitude: its essential dignity in that sign
+ * (rulership / detriment / exaltation / fall), plus an exact-exaltation marker
+ * when it's within orb of its exaltation degree.
+ */
 export function getDignities(planetName: Planet, planetPosition: number): Dignity[] {
   const result: Dignity[] = [];
 
@@ -251,6 +259,11 @@ function isCollision(locatedPoint: LocatedPoint, comparePoint: LocatedPoint): bo
   return magnitude <= totalRadii;
 }
 
+/**
+ * Adds `locatedPoint` to `locatedPoints`, nudging any glyph it overlaps (and
+ * re-checking, recursively) so tightly-grouped planets fan out instead of
+ * stacking. Mutates and returns the array.
+ */
 export function assembleLocatedPoints(
   locatedPoints: LocatedPoint[],
   locatedPoint: LocatedPoint,

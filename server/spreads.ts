@@ -1,3 +1,7 @@
+// The spread registry: the single source for each spread's label, position
+// names, and prompt guidance. The API list, client picker, draw count, and
+// Claude instructions all derive from here — add a spread in one place.
+
 export type SpreadDefinition = {
   label: string;
   positions: readonly string[];

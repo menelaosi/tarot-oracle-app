@@ -1,3 +1,5 @@
+// Shapes returned by the tarot API (server/db/queries/*). Kept in sync by hand.
+
 export type Position = string;
 
 export type DrawnCard = {

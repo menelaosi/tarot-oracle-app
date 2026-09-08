@@ -17,6 +17,7 @@ function withEmoji(sign: string | undefined): string | undefined {
   return `${sign}${emoji ? ` ${emoji}` : ''}`;
 }
 
+/** "Sun in Aquarius ♒, Moon in Gemini ♊, Libra ♎ rising", or a plain fallback. */
 function getTitle(horoscope: Horoscope): string {
   const sun = withEmoji(horoscope.SunSign?.label);
   const moon = withEmoji(getCelestialBody(horoscope, Planet.Moon)?.Sign?.label);

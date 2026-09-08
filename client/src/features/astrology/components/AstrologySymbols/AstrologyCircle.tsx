@@ -8,6 +8,7 @@ interface CircleProps {
   readonly fill?: string;
 }
 
+/** SVG <circle> primitive; `fill` defaults to none so callers get an outline. */
 function AstrologyCircle({
   point,
   radius,

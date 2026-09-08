@@ -1,6 +1,7 @@
-// Transport layer for the app's own API. Feature api.ts modules build on this.
-// The Express error middleware returns `{ "error": "..." }` for every route, so
-// a failed response is unwrapped to that message before it's thrown.
+// Transport for the app's own API; the feature api.ts modules build on this.
+// server/app.ts's error middleware returns `{ "error": "..." }` on every failure,
+// so a non-ok response is unwrapped to that message (falling back to a generic
+// one) and thrown, letting callers just `catch` and show `err.message`.
 
 type ApiErrorBody = { error?: string };
 

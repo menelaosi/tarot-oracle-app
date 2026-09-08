@@ -17,6 +17,8 @@ import { getSpreadInstructions, isSupportedSpread, spreads } from '../spreads.js
 
 const router = Router();
 
+// POST /api/readings/draw — pick random cards for the spread and persist the
+// reading + its cards in one transaction, so a partial draw is never stored.
 router.post('/draw', async (request, response) => {
   const {
     spreadType = 'three_card',
@@ -81,6 +83,9 @@ router.post('/draw', async (request, response) => {
   }
 });
 
+// Flattens a joined card row into the object Claude is given. Picks the upright
+// or reversed variant per the card's orientation; this is the only tarot context
+// the model gets, so anything not here can't be used.
 function toInterpretationContext(
   card: InterpretationCardRow,
   definition: { positions: readonly string[] },
@@ -107,6 +112,9 @@ function toInterpretationContext(
   };
 }
 
+// POST /api/readings/:readingId/interpret — load the reading's cards + stored
+// correspondences, ask Claude to read them (second person, DB context only),
+// then persist the interpretation on the reading.
 router.post('/:readingId/interpret', async (request, response) => {
   if (!anthropic) {
     throw new HttpError(503, 'ANTHROPIC_API_KEY is not configured.');

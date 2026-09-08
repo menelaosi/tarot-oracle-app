@@ -9,6 +9,7 @@ type SpreadProps = {
   onGenerateInterpretation: () => void;
 };
 
+/** The drawn cards plus the interpret action, in the shared ReadingPanel shell. */
 function Spread({
   reading,
   includeReversals = false,

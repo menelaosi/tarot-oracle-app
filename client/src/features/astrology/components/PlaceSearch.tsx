@@ -8,6 +8,10 @@ type PlaceSearchProps = {
 
 const MIN_QUERY = 3;
 
+/**
+ * Combobox that geocodes as you type. `value` set = a place is chosen; clearing
+ * or editing the text drops back to search mode (`onChange(null)`).
+ */
 function PlaceSearch({ value, onChange }: PlaceSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Place[]>([]);
@@ -15,6 +19,8 @@ function PlaceSearch({ value, onChange }: PlaceSearchProps) {
   const [loading, setLoading] = useState(false);
   const listId = useId();
 
+  // Debounce keystrokes and cancel the in-flight request when the query changes
+  // or the component unmounts, so results can't land out of order.
   useEffect(() => {
     const term = query.trim();
     if (term.length < MIN_QUERY || term === value?.label) return;
@@ -65,6 +71,7 @@ function PlaceSearch({ value, onChange }: PlaceSearchProps) {
         onFocus={() => {
           if (results.length > 0) setOpen(true);
         }}
+        // Delay the close so an option's onMouseDown (below) fires before the list unmounts.
         onBlur={() => window.setTimeout(() => setOpen(false), 120)}
       />
       {loading && <span className="place-search-status">Searching…</span>}

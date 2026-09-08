@@ -8,7 +8,8 @@ import TabNav from './components/TabNav';
 const TarotView = lazy(() => import('./features/tarot/TarotView'));
 const AstrologyView = lazy(() => import('./features/astrology/AstrologyView'));
 
-// Masthead copy per section; unknown paths (including "/" before it redirects) fall back to Tarot.
+// Masthead copy per section, keyed by pathname. Unknown paths (including "/"
+// before it redirects, and the "*" catch-all) fall back to Tarot.
 const HEADERS: Record<string, { title: string; intro: string }> = {
   '/tarot': {
     title: 'Tarot Reader',
@@ -20,6 +21,7 @@ const HEADERS: Record<string, { title: string; intro: string }> = {
   },
 };
 
+/** App shell: masthead + tab nav, then the lazily-loaded feature view for the route. */
 function App() {
   const { pathname } = useLocation();
   const header = HEADERS[pathname] ?? HEADERS['/tarot'];

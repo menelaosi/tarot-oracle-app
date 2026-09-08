@@ -11,6 +11,7 @@ import { buildChartSummary } from './lib/chartSummary';
 import type { Place } from './lib/geocode';
 import { getHoroscope } from './lib/horoscope';
 
+/** Astrology section: birth form, the cast chart, and Claude's analysis. */
 function AstrologyView() {
   const [birthMoment, setBirthMoment] = useRetainedState('astrology:birthMoment', '');
   const [place, setPlace] = useRetainedState<Place | null>('astrology:place', null);
@@ -19,6 +20,8 @@ function AstrologyView() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState('');
 
+  // Casting is a local computation (the ephemeris runs in the browser); only
+  // analyzeChart hits the server.
   function castChart() {
     setError('');
     setInterpretation('');

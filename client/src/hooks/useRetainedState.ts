@@ -1,12 +1,14 @@
 import { useCallback, useState, type Dispatch, type SetStateAction } from 'react';
 
-// A drop-in replacement for useState whose value survives the component
-// unmounting and remounting — e.g. when react-router swaps route elements as
-// you switch tabs. The value lives in this module-level cache, keyed by a
-// caller-provided string, and is rehydrated on the next mount. A full page
-// reload clears it.
+// Survives unmount/remount by living outside the component tree. Cleared on reload.
 const cache = new Map<string, unknown>();
 
+/**
+ * A drop-in `useState` whose value persists when the component unmounts and
+ * remounts — e.g. when react-router swaps route elements on a tab switch. The
+ * value is kept in a module-level cache under `key` and rehydrated on next mount.
+ * Per-viewer and in-memory only; a full page reload starts fresh.
+ */
 export function useRetainedState<T>(
   key: string,
   initialState: T | (() => T),

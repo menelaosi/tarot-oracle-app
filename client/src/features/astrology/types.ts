@@ -1,3 +1,6 @@
+// Domain types + lookup tables shared by the SVG chart, the chart summary, and
+// the reading title. Sign labels match the library's capitalised Sign.label.
+
 export interface Point {
   x: number;
   y: number;
@@ -110,6 +113,8 @@ export function zodiacFromNumber(n: number): ZodiacSign {
   return ZODIAC_SIGNS[(n - 1) % 12];
 }
 
+// Values are indices into the 12-element cuspPositions array: the 1st, 4th, 7th,
+// and 10th house cusps carry the four chart angles.
 export const Axis = {
   Ascendant: 0,
   ImmumCoeli: 3,

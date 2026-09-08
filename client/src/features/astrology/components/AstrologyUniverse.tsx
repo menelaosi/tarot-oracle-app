@@ -14,6 +14,7 @@ interface AstrologyUniverseProps {
 /** Degrees of arc each zodiac sign occupies on the wheel. */
 const SIGN_ARC = 360 / ZODIAC_SIGNS.length;
 
+/** The zodiac band: 12 sign segments and their coloured glyphs. */
 function AstrologyUniverse({ point, shift, radius, backgroundRadius }: AstrologyUniverseProps) {
   const glyphRadius = radius - (radius / INNER_CIRCLE_RADIUS_RATIO / 2);
 

@@ -81,9 +81,10 @@ function getLocatedPoints(
 }
 
 /**
- * Creates the astrology chart based on the provided horoscope
- * @param {AstrologyChartProps} props The horoscope passed in or undefined
- * @returns A div with all the SVGs for now for testing
+ * The natal wheel as one SVG. Derives each ring's radius from `radius`, resolves
+ * body and cusp longitudes from the library `horoscope`, and composes the
+ * background / signs / ruler / planets / cusps / axis subcomponents. `shift`
+ * rotates the whole wheel so the Ascendant sits on the left.
  */
 function AstrologyChart({ horoscope, height = 800, width = 800 }: AstrologyChartProps) {
   const x = width / 2;

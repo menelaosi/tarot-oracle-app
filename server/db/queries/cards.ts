@@ -1,3 +1,7 @@
+// SQL for the cards routes, plus the row -> DTO mapper. selectCardDetails
+// LEFT JOINs every correspondence table so a card with sparse data still
+// returns (nulls / empty arrays), which toCardDetails normalizes.
+
 export type CardDetailsRow = {
   id: number;
   name: string;
@@ -56,6 +60,7 @@ export type CardDetailsDto = {
   majorRepresentations: string[];
 };
 
+/** Row (snake_case, nullable) -> client DTO (camelCase, arrays defaulted to []). */
 export function toCardDetails(row: CardDetailsRow): CardDetailsDto {
   return {
     id: row.id,

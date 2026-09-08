@@ -5,6 +5,8 @@ import { HttpError, toHttpError } from '../lib/http-error.js';
 
 const router = Router();
 
+// GET /api/cards/:cardId — one card with its extended correspondences, loaded
+// on demand when a drawn card is hovered/focused in the client.
 router.get('/:cardId', async (request, response) => {
   const cardId = Number(request.params.cardId);
   if (!Number.isInteger(cardId)) {

@@ -103,6 +103,9 @@ function toChartPayload(chart: ChartSummary) {
   };
 }
 
+// POST /api/astrology/interpret — body { chart: ChartSummary }. Returns a stored
+// reading for an identical chart, or asks Claude against the cached reference
+// digest and persists the result.
 router.post('/interpret', async (request, response) => {
   if (!anthropic) {
     throw new HttpError(503, 'ANTHROPIC_API_KEY is not configured.');

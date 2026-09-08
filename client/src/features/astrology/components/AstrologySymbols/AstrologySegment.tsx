@@ -15,9 +15,10 @@ interface AstrologySegmentProps {
 }
 
 /**
- * Creates a segment SVG
- * @param AstrologySegmentProps
- * @returns the segment in SVG
+ * A ring (donut) segment: the wedge between radii `thickness`..`radius` and
+ * angles `angleFrom`..`angleTo`, as a single <path> (two lines + two arcs). Used
+ * for the wheel backgrounds and the 12 zodiac-band slices. `lFlag`/`sFlag` are
+ * the SVG arc large-arc / sweep flags for spans over 180°.
  */
 const AstrologySegment: React.FC<AstrologySegmentProps> = ({
   point,

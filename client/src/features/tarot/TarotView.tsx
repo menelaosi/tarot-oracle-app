@@ -8,6 +8,7 @@ import Spread from './Spread';
 import './tarot.css';
 import type { Reading, SpreadOption } from './types';
 
+/** Tarot section: spread controls, the drawn cards, and Claude's interpretation. */
 function TarotView() {
   // Retained across tab switches so the drawn spread and its interpretation are
   // still here when you come back.
@@ -41,7 +42,7 @@ function TarotView() {
   async function drawCards() {
     setIsDrawing(true);
     setError('');
-    setInterpretation('');
+    setInterpretation(''); // a fresh draw invalidates the previous reading's interpretation
 
     try {
       setReading(await drawReading({ spreadType, question, includeReversals }));

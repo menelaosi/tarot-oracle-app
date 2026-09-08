@@ -5,6 +5,7 @@ type ControlsSectionProps = {
   sectionClassName: string;
   gridClassName: string;
   ariaLabel: string;
+  /** Field <label>s; they render before the submit button, which the grid columns rely on. */
   children: ReactNode;
   onSubmit: () => void;
   isSubmitting: boolean;
@@ -12,6 +13,10 @@ type ControlsSectionProps = {
   submittingText?: string;
 };
 
+/**
+ * Shared shell for the tarot reading controls and the astrology birth form: a
+ * labelled section whose grid holds the fields followed by a primary button.
+ */
 function ControlsSection({
   sectionClassName,
   gridClassName,

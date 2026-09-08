@@ -1,3 +1,6 @@
+// SQL for the readings routes. selectInterpretationCards joins each drawn
+// card to its correspondences so one query feeds the whole Claude prompt.
+
 export type ReadingRow = {
   id: string;
   question: string | null;

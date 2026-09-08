@@ -11,6 +11,10 @@ type WorkspaceLayoutProps = {
   interpretation: string;
 };
 
+/**
+ * Shared body for the Tarot and Astrology views: the controls, then a two-column
+ * workspace — subject (and any error) on the left, Claude's reading on the right.
+ */
 function WorkspaceLayout({
   controls,
   main,
