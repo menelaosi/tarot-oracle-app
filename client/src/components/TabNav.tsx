@@ -6,6 +6,7 @@ const tabs = [
   { to: '/astrology', label: 'Astrology' },
   { to: '/transits', label: 'Transits' },
   { to: '/greek-oracle', label: 'Greek Alphabet Oracle' },
+  { to: '/astragalomancy', label: 'Astragalomancy' },
 ];
 
 /** Top-level section switcher. NavLink handles the active-tab styling. */

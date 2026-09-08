@@ -428,4 +428,28 @@ ON CONFLICT (letter) DO UPDATE SET
   name=EXCLUDED.name, position=EXCLUDED.position, oracle=EXCLUDED.oracle,
   meaning=EXCLUDED.meaning, keywords=EXCLUDED.keywords;
 
+-- ---------------------------------------------------------------------------
+-- Astragalomancy: traditional meanings for the sum of three six-sided dice.
+-- Rerunnable.
+-- ---------------------------------------------------------------------------
+
+INSERT INTO astragalomancy_meanings (total, meaning) VALUES
+(3,  'Favorable, surprising news.'),
+(4,  'Bad luck, disappointment.'),
+(5,  'Your wish is granted but in an unexpected way; a stranger brings joy.'),
+(6,  'Loss in business and money.'),
+(7,  'Beware of backstabbing which causes setbacks.'),
+(8,  'Injustice caused by outside influences. Victimization.'),
+(9,  'Rekindling and forgiveness after arguing. Luck in marriage and in matters of the heart.'),
+(10, 'Business success, promotion, domestic bliss.'),
+(11, 'Parting of ways, some illness.'),
+(12, 'Expect good written news, but seek counsel when replying to any correspondence.'),
+(13, 'Sadness and grief.'),
+(14, 'Help from a friend; getting to know a distant admirer.'),
+(15, 'Beware of temptation.'),
+(16, 'Safe and pleasant travels.'),
+(17, 'A change of plan. Schedules may be altered by somebody abroad who is involved in your arrangements.'),
+(18, 'Overall happiness involving prosperity and success.')
+ON CONFLICT (total) DO UPDATE SET meaning = EXCLUDED.meaning;
+
 COMMIT;

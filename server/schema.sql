@@ -211,4 +211,26 @@ CREATE TABLE IF NOT EXISTS greek_oracle_readings (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- ---------------------------------------------------------------------------
+-- Astragalomancy (dice divination). Standard mode rolls three d6 and reads the
+-- sum against a fixed table (seeded from server/seed.sql); zodiac mode rolls a
+-- planet / sign / house from the astrology reference tables.
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS astragalomancy_meanings (
+    total INTEGER PRIMARY KEY CHECK (total BETWEEN 3 AND 18),
+    meaning TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS astragalomancy_readings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    question TEXT,
+    mode TEXT NOT NULL CHECK (mode IN ('standard', 'zodiac')),
+    -- standard: { "values": [n,n,n], "total": n }
+    -- zodiac:   { "planet": "mars", "sign": "aries", "house": 5 }
+    dice JSONB NOT NULL,
+    interpretation TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 COMMIT;

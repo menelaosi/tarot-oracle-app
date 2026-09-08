@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { HttpError } from './lib/http-error.js';
+import astragalomancyRouter from './routes/astragalomancy.js';
 import astrologyRouter from './routes/astrology.js';
 import cardsRouter from './routes/cards.js';
 import greekOracleRouter from './routes/greekOracle.js';
@@ -24,6 +25,7 @@ app.use('/api/cards', cardsRouter);
 app.use('/api/readings', readingsRouter);
 app.use('/api/astrology', astrologyRouter);
 app.use('/api/greek-oracle', greekOracleRouter);
+app.use('/api/astragalomancy', astragalomancyRouter);
 
 // Centralized error handler — must be registered last, and needs all four args
 // for Express to treat it as an error handler. Every failed request ends up here
