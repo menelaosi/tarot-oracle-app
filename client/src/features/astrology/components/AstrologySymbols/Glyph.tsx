@@ -1,3 +1,4 @@
+import { POINTS_STROKE } from '../../lib/horoscope';
 import type { GlyphProps } from './glyphs/types';
 
 /**
@@ -6,7 +7,7 @@ import type { GlyphProps } from './glyphs/types';
  * is emitted after a leading `m <origin>`, so specs hold plain relative path
  * data and never repeat the placement arithmetic.
  */
-function Glyph({ point, spec, stroke, strokeWidth }: GlyphProps) {
+function Glyph({ point, spec, stroke, strokeWidth = POINTS_STROKE }: GlyphProps) {
   const x = Math.round(point.x + spec.dx);
   const y = Math.round(point.y + spec.dy);
   return (
