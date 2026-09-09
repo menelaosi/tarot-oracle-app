@@ -4,6 +4,7 @@
 // one) and thrown, letting callers just `catch` and show `err.message`.
 
 type ApiErrorBody = { error?: string };
+export type InterpretationResponse = { interpretation: string };
 
 async function unwrap<T>(response: Response, fallbackError: string): Promise<T> {
   if (!response.ok) {
@@ -23,19 +24,29 @@ export async function postJson<T>(
   body?: unknown,
   fallbackError = 'The request failed.',
 ): Promise<T> {
-  const init: RequestInit = 
-    body === undefined
-      ? { method: 'POST' }
-      : {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      };
-  const response = await fetch(url, init);
+  const response = await fetch(url, {
+    method: 'POST',
+    ...(body != null ? {
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    } : {}),
+  });
   return await unwrap<T>(response, fallbackError);
 }
 
 /** Error message for a caught unknown, with a friendly fallback. */
 export function messageFrom(error: unknown, fallback = 'Something went wrong.'): string {
   return error instanceof Error ? error.message : fallback;
+}
+
+export async function getInterpretationResponse(
+  url: string,
+  body?: unknown,
+): Promise<string> {
+  const { interpretation } = await postJson<InterpretationResponse>(
+    url,
+    body,
+    'The interpretation could not be generated',
+  );
+  return interpretation;
 }
