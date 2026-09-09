@@ -1,32 +1,33 @@
 type ButtonComponentProps = {
-  /** Picks the CSS class: primary-action (filled) vs secondary-action (outline). */
-  actionType: 'primary' | 'secondary';
+  className: string;
   onClick: () => void;
   /** Doubles as the disabled state — the button can't be clicked while the request runs. */
   isLoading: boolean;
   buttonText?: string;
   loadingButtonText?: string;
+  showIcon?: boolean;
 };
 
 /** The app's single action button (draw / cast / interpret / analyze). */
 function ButtonComponent({
-  actionType, 
-  onClick, 
-  isLoading, 
+  className,
+  onClick,
+  isLoading,
   buttonText = 'Generate',
   loadingButtonText = 'Loading...',
+  showIcon = true,
 }: ButtonComponentProps) {
   return (
     <button
-      className={actionType === 'primary' ? 'primary-action' : 'secondary-action'}
+      className={className}
       type="button"
       onClick={onClick}
       disabled={isLoading}
     >
       {isLoading ? loadingButtonText : buttonText}
-      <span aria-hidden="true">✦</span>
+      {showIcon && <span aria-hidden="true">✦</span>}
     </button>
   );
-};
+}
 
-export default ButtonComponent; 
+export default ButtonComponent;

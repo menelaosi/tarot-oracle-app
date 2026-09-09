@@ -20,7 +20,8 @@
 .transit-grid {
   display: grid;
   grid-template-columns:
-    minmax(140px, 1fr) minmax(170px, 1.7fr) minmax(120px, auto) minmax(150px, 1.1fr) auto;
+    minmax(140px, 1fr) minmax(170px, 1.7fr) minmax(120px, auto) minmax(150px, 1.1fr)
+    auto;
   gap: 14px;
   align-items: end;
 }

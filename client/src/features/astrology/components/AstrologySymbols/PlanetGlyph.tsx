@@ -31,7 +31,6 @@ function PlanetGlyph({ planet, point, longitude, halo }: PlanetGlyphProps) {
         point={point}
         spec={spec}
         stroke={SIGN_COLOR[getSign(longitude)] ?? BLACK}
-        strokeWidth={POINTS_STROKE}
       />
     </>
   );

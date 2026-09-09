@@ -1,4 +1,9 @@
-import { INNER_CIRCLE_RADIUS_RATIO, LIGHT_GRAY, SYMBOL_AXIS_STROKE, getPointPosition } from '../lib/horoscope';
+import {
+  INNER_CIRCLE_RADIUS_RATIO,
+  LIGHT_GRAY,
+  SYMBOL_AXIS_STROKE,
+  getPointPosition,
+} from '../lib/horoscope';
 import { Axis, type Point } from '../types';
 import AstrologyLine from './AstrologySymbols/AstrologyLine';
 import AxisGlyph from './AstrologySymbols/AxisGlyph';
@@ -8,11 +13,6 @@ type AstrologyAxisProps = {
   readonly radius: number;
   readonly cuspPositions: number[];
   readonly shift: number;
-  /**
-   * Spoke + label colour. Defaults to the margin grey that reads on the dark
-   * page; the bi-wheel overrides it because these now sit on the light transit
-   * band.
-   */
   readonly stroke?: string;
 };
 
@@ -25,8 +25,14 @@ const AXES: readonly { axis: Axis; labelOffset: number }[] = [
 ];
 
 /** The four angle spokes (AC/IC/DC/MC) and their labels, past the wheel's rim. */
-function AstrologyAxis({ point, radius, cuspPositions, shift, stroke = LIGHT_GRAY }: AstrologyAxisProps) {
-  const axisRadius = radius + (radius / INNER_CIRCLE_RADIUS_RATIO / 4);
+function AstrologyAxis({
+  point,
+  radius,
+  cuspPositions,
+  shift,
+  stroke = LIGHT_GRAY,
+}: AstrologyAxisProps) {
+  const axisRadius = radius + radius / INNER_CIRCLE_RADIUS_RATIO / 4;
 
   return (
     <g>

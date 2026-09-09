@@ -11,12 +11,7 @@ type CuspGlyphProps = {
 /** Draws a house cusp numeral (1-12) at the given anchor point. */
 function CuspGlyph({ house, point }: CuspGlyphProps) {
   return (
-    <Glyph
-      point={point}
-      spec={CUSP_GLYPHS[house]}
-      stroke={BLACK}
-      strokeWidth={CUSPS_STROKE}
-    />
+    <Glyph point={point} spec={CUSP_GLYPHS[house]} stroke={BLACK} strokeWidth={CUSPS_STROKE} />
   );
 }
 

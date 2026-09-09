@@ -25,12 +25,32 @@ const router = Router();
 type Mode = 'standard' | 'zodiac';
 
 const PLANET_FACES = [
-  'sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter',
-  'saturn', 'uranus', 'neptune', 'pluto', 'nnode', 'snode',
+  'sun',
+  'moon',
+  'mercury',
+  'venus',
+  'mars',
+  'jupiter',
+  'saturn',
+  'uranus',
+  'neptune',
+  'pluto',
+  'nnode',
+  'snode',
 ];
 const SIGN_FACES = [
-  'aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo',
-  'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces',
+  'aries',
+  'taurus',
+  'gemini',
+  'cancer',
+  'leo',
+  'virgo',
+  'libra',
+  'scorpio',
+  'sagittarius',
+  'capricorn',
+  'aquarius',
+  'pisces',
 ];
 
 const rollDie = (sides: number) => 1 + Math.floor(Math.random() * sides);
@@ -82,9 +102,21 @@ async function resolveZodiacRefs(planet: string, sign: string, house: number) {
     throw new HttpError(500, 'The rolled dice could not be resolved.');
   }
   return {
-    planet: { ...planetRow, keywords: planetRow.keywords ?? [], associations: planetRow.associations ?? [] },
-    sign: { ...signRow, keywords: signRow.keywords ?? [], associations: signRow.associations ?? [] },
-    house: { ...houseRow, keywords: houseRow.keywords ?? [], associations: houseRow.associations ?? [] },
+    planet: {
+      ...planetRow,
+      keywords: planetRow.keywords ?? [],
+      associations: planetRow.associations ?? [],
+    },
+    sign: {
+      ...signRow,
+      keywords: signRow.keywords ?? [],
+      associations: signRow.associations ?? [],
+    },
+    house: {
+      ...houseRow,
+      keywords: houseRow.keywords ?? [],
+      associations: houseRow.associations ?? [],
+    },
   };
 }
 
@@ -97,9 +129,18 @@ async function toRollDto(row: Pick<AstragalomancyReadingRow, 'mode' | 'dice'>) {
   if (row.mode === 'standard') {
     const values = row.dice.values ?? [];
     const total = row.dice.total ?? getTotalViaReduce(values);
-    return { mode: 'standard' as const, values, total, meaning: await resolveStandardMeaning(total) };
+    return {
+      mode: 'standard' as const,
+      values,
+      total,
+      meaning: await resolveStandardMeaning(total),
+    };
   }
-  const refs = await resolveZodiacRefs(row.dice.planet ?? '', row.dice.sign ?? '', row.dice.house ?? 0);
+  const refs = await resolveZodiacRefs(
+    row.dice.planet ?? '',
+    row.dice.sign ?? '',
+    row.dice.house ?? 0,
+  );
   return { mode: 'zodiac' as const, ...refs };
 }
 
@@ -148,21 +189,33 @@ router.post(
     const roll = await toRollDto(reading);
     const prompt =
       roll.mode === 'standard'
-        ? { question: reading.question, dice: roll.values, total: roll.total, meaning: roll.meaning }
+        ? {
+            question: reading.question,
+            dice: roll.values,
+            total: roll.total,
+            meaning: roll.meaning,
+          }
         : {
             question: reading.question,
-            situation: { planet: roll.planet.name, keywords: roll.planet.keywords, associations: roll.planet.associations },
-            emotions: { sign: roll.sign.name, keywords: roll.sign.keywords, associations: roll.sign.associations },
-            impact: { house: roll.house.name, keywords: roll.house.keywords, associations: roll.house.associations },
+            situation: {
+              planet: roll.planet.name,
+              keywords: roll.planet.keywords,
+              associations: roll.planet.associations,
+            },
+            emotions: {
+              sign: roll.sign.name,
+              keywords: roll.sign.keywords,
+              associations: roll.sign.associations,
+            },
+            impact: {
+              house: roll.house.name,
+              keywords: roll.house.keywords,
+              associations: roll.house.associations,
+            },
           };
 
     const system = createSystemRules(roll.mode === 'standard' ? STANDARD_RULES : ZODIAC_RULES);
-    const interpretation = await generateReading(
-      system,
-      prompt,
-      600,
-      'astragalomancy',
-    );
+    const interpretation = await generateReading(system, prompt, 600, 'astragalomancy');
 
     await run(updateAstragalomancyInterpretation, [interpretation, readingId]);
     response.json({ interpretation });

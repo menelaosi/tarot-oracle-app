@@ -11,12 +11,19 @@ type TarotCardProps = {
  *  time the card is hovered or focused, then stay cached on the component and
  *  feed the shared hover panel. */
 function TarotCard({ card, includeReversals = false }: TarotCardProps) {
+  const { 
+    position, 
+    orientation,
+    name,
+    imagePath,
+    positionLabel,
+  } = card;
   const [details, setDetails] = useState<CardDetails | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [detailsError, setDetailsError] = useState('');
 
   // When reversals are turned off, a card drawn reversed is still read upright.
-  const isUpright = card.orientation === 'upright' || !includeReversals;
+  const isUpright = orientation === 'upright' || !includeReversals;
   function pick<T>(upright: T, reversed: T) {
     return isUpright ? upright : reversed;
   }
@@ -42,46 +49,46 @@ function TarotCard({ card, includeReversals = false }: TarotCardProps) {
   // show fewer rows.
   const items: DetailItem[] = details
     ? [
-      { value: pick(details.meaningUpright, details.meaningReversed), lead: true },
-      { label: 'Element', value: details.element },
-      { label: 'Number', value: details.numerologyAssociations },
-      {
-        label: 'Court',
-        value: details.courtRank && `${details.courtRank} — ${details.courtDescription}`,
-      },
-      {
-        label: 'Court energy',
-        value: pick(details.courtPositiveAssociations, details.courtNegativeAssociations),
-      },
-      { label: 'Arcana element', value: details.majorElement },
-      { label: 'Planets', value: details.majorPlanets },
-      { label: 'Signs', value: details.majorSigns },
-      { label: 'Core theme', value: details.majorCoreTheme },
-      { label: 'Symbols', value: details.majorRepresentations },
-    ]
+        { value: pick(details.meaningUpright, details.meaningReversed), lead: true },
+        { label: 'Element', value: details.element },
+        { label: 'Number', value: details.numerologyAssociations },
+        {
+          label: 'Court',
+          value: details.courtRank && `${details.courtRank} — ${details.courtDescription}`,
+        },
+        {
+          label: 'Court energy',
+          value: pick(details.courtPositiveAssociations, details.courtNegativeAssociations),
+        },
+        { label: 'Arcana element', value: details.majorElement },
+        { label: 'Planets', value: details.majorPlanets },
+        { label: 'Signs', value: details.majorSigns },
+        { label: 'Core theme', value: details.majorCoreTheme },
+        { label: 'Symbols', value: details.majorRepresentations },
+      ]
     : [];
 
   return (
     <DetailOverlay
-      className={`tarot-card ${card.orientation}`}
+      className={`tarot-card ${orientation}`}
       panelClassName="tarot-card-details"
       items={items}
       status={isLoadingDetails ? 'Loading details...' : detailsError || undefined}
       onReveal={loadDetails}
     >
       <div className="card-topline">
-        <span>{String(card.position).padStart(2, '0')}</span>
-        {includeReversals && <span>{card.orientation}</span>}
+        <span>{String(position).padStart(2, '0')}</span>
+        {includeReversals && <span>{orientation}</span>}
       </div>
       <div className="image-frame">
         <img
-          src={card.imagePath}
-          alt={`${card.name}, ${card.orientation}`}
-          className={card.orientation === 'reversed' ? 'reversed-image' : undefined}
+          src={imagePath}
+          alt={`${name}, ${orientation}`}
+          className={!isUpright ? 'reversed-image' : undefined}
         />
       </div>
-      <p className="card-position">{card.positionLabel}</p>
-      <h3>{card.name}</h3>
+      <p className="card-position">{positionLabel}</p>
+      <h3>{name}</h3>
     </DetailOverlay>
   );
 }

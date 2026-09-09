@@ -1,15 +1,14 @@
-import { convertShiftInDegrees } from '../../lib/horoscope';
+import { convertShiftInDegrees, WHITE } from '../../lib/horoscope';
 import type { Point } from '../../types';
 
 type AstrologySegmentProps = {
   readonly point: Point;
   readonly radius: number;
-  readonly angleFrom: number;
-  readonly angleTo: number;
+  readonly angleFrom?: number;
+  readonly angleTo?: number;
   readonly thickness: number;
   readonly lFlag?: number;
   readonly sFlag?: number;
-  readonly fill?: string;
   readonly stroke?: string;
   readonly strokeWidth?: number;
 };
@@ -20,18 +19,17 @@ type AstrologySegmentProps = {
  * for the wheel backgrounds and the 12 zodiac-band slices. `lFlag`/`sFlag` are
  * the SVG arc large-arc / sweep flags for spans over 180°.
  */
-const AstrologySegment: React.FC<AstrologySegmentProps> = ({
+function AstrologySegment({
   point,
   radius,
-  angleFrom,
-  angleTo,
+  angleFrom = 0,
+  angleTo = 359.99,
   thickness,
-  lFlag = 0,
+  lFlag = 1,
   sFlag = 0,
   stroke,
   strokeWidth,
-  fill = 'none',
-}) => {
+}: AstrologySegmentProps) {
   // Some constants for angles in degress and radius minus thickness
   const angleFromShift = convertShiftInDegrees(angleFrom);
   const angleToShift = convertShiftInDegrees(angleTo);
@@ -46,8 +44,8 @@ const AstrologySegment: React.FC<AstrologySegmentProps> = ({
   // Define the points for the SVG
 
   const point1 = {
-    x: point.x + (thickness * cosineAngleFromShift),
-    y: point.y + (thickness * sineAngleFromShift),
+    x: point.x + thickness * cosineAngleFromShift,
+    y: point.y + thickness * sineAngleFromShift,
   };
 
   const point2 = {
@@ -56,8 +54,8 @@ const AstrologySegment: React.FC<AstrologySegmentProps> = ({
   };
 
   const point3 = {
-    x: point.x + (radius * cosineAngleToShift),
-    y: point.y + (radius * sineAngleToShift),
+    x: point.x + radius * cosineAngleToShift,
+    y: point.y + radius * sineAngleToShift,
   };
 
   const point4 = {
@@ -75,7 +73,7 @@ const AstrologySegment: React.FC<AstrologySegmentProps> = ({
 		l ${point4.x}, ${point4.y}
 		A ${thickness}, ${thickness},0 ,${lFlag}, 1, ${point1.x}, ${point1.y}
 		`}
-      fill={fill}
+      fill={WHITE}
       stroke={stroke}
       strokeWidth={strokeWidth}
     />

@@ -13,11 +13,7 @@ router.get('/:cardId', async (request, response) => {
     throw new HttpError(400, 'Card ID must be an integer.');
   }
 
-  const card = await loadRow<CardDetailsRow>(
-    selectCardDetails,
-    [cardId],
-    'Card not found.',
-  );
+  const card = await loadRow<CardDetailsRow>(selectCardDetails, [cardId], 'Card not found.');
 
   response.json(toCardDetails(card));
 });

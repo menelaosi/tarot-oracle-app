@@ -1,6 +1,20 @@
 import { Horoscope } from 'circular-natal-horoscope-js';
 import type { AspectLine } from '../lib/aspectStyle';
-import { COLLISION_RADIUS, DARK_GRAY, FULL_CIRCLE, INDOOR_CIRCLE_RADIUS_RATIO, INNER_CIRCLE_RADIUS_RATIO, LIGHT_GRAY, MARGIN, PADDING, RULER_RADIUS, WHITE, assembleLocatedPoints, getCelestialBody, getPointPosition } from '../lib/horoscope';
+import {
+  COLLISION_RADIUS,
+  DARK_GRAY,
+  FULL_CIRCLE,
+  INDOOR_CIRCLE_RADIUS_RATIO,
+  INNER_CIRCLE_RADIUS_RATIO,
+  LIGHT_GRAY,
+  MARGIN,
+  PADDING,
+  RULER_RADIUS,
+  WHITE,
+  assembleLocatedPoints,
+  getCelestialBody,
+  getPointPosition,
+} from '../lib/horoscope';
 import type { TransitContact } from '../lib/transits';
 import type { CelestialBodyPosition, LocatedPoint, Point } from '../types';
 import { Planet } from '../types';
@@ -37,10 +51,10 @@ const TRANSIT_MARGIN = MARGIN + 48;
 const TRANSIT_RING_OFFSET = 18;
 type Cusp = {
   ChartPosition: {
-    StartPosition:{
-      Ecliptic: { DecimalDegrees: number; },
-      Horizon: { DecimalDegrees: number; },
-    },
+    StartPosition: {
+      Ecliptic: { DecimalDegrees: number };
+      Horizon: { DecimalDegrees: number };
+    };
   };
 };
 
@@ -56,14 +70,17 @@ type RawAspect = {
   orbUsed: number;
 };
 
-function getCelestialBodyPositions(horoscope: Horoscope): Record<Planet, CelestialBodyPosition | undefined> {
+function getCelestialBodyPositions(
+  horoscope: Horoscope,
+): Record<Planet, CelestialBodyPosition | undefined> {
   return Object.values(Planet).reduce<Record<Planet, CelestialBodyPosition | undefined>>(
     (positions, planet) => {
       const body = getCelestialBody(horoscope, planet);
       const longitude = body?.ChartPosition?.Ecliptic?.DecimalDegrees;
-      positions[planet] = longitude === undefined
-        ? undefined
-        : { longitude, retrograde: Boolean(body?.isRetrograde) };
+      positions[planet] =
+        longitude === undefined
+          ? undefined
+          : { longitude, retrograde: Boolean(body?.isRetrograde) };
       return positions;
     },
     {} as Record<Planet, CelestialBodyPosition | undefined>,
@@ -71,12 +88,9 @@ function getCelestialBodyPositions(horoscope: Horoscope): Record<Planet, Celesti
 }
 
 function getCuspPositions(horoscope: Horoscope): number[] {
-  return horoscope?.Houses
-    .map((cusp: Cusp) => cusp.ChartPosition
-      .StartPosition
-      .Ecliptic
-      .DecimalDegrees,
-    );
+  return horoscope?.Houses.map(
+    (cusp: Cusp) => cusp.ChartPosition.StartPosition.Ecliptic.DecimalDegrees,
+  );
 }
 
 /**
@@ -141,14 +155,10 @@ function getLocatedPoints(
   shift: number,
 ): LocatedPoint[] {
   let locatedPoints: LocatedPoint[] = [];
-  Object.keys(celestialBodyPositions).forEach(planet => {
+  Object.keys(celestialBodyPositions).forEach((planet) => {
     const planetName = planet as Planet;
     const planetShift = (celestialBodyPositions[planetName]?.longitude ?? 0) + shift;
-    const position = getPointPosition(
-      point,
-      pointRadius,
-      planetShift,
-    );
+    const position = getPointPosition(point, pointRadius, planetShift);
     const locatedPoint = {
       planetName,
       point: position,
@@ -156,12 +166,7 @@ function getLocatedPoints(
       angle: planetShift,
       pointer: planetShift,
     };
-    locatedPoints = assembleLocatedPoints(
-      locatedPoints,
-      locatedPoint,
-      point,
-      pointRadius,
-    );
+    locatedPoints = assembleLocatedPoints(locatedPoints, locatedPoint, point, pointRadius);
   });
 
   return locatedPoints;
@@ -183,55 +188,36 @@ function AstrologyChart({ horoscope, height = 800, width = 800, transit }: Astro
   const radixRadius = radius - radiusRatio;
   const thickness = radius / INDOOR_CIRCLE_RADIUS_RATIO;
   const rulerRadius = radiusRatio / RULER_RADIUS;
-  const pointRadius = radius - (radiusRatio + (2 * rulerRadius) + PADDING);
-  const numbersRadius = (radius / INDOOR_CIRCLE_RADIUS_RATIO) + COLLISION_RADIUS;
+  const pointRadius = radius - (radiusRatio + 2 * rulerRadius + PADDING);
+  const numbersRadius = radius / INDOOR_CIRCLE_RADIUS_RATIO + COLLISION_RADIUS;
   const endDashedLineRadius = radius - (radiusRatio + rulerRadius);
   const celestialBodyPositions = getCelestialBodyPositions(horoscope);
   const cuspPositions = getCuspPositions(horoscope);
 
-  const shift = (cuspPositions && cuspPositions[0])
-    ? FULL_CIRCLE - cuspPositions[0] : 0;
+  const shift = cuspPositions && cuspPositions[0] ? FULL_CIRCLE - cuspPositions[0] : 0;
 
-  const locatedPoints = getLocatedPoints(
-    celestialBodyPositions,
-    point,
-    pointRadius,
-    shift,
-  );
+  const locatedPoints = getLocatedPoints(celestialBodyPositions, point, pointRadius, shift);
 
   const aspectLines = getAspectLines(horoscope, celestialBodyPositions);
 
   // Transit overlay geometry: a glyph band just outside the wheel edge, with the
   // moving planets collision-spread the same way the natal ones are.
   const transitRingRadius = radius + TRANSIT_RING_OFFSET;
-  const transitPositions = transit
-    ? getCelestialBodyPositions(transit.horoscope)
-    : undefined;
+  const transitPositions = transit ? getCelestialBodyPositions(transit.horoscope) : undefined;
   const transitLocatedPoints = transitPositions
     ? getLocatedPoints(transitPositions, point, transitRingRadius, shift)
     : [];
-  const natalLongitudes = transit
-    ? getNatalLongitudes(horoscope, celestialBodyPositions)
-    : {};
+  const natalLongitudes = transit ? getNatalLongitudes(horoscope, celestialBodyPositions) : {};
 
   return (
-    <svg
-      id='chart'
-      viewBox={`0 0 ${height} ${width}`}
-      preserveAspectRatio='xMinYMin meet'
-    >
+    <svg id="chart" viewBox={`0 0 ${height} ${width}`} preserveAspectRatio="xMinYMin meet">
       {/*
         The wheel's rings stop at the inner circle, leaving the middle open. Fill
         it with the band colour first so the aspect chords drawn over it read
         against the same background as the rest of the chart, not the page.
       */}
       <circle cx={x} cy={y} r={thickness} fill={WHITE} />
-      <AstrologyAspects
-        point={point}
-        radius={thickness}
-        shift={shift}
-        lines={aspectLines}
-      />
+      <AstrologyAspects point={point} radius={thickness} shift={shift} lines={aspectLines} />
       {transit && transitPositions && (
         <AstrologyTransits
           point={point}
@@ -245,7 +231,7 @@ function AstrologyChart({ horoscope, height = 800, width = 800, transit }: Astro
           contacts={transit.contacts}
         />
       )}
-      <g id='radix'>
+      <g id="radix">
         <AstrologyBackground
           id={'radix-background'}
           point={point}
@@ -298,6 +284,6 @@ function AstrologyChart({ horoscope, height = 800, width = 800, transit }: Astro
       </g>
     </svg>
   );
-};
+}
 
 export default AstrologyChart;

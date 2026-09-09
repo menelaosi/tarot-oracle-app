@@ -6,35 +6,11 @@ import {
   Dignity,
   Planet,
   zodiacFromNumber,
-  type DescriptionPosition,
   type LocatedPoint,
   type Point,
   type ZodiacSign,
 } from '../types';
-
-export type BirthDetails = {
-  /** Wall-clock birth date and time, exactly as entered. */
-  date: Date;
-  latitude: number;
-  longitude: number;
-};
-
-// circular-natal-horoscope-js treats the date parts as local time at the given
-// coordinates and derives sidereal time from there. Historical timezone / DST
-// offsets are not resolved — the entered wall-clock values are used as-is, same
-// as the original implementation. Revisit if chart accuracy for foreign births
-// matters (tz-lookup + Temporal can map lat/lon + date -> offset).
-function createOrigin({ date, latitude, longitude }: BirthDetails): Origin {
-  return new Origin({
-    year: date.getFullYear(),
-    month: date.getMonth(), // 0-indexed, which is what the library expects
-    date: date.getDate(),
-    hour: date.getHours(),
-    minute: date.getMinutes(),
-    latitude,
-    longitude,
-  });
-}
+import type { Place } from './geocode';
 
 const CUSTOM_ORBS = {
   conjunction: 8,
@@ -49,9 +25,20 @@ const CUSTOM_ORBS = {
   'semi-sextile': 1,
 };
 
-export function getHoroscope(birth: BirthDetails): Horoscope {
+export function getHoroscope(date: Date, place: Place): Horoscope {
+  const { latitude, longitude } = place;
+  const origin = new Origin({
+    year: date.getFullYear(),
+    month: date.getMonth(), // 0-indexed, which is what the library expects
+    date: date.getDate(),
+    hour: date.getHours(),
+    minute: date.getMinutes(),
+    latitude,
+    longitude,
+  });
+
   return new Horoscope({
-    origin: createOrigin(birth),
+    origin,
     houseSystem: 'whole-sign',
     zodiac: 'tropical',
     aspectTypes: ['major', 'minor'],
@@ -210,9 +197,7 @@ export function getDignities(planetName: Planet, planetPosition: number): Dignit
   const result: Dignity[] = [];
 
   const dignity = planetDignities[planetName]?.[getSign(planetPosition)];
-  if (dignity) {
-    result.push(dignity);
-  }
+  if (dignity) result.push(dignity);
 
   for (const { name, position, orbit } of DIGNITIES_EXACT_EXALTATIONS_DEFAULT) {
     if (planetName === name && hasConjunction(planetPosition, position, orbit)) {
@@ -221,17 +206,6 @@ export function getDignities(planetName: Planet, planetPosition: number): Dignit
   }
 
   return result;
-}
-
-export function getDescriptionPosition(
-  locatedPoint: LocatedPoint,
-  texts: string[],
-): DescriptionPosition[] {
-  const ration = COLLISION_RADIUS / 1.4;
-  const x = locatedPoint.point.x + ration;
-  const y = locatedPoint.point.y - COLLISION_RADIUS;
-
-  return texts.map((text, i) => ({ text, point: { x, y: y + ration * i } }));
 }
 
 /**

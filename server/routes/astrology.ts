@@ -64,8 +64,8 @@ const TRANSIT_RULES = [
  * identical bytes each call, so the prompt cache actually hits.
  */
 async function loadReferenceDigest(): Promise<string> {
-  const [signs, planets, houses, aspects, dignities, modalities, elements, notes] = await Promise.all(
-    [
+  const [signs, planets, houses, aspects, dignities, modalities, elements, notes] =
+    await Promise.all([
       pool.query<SignRow>(selectSigns),
       pool.query<PlanetRow>(selectPlanets),
       pool.query<HouseRow>(selectHouses),
@@ -74,8 +74,7 @@ async function loadReferenceDigest(): Promise<string> {
       pool.query<ModalityRow>(selectModalities),
       pool.query<ElementRow>(selectElements),
       pool.query<NoteRow>(selectReferenceNotes),
-    ],
-  );
+    ]);
 
   return buildReferenceDigest({
     signs: signs.rows,
@@ -215,22 +214,21 @@ function toTransitPayload(natal: ChartSummary, transit: TransitSummary) {
   };
 }
 
-async function astrologyGenerateReading(
-  rules: string[],
-  prompt: string,
-  label: string,
-) {
+async function astrologyGenerateReading(rules: string[], prompt: string, label: string) {
   return generateReading(
     [
       { type: 'text' as const, text: createSystemRules(rules) },
-      { type: 'text' as const, text: await loadReferenceDigest(), cache_control: { type: 'ephemeral' as const } },
+      {
+        type: 'text' as const,
+        text: await loadReferenceDigest(),
+        cache_control: { type: 'ephemeral' as const },
+      },
     ],
     prompt,
     4000,
     `astrology ${label}`,
   );
 }
-
 
 // POST /api/astrology/interpret — body { chart: ChartSummary }. Returns a stored
 // reading for an identical chart, or asks Claude against the cached reference

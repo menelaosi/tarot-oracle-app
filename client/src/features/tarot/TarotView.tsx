@@ -12,9 +12,12 @@ import type { Reading, SpreadOption } from './types';
 function TarotView() {
   // Retained across tab switches so the drawn spread and its interpretation are
   // still here when you come back.
+  // Reference data from the server — retained across tab switches, but not
+  // persisted, so a reload always picks up a freshly-added spread.
   const [spreadOptions, setSpreadOptions] = useRetainedState<SpreadOption[]>(
     'tarot:spreadOptions',
     [],
+    { persist: false },
   );
   const [spreadType, setSpreadType] = useRetainedState('tarot:spreadType', 'three_card');
   const [question, setQuestion] = useRetainedState('tarot:question', '');

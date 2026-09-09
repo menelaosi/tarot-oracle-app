@@ -1,4 +1,9 @@
-import { ASPECT_COLOR, NEUTRAL_ASPECT_COLOR, aspectLineStyle, type AspectLine } from '../lib/aspectStyle';
+import {
+  ASPECT_COLOR,
+  NEUTRAL_ASPECT_COLOR,
+  aspectLineStyle,
+  type AspectLine,
+} from '../lib/aspectStyle';
 import { getPointPosition } from '../lib/horoscope';
 import type { Point } from '../types';
 import AstrologyLine from './AstrologySymbols/AstrologyLine';

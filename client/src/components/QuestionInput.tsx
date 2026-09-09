@@ -15,8 +15,8 @@ function QuestionInput({ question, onQuestionChange }: QuestionInputProps) {
         placeholder="What wants your attention?"
         maxLength={500}
       />
-    </label> 
+    </label>
   );
-};
+}
 
 export default QuestionInput;

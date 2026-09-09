@@ -11,17 +11,10 @@ type AstrologyTextProps = {
 function AstrologyText({ text, point, size, color }: AstrologyTextProps) {
   const { x, y } = point;
   return (
-    <text
-      x={x}
-      y={y}
-      fontSize={size}
-      fill={color}
-      fontFamily='serif'
-      dominantBaseline='central'
-    >
+    <text x={x} y={y} fontSize={size} fill={color} fontFamily="serif" dominantBaseline="central">
       {text}
     </text>
   );
-};
+}
 
 export default AstrologyText;

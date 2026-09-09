@@ -12,7 +12,7 @@ export function requireAnthropic(): NonNullable<typeof anthropic> {
     throw new HttpError(503, 'ANTHROPIC_API_KEY is not configured.');
   }
   return anthropic;
-};
+}
 
 export function createSystemRules(rules: string[]): string {
   return [
@@ -30,15 +30,12 @@ export async function generateReading(
 ): Promise<string> {
   const client = requireAnthropic();
 
-  const messageContent = typeof prompt === 'string'
-   ? prompt : JSON.stringify(prompt);
+  const messageContent = typeof prompt === 'string' ? prompt : JSON.stringify(prompt);
   const message = await client.messages.create({
     model: claudeModel,
     max_tokens: maxTokens,
     system,
-    messages: [
-      { role: 'user', content: messageContent },
-    ],
+    messages: [{ role: 'user', content: messageContent }],
   });
 
   const labelString = `${label} interpret`;
@@ -60,4 +57,4 @@ export async function generateReading(
     .filter((block): block is Anthropic.TextBlock => block.type === 'text')
     .map((block) => block.text)
     .join('\n');
-};
+}

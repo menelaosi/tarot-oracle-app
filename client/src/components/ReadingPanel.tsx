@@ -35,7 +35,7 @@ function ReadingPanel({
       <div className={`section-heading ${headingClassName}`}>
         <h2 id={titleId}>{title}</h2>
         <ButtonComponent
-          actionType="secondary"
+          className="secondary-action"
           onClick={onAnalyze}
           isLoading={isAnalyzing}
           buttonText={buttonText}

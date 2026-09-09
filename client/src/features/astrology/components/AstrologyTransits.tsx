@@ -1,7 +1,18 @@
 import { ASPECT_COLOR, NEUTRAL_ASPECT_COLOR, aspectLineStyle } from '../lib/aspectStyle';
-import { BLACK, DARK_GRAY, FULL_CIRCLE, LIGHT_GRAY, WHITE, getPointPosition } from '../lib/horoscope';
+import {
+  BLACK,
+  FULL_CIRCLE,
+  LIGHT_GRAY,
+  getPointPosition
+} from '../lib/horoscope';
 import { transitAspectMaxOrb, type TransitContact } from '../lib/transits';
-import { ZODIAC_SIGNS, type CelestialBodyPosition, type LocatedPoint, type Planet, type Point } from '../types';
+import {
+  ZODIAC_SIGNS,
+  type CelestialBodyPosition,
+  type LocatedPoint,
+  type Planet,
+  type Point,
+} from '../types';
 import AstrologyCircle from './AstrologySymbols/AstrologyCircle';
 import AstrologyLine from './AstrologySymbols/AstrologyLine';
 import AstrologySegment from './AstrologySymbols/AstrologySegment';
@@ -58,10 +69,6 @@ function AstrologyTransits({
         point={point}
         radius={outerRadius}
         thickness={innerRadius}
-        angleFrom={0}
-        angleTo={359.99}
-        lFlag={1}
-        fill={WHITE}
       />
       <AstrologyCircle point={point} radius={outerRadius} stroke={LIGHT_GRAY} strokeWidth={1} />
 
@@ -103,7 +110,6 @@ function AstrologyTransits({
             <AstrologyLine
               startingPoint={getPointPosition(point, wheelRadius, longitude + shift)}
               endingPoint={spokeEnd}
-              stroke={DARK_GRAY}
               strokeWidth={0.75}
             />
             <PlanetGlyph

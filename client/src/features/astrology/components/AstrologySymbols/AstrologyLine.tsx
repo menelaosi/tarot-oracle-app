@@ -1,3 +1,4 @@
+import { DARK_GRAY } from '../../lib/horoscope';
 import type { Point } from '../../types';
 
 type AstrologyLineProps = {
@@ -6,7 +7,6 @@ type AstrologyLineProps = {
   readonly stroke?: string;
   readonly strokeWidth?: number;
   readonly opacity?: number;
-  /** Render as a dashed line — used to tell transit aspects apart from natal ones. */
   readonly dashed?: boolean;
 };
 
@@ -14,10 +14,10 @@ type AstrologyLineProps = {
 function AstrologyLine({
   startingPoint,
   endingPoint,
-  stroke,
+  stroke = DARK_GRAY,
   strokeWidth,
   opacity,
-  dashed,
+  dashed = false,
 }: AstrologyLineProps) {
   const { x: x1, y: y1 } = startingPoint;
   const { x: x2, y: y2 } = endingPoint;
@@ -33,6 +33,6 @@ function AstrologyLine({
       strokeDasharray={dashed ? '3 3' : undefined}
     />
   );
-};
+}
 
 export default AstrologyLine;

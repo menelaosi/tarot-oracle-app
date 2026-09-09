@@ -12,15 +12,11 @@ type BirthInputProps = {
 function BirthInput({ birthMoment, onBirthMomentChange, place, onPlaceChange }: BirthInputProps) {
   return (
     <>
-      <DateInput
-        date={birthMoment}
-        label="Birth date"
-        onDateChange={onBirthMomentChange}
-      />
+      <DateInput date={birthMoment} label="Birth date" onDateChange={onBirthMomentChange} />
 
       <PlaceSearch value={place} onChange={onPlaceChange} />
     </>
   );
-};
+}
 
 export default BirthInput;

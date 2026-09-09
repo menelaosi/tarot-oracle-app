@@ -1,3 +1,4 @@
+import ButtonComponent from '../../../components/ButtonComponent';
 import ControlsSection from '../../../components/ControlsSection';
 import type { Place } from '../lib/geocode';
 import BirthInput from './BirthInput';
@@ -48,29 +49,29 @@ function TransitControl({
       isSubmitting={false}
       submitText="Cast transits"
     >
-      <BirthInput 
-        birthMoment={birthMoment} 
-        onBirthMomentChange={onBirthMomentChange} 
-        place={place} 
-        onPlaceChange={onPlaceChange} />
-        
-      <DateInput 
-        date={day}
-        label="Day"
-        onDateChange={onDayChange}
+      <BirthInput
+        birthMoment={birthMoment}
+        onBirthMomentChange={onBirthMomentChange}
+        place={place}
+        onPlaceChange={onPlaceChange}
       />
+
+      <DateInput date={day} label="Day" onDateChange={onDayChange} />
 
       <label>
         <span>Transit location</span>
         <div className="transit-location">
           <span className="transit-location-name">{locationLabel}</span>
-          <button type="button" className="link-button" onClick={onToggleLocation} disabled={isLocating}>
-            {isLocating
-              ? 'Locating…'
-              : locationSource === 'current'
+          <ButtonComponent
+            className='link-button'
+            onClick={onToggleLocation}
+            buttonText={locationSource === 'current'
                 ? 'Use birthplace'
                 : 'Use my location'}
-          </button>
+            loadingButtonText='Locating...'
+            isLoading={isLocating}
+            showIcon={false}
+          />
         </div>
       </label>
     </ControlsSection>

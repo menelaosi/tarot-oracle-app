@@ -26,5 +26,5 @@ export type GlyphProps = {
   readonly point: Point;
   readonly spec: GlyphSpec;
   readonly stroke: string;
-  readonly strokeWidth: string | number;
+  readonly strokeWidth?: string | number;
 };

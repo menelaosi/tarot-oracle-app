@@ -31,10 +31,7 @@ function toLetterDto(row: GreekLetterRow) {
 router.post(
   '/draw',
   handler(async (request, response) => {
-    const rawQuestion = optionalText(
-      request.body.question, 
-      'Question',
-    );
+    const rawQuestion = optionalText(request.body.question, 'Question');
 
     const letter = await loadRow<GreekLetterRow>(
       selectRandomLetter,
@@ -61,18 +58,11 @@ router.post(
   '/:readingId/interpret',
   handler(async (request, response) => {
     const { readingId } = request.params;
-    const {
-      question,
-      letter,
-      name,
-      oracle,
-      meaning,
-      keywords,
-    } = await loadRow<GreekReadingRow>(
-      selectGreekReading, 
+    const { question, letter, name, oracle, meaning, keywords } = await loadRow<GreekReadingRow>(
+      selectGreekReading,
       [readingId],
-       'Reading not found',
-      );
+      'Reading not found',
+    );
 
     const interpretation = await generateReading(
       createSystemRules([

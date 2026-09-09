@@ -26,10 +26,12 @@ export async function postJson<T>(
 ): Promise<T> {
   const response = await fetch(url, {
     method: 'POST',
-    ...(body != null ? {
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    } : {}),
+    ...(body != null
+      ? {
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        }
+      : {}),
   });
   return await unwrap<T>(response, fallbackError);
 }
@@ -39,10 +41,7 @@ export function messageFrom(error: unknown, fallback = 'Something went wrong.'):
   return error instanceof Error ? error.message : fallback;
 }
 
-export async function getInterpretationResponse(
-  url: string,
-  body?: unknown,
-): Promise<string> {
+export async function getInterpretationResponse(url: string, body?: unknown): Promise<string> {
   const { interpretation } = await postJson<InterpretationResponse>(
     url,
     body,

@@ -8,7 +8,7 @@ A multi-oracle divination app built with React, TypeScript, Express, PostgreSQL,
 - **Greek Alphabet Oracle** — draw one of the 24 letters of the Olympian inscription
 - **Astragalomancy** — roll three standard or three zodiac dice and read what lands
 
-Every system's reference data — tarot card meanings and correspondences, astrology signs/planets/houses/aspects/dignities, the Greek oracle letters, the traditional three-dice meanings — lives in PostgreSQL and is supplied to Claude as grounding context. Claude interprets only from that data and is instructed to address the reader directly in the second person rather than writing about them in the third person. View state (the drawn spread, the cast chart, each reading) is retained in memory while you switch tabs, and cleared on reload.
+Every system's reference data — tarot card meanings and correspondences, astrology signs/planets/houses/aspects/dignities, the Greek oracle letters, the traditional three-dice meanings — lives in PostgreSQL and is supplied to Claude as grounding context. Claude interprets only from that data and is instructed to address the reader directly in the second person rather than writing about them in the third person. View state (the drawn spread, the cast chart, each reading) is retained across tab switches and persisted to `localStorage`, so it survives a page reload too.
 
 ## Features
 
@@ -49,7 +49,7 @@ Every system's reference data — tarot card meanings and correspondences, astro
 ### Shared
 
 - Database-grounded, personally-addressed interpretations rendered from Markdown with `react-markdown`
-- Tab navigation between sections, with each view's state retained across switches
+- Tab navigation between sections, with each view's state retained across switches and reloads (`localStorage`)
 
 ## Project Structure
 
@@ -77,7 +77,7 @@ Important files:
 - `client/src/App.tsx`: app shell — masthead, tab nav, and the lazily-loaded feature route for each section
 - `client/src/features/<feature>/`: one folder per section (`tarot`, `astrology`, `greek-oracle`, `astragalomancy`), each with `…View.tsx` (state + API calls), `api.ts`, `types.ts`, a `.css` file, and a `components/` folder. `astrology/` also holds `TransitView.tsx` and `lib/` — `horoscope.ts` (the `circular-natal-horoscope-js` wrapper + chart geometry), `chartSummary.ts` / `transitSummary.ts` / `transits.ts` (flatten the horoscope for the API), `geocode.ts`, `geolocation.ts` — plus the SVG chart components
 - `client/src/components/`: shared UI — `WorkspaceLayout` (controls + two-column workspace + the Markdown reading), `ControlsSection`, `ReadingPanel`, `DetailOverlay` (the hover/focus details panel used by tarot cards, the Greek letter, and the zodiac dice), `ButtonComponent`, `QuestionInput`, `Header`, `TabNav`
-- `client/src/hooks/`: `useRetainedState` (a `useState` that survives tab switches), `useBirthChart` (the natal chart shared by the Astrology and Transits tabs)
+- `client/src/hooks/`: `useRetainedState` (a `useState` that survives tab switches and page reloads, backed by `localStorage` under a versioned `tarot-oracle:v1:` prefix; pass `{ persist: false }` to keep a value tab-switch-only), `useBirthChart` (the birth date/time/place shared by the Astrology and Transits tabs — each tab casts its own `Horoscope` from them)
 - `client/public/tarot/`: tarot card images
 
 ### Backend request lifecycle
@@ -110,11 +110,13 @@ router.post(
 
 ## Setup
 
-Install dependencies:
+Install dependencies for both packages:
 
 ```bash
-npm --prefix client install
-npm --prefix server install
+npm run install:all
+# or individually:
+#   npm --prefix client install
+#   npm --prefix server install
 ```
 
 Create the local environment file:
@@ -278,14 +280,27 @@ POST /api/astragalomancy/:readingId/interpret
 
 Re-resolves the stored roll and asks Claude to read it in the second person — grounded only in the supplied meaning (standard) or the planet/sign/house keywords and associations (zodiac: planet = the situation, sign = the emotions, house = where the impact lands). Persists the result and returns `{ "interpretation": "..." }`. Requires `ANTHROPIC_API_KEY`.
 
-## Validation
+Formatting is owned entirely by **Prettier** (`.prettierrc.json` at the repo root, shared by both packages); ESLint (`typescript-eslint` + the React Hooks rules) checks code quality only, with `eslint-config-prettier` switching off anything that would overlap. `format` rewrites, `format:check` just reports.
+
+The root `package.json` fans the common tasks out to both packages:
+
+```bash
+npm run lint          # eslint, client + server
+npm run format:check  # prettier --check, client + server
+npm run check         # lint + stylelint + format:check — the full gate
+npm run fix           # eslint --fix + stylelint --fix + prettier --write
+npm run build         # client + server builds
+npm run install:all   # npm install in both packages
+```
+
+Or run a package on its own:
 
 Server — typecheck/build, lint, and format:
 
 ```bash
 npm --prefix server run build
 npm --prefix server run lint
-npm --prefix server run format:check
+npm --prefix server run format:check   # prettier --check "**/*.ts"
 ```
 
 Client — TypeScript and Vite build:
@@ -294,45 +309,39 @@ Client — TypeScript and Vite build:
 npm --prefix client run build
 ```
 
-Run ESLint:
+Run ESLint (add `lint:fix` to auto-fix):
 
 ```bash
 npm --prefix client run lint
 ```
 
-Auto-fix TypeScript and React formatting:
+Check / apply Prettier formatting (`.ts`, `.tsx`, `.css` under `src/`):
 
 ```bash
-npm --prefix client run lint:fix
+npm --prefix client run format:check
+npm --prefix client run format
 ```
 
-Run Stylelint for CSS:
+Run Stylelint for CSS (add `stylelint:fix` to auto-fix):
 
 ```bash
 npm --prefix client run stylelint
-```
-
-Auto-format CSS with Prettier:
-
-```bash
-npm --prefix client run format:css
 ```
 
 ## Current Limitations
 
 - Claude interpretation requires an Anthropic API key and available API credits
 - There are no automated tests yet (`server`'s `test` script is a placeholder)
-- Readings, charts, transit readings, letter draws, and dice rolls are all stored, but there is not yet a history screen
+- Readings, charts, transit readings, letter draws, and dice rolls are all stored, but there is not yet a history screen — a reload restores only the most recent view per section (from `localStorage`), not a browsable list
 - Astrology charts use the entered wall-clock birth time as-is; historical timezone / DST offsets are not resolved from the coordinates
-- Retained view state is in-memory only — it survives tab switches but not a page reload
+- Retained view state lives in the browser's `localStorage` (per-device, not synced); clearing site data resets it, and a stored reading id can 404 on interpret if the database is reseeded
 
 ## Next Steps
 
 - Add additional spreads including custom spreads
 - Add more oracle decks and divination systems
 - Add additional language support starting with Brazilian Portuguese
-- Add history and retrieval across all five sections
-- Persist retained view state across reloads
+- Add history and retrieval across all five sections (a list of past readings, not just the last one restored from `localStorage`)
 - Resolve historical timezone offsets for astrology charts
 - Add automated backend and frontend tests
 - Improve error handling and loading states

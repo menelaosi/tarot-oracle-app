@@ -1,0 +1,16 @@
+{
+  "name": "tarot-oracle-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Multi-oracle divination app — client (React/Vite) + server (Express/TS). This root package only fans scripts out to both; each package installs and builds on its own.",
+  "scripts": {
+    "lint": "npm --prefix client run lint && npm --prefix server run lint",
+    "stylelint": "npm --prefix client run stylelint",
+    "format": "npm --prefix client run format && npm --prefix server run format",
+    "format:check": "npm --prefix client run format:check && npm --prefix server run format:check",
+    "check": "npm run lint && npm run stylelint && npm run format:check",
+    "fix": "npm --prefix client run lint:fix && npm --prefix server run lint:fix && npm --prefix client run stylelint:fix && npm run format",
+    "build": "npm --prefix client run build && npm --prefix server run build",
+    "install:all": "npm --prefix client install && npm --prefix server install"
+  }
+}

@@ -68,39 +68,39 @@ function DiceReading({ roll, isInterpreting, onInterpret }: DiceReadingProps) {
     >
       <div className="dice-body">
         <div className="dice-stage">
-          {roll.mode === 'standard'
-            ? roll.values.map((value, index) => (
+          {roll.mode === 'standard' ? (
+            roll.values.map((value, index) => (
               <div className="die-slot" key={index}>
                 <Die variant="standard" index={index}>
                   <Pips value={value} />
                 </Die>
               </div>
             ))
-            : (
-              <>
-                <ZodiacDie
-                  role="Situation"
-                  face={roll.planet.glyph}
-                  name={roll.planet.name}
-                  reference={roll.planet}
-                  index={0}
-                />
-                <ZodiacDie
-                  role="Emotions"
-                  face={roll.sign.glyph}
-                  name={roll.sign.name}
-                  reference={roll.sign}
-                  index={1}
-                />
-                <ZodiacDie
-                  role="Impact"
-                  face={String(roll.house.number)}
-                  name={roll.house.name}
-                  reference={roll.house}
-                  index={2}
-                />
-              </>
-            )}
+          ) : (
+            <>
+              <ZodiacDie
+                role="Situation"
+                face={roll.planet.glyph}
+                name={roll.planet.name}
+                reference={roll.planet}
+                index={0}
+              />
+              <ZodiacDie
+                role="Emotions"
+                face={roll.sign.glyph}
+                name={roll.sign.name}
+                reference={roll.sign}
+                index={1}
+              />
+              <ZodiacDie
+                role="Impact"
+                face={String(roll.house.number)}
+                name={roll.house.name}
+                reference={roll.house}
+                index={2}
+              />
+            </>
+          )}
         </div>
 
         {roll.mode === 'standard' && <p className="dice-meaning">{roll.meaning}</p>}

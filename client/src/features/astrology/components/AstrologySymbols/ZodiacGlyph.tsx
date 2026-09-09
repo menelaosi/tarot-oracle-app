@@ -1,4 +1,3 @@
-import { POINTS_STROKE } from '../../lib/horoscope';
 import type { Point, ZodiacSign } from '../../types';
 import { SIGN_COLOR } from '../../types';
 import Glyph from './Glyph';
@@ -16,7 +15,6 @@ function ZodiacGlyph({ sign, point }: ZodiacGlyphProps) {
       point={point}
       spec={ZODIAC_GLYPHS[sign]}
       stroke={SIGN_COLOR[sign]}
-      strokeWidth={POINTS_STROKE}
     />
   );
 }

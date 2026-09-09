@@ -33,7 +33,9 @@ router.post(
     const definition = spreads[spreadType];
 
     const { reading, drawn } = await withTransaction(async (client) => {
-      const { rows: [row] } = await client.query<ReadingRow>(insertReading, [spreadType, question]);
+      const {
+        rows: [row],
+      } = await client.query<ReadingRow>(insertReading, [spreadType, question]);
       if (!row) throw new Error('The reading was not created.');
 
       const { rows: picked } = await client.query<{ id: number }>(selectRandomCards, [

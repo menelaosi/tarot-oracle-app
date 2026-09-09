@@ -32,7 +32,7 @@ function ControlsSection({
       <div className={gridClassName}>
         {children}
         <ButtonComponent
-          actionType="primary"
+          className="primary-action"
           onClick={onSubmit}
           isLoading={isSubmitting}
           buttonText={submitText}

@@ -1,5 +1,18 @@
-import { BLACK, COLLISION_RADIUS, CUSPS_STROKE, DARK_GRAY, POINTS_TEXT_SIZE, getDescriptionPosition, getDignities, getPointPosition } from '../lib/horoscope';
-import type { CelestialBodyPosition, LocatedPoint, Planet, Point } from '../types';
+import {
+  BLACK,
+  COLLISION_RADIUS,
+  CUSPS_STROKE,
+  DARK_GRAY,
+  POINTS_TEXT_SIZE,
+  getDignities,
+  getPointPosition,
+} from '../lib/horoscope';
+import type {
+  CelestialBodyPosition,
+  LocatedPoint,
+  Planet,
+  Point,
+} from '../types';
 import AstrologyLine from './AstrologySymbols/AstrologyLine';
 import AstrologyText from './AstrologySymbols/AstrologyText';
 import PlanetGlyph from './AstrologySymbols/PlanetGlyph';
@@ -38,33 +51,41 @@ function AstrologyPlanets({
   );
 
   return (
-    <g id='points'>
+    <g id="points">
       {locatedPoints.map((locatedPoint) => {
         const { planetName, angle } = locatedPoint;
-        const body = planets[planetName];
-        // -1 marks a body missing from the horoscope data; it still renders, obviously wrong.
-        const planetAngle = body?.longitude ?? -1;
+        const { longitude, retrograde } = planets[planetName] ?? {};
+        
+        const planetAngle = longitude ?? -1;
         const planetShift = planetAngle + shift;
-
-        const pointerStart = getPointPosition(point, pointerRadius, planetShift);
-        const pointerEnd = getPointPosition(point, pointerRadius + (rulerRadius / 2), planetShift);
         const isDisplaced = planetShift !== angle;
+        
+        const pointerStart = getPointPosition(point, pointerRadius, planetShift);
+        const pointerEnd = getPointPosition(point, pointerRadius + rulerRadius / 2, planetShift);
+       
+        const ration = COLLISION_RADIUS / 1.4;
+        const x = locatedPoint.point.x + ration;
+        const y = locatedPoint.point.y - COLLISION_RADIUS;
 
-        const texts = [
+        const descriptionPositions = [
           Math.round(planetAngle % 30).toString(),
-          ...(body?.retrograde ? ['R'] : []),
+          ...(retrograde ? ['R'] : []),
           ...getDignities(planetName, planetAngle),
-        ];
+        ].map((text, i) => ({ 
+          text, 
+          point: { x, y: y + ration * i } }),
+        );
 
         return (
           <g key={planetName}>
             {pointerLine(pointerStart, pointerEnd)}
-            {isDisplaced && pointerLine(
-              pointerEnd,
-              getPointPosition(point, pointRadius - COLLISION_RADIUS, angle),
-            )}
+            {isDisplaced &&
+              pointerLine(
+                pointerEnd,
+                getPointPosition(point, pointRadius - COLLISION_RADIUS, angle),
+              )}
             <PlanetGlyph planet={planetName} point={locatedPoint.point} longitude={planetAngle} />
-            {getDescriptionPosition(locatedPoint, texts).map((description, i) => (
+            {descriptionPositions.map((description, i) => (
               <AstrologyText
                 key={i}
                 text={description.text}

@@ -11,6 +11,9 @@ export async function interpretChart(chart: ChartSummary): Promise<string> {
 }
 
 /** Ask Claude what a given day looks like for a natal chart, from the current transits. */
-export async function interpretTransits(natal: ChartSummary, transit: TransitSummary): Promise<string> {
+export async function interpretTransits(
+  natal: ChartSummary,
+  transit: TransitSummary,
+): Promise<string> {
   return getInterpretationResponse(`${astrologyApi}transits`, { natal, transit });
 }

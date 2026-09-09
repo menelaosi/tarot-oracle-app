@@ -152,7 +152,12 @@ export type TransitSummary = {
   at: string;
   /** Calendar day (YYYY-MM-DD) the reading is for — the reuse key with the natal chart. */
   date: string;
-  location: { latitude: number; longitude: number; label: string | null; source: 'birth' | 'current' };
+  location: {
+    latitude: number;
+    longitude: number;
+    label: string | null;
+    source: 'birth' | 'current';
+  };
   transitingPlacements: TransitingPlacement[];
   /** Ranked most-significant-first by the client. */
   contacts: TransitContact[];

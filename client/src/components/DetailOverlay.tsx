@@ -68,7 +68,10 @@ function DetailOverlay({
     >
       {children}
       {open && (rows.length > 0 || status) && (
-        <div className={`detail-panel${panelClassName ? ` ${panelClassName}` : ''}`} aria-live="polite">
+        <div
+          className={`detail-panel${panelClassName ? ` ${panelClassName}` : ''}`}
+          aria-live="polite"
+        >
           {status && <p className="detail-row">{status}</p>}
           {rows.map((item, index) => (
             <p key={index} className={`detail-row ${item.lead ? ' detail-row-lead' : ''}`}>

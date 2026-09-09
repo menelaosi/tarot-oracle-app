@@ -12,8 +12,8 @@ function Header({ title, intro }: HeaderProps) {
       <div>
         <h1>{title} LLM</h1>
         <p className="intro">
-          {intro}. You can then ask for an interpretation, grounded from
-          curated meanings and interpreted by Claude.
+          {intro}. You can then ask for an interpretation, grounded from curated meanings and
+          interpreted by Claude.
         </p>
       </div>
       <div className="moon-mark" aria-hidden="true">
