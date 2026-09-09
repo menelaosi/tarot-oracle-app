@@ -1,13 +1,14 @@
 # Tarot Oracle App
 
-A multi-oracle divination app built with React, TypeScript, Express, PostgreSQL, and the Anthropic Claude API. It has four sections, switched with the tab nav:
+A multi-oracle divination app built with React, TypeScript, Express, PostgreSQL, and the Anthropic Claude API. It has five sections, switched with the tab nav:
 
 - **Tarot** — draw a spread and get an interpretation
 - **Astrology** — cast a natal chart in the browser and have Claude analyze it
 - **Transits** — see how a given day's sky moves across your natal chart
 - **Greek Alphabet Oracle** — draw one of the 24 letters of the Olympian inscription
+- **Astragalomancy** — roll three standard or three zodiac dice and read what lands
 
-Every system's reference data — tarot card meanings and correspondences, astrology signs/planets/houses/aspects/dignities, the Greek oracle letters — lives in PostgreSQL and is supplied to Claude as grounding context. Claude interprets only from that data and is instructed to address the reader directly in the second person rather than writing about them in the third person. View state (the drawn spread, the cast chart, each reading) is retained in memory while you switch tabs, and cleared on reload.
+Every system's reference data — tarot card meanings and correspondences, astrology signs/planets/houses/aspects/dignities, the Greek oracle letters, the traditional three-dice meanings — lives in PostgreSQL and is supplied to Claude as grounding context. Claude interprets only from that data and is instructed to address the reader directly in the second person rather than writing about them in the third person. View state (the drawn spread, the cast chart, each reading) is retained in memory while you switch tabs, and cleared on reload.
 
 ## Features
 
@@ -38,6 +39,13 @@ Every system's reference data — tarot card meanings and correspondences, astro
 - Hover or focus the disc for its oracle line, meaning, and keywords from the database
 - Claude gives a short second-person reading grounded only in that letter's text
 
+### Astragalomancy
+
+- Pick a dice set (Zodiac by default) and roll — the dice tumble in and settle
+- **Standard**: three d6; the sum (3–18) keys one traditional meaning from `astragalomancy_meanings`
+- **Zodiac**: three d12 drawn from the astrology reference tables — a planet (the situation), a sign (the emotions), and a house (where the impact lands); hover a die for its keywords and associations
+- Claude reads the roll grounded only in the supplied meaning / reference data
+
 ### Shared
 
 - Database-grounded, personally-addressed interpretations rendered from Markdown with `react-markdown`
@@ -52,21 +60,46 @@ server/   Express and TypeScript backend
 
 Important files:
 
-- `server/schema.sql`: PostgreSQL table definitions (tarot, astrology reference + `astrology_readings` + `astrology_transit_readings`, `greek_oracle_letters` + `greek_oracle_readings`)
-- `server/seed.sql`: tarot cards, meanings, and correspondences; astrology reference data (transcribed from `Astrology.md`); the 24 Greek oracle letters
+- `server/schema.sql`: PostgreSQL table definitions — tarot (`cards`, `readings`, correspondence tables); astrology reference tables + `astrology_readings` + `astrology_transit_readings`; `greek_oracle_letters` + `greek_oracle_readings`; `astragalomancy_meanings` + `astragalomancy_readings`
+- `server/seed.sql`: tarot cards, meanings, and correspondences; astrology reference data (transcribed from `Astrology.md`); the 24 Greek oracle letters; the 16 three-dice meanings
 - `server/index.ts`: process entrypoint — loads env, then starts the Express app
-- `server/app.ts`: Express app assembly — middleware, routes, centralized error handling
-- `server/routes/`: route handlers, one file per resource — `cards.ts`, `readings.ts`, `astrology.ts` (natal `interpret` + `transits`), `greekOracle.ts` (`draw` + `interpret`)
-- `server/db/pool.ts`: PostgreSQL connection pool and transaction rollback helper
-- `server/db/queries/`: SQL queries and row-to-response mapping, one file per resource
+- `server/app.ts`: Express app assembly — middleware, the per-resource routers, centralized error handling
+- `server/routes/`: one thin file per resource — `cards.ts`, `readings.ts` (`draw` + `interpret`), `astrology.ts` (`interpret` + `transits`), `greekOracle.ts` (`draw` + `interpret`), `astragalomancy.ts` (`roll` + `interpret`). Handlers are `handler(async (req, res) => { … }, fallbackMessage)` and reach for the shared `lib/` helpers below rather than touching `pool` or the Anthropic SDK directly
+- `server/lib/route.ts`: `handler()` — wraps an async route so any throw is normalized (`HttpError` passes through, anything else becomes a 500 with `fallbackMessage`) and forwarded to the error middleware. No per-handler `try/catch`
+- `server/lib/db.ts`: `run()` (fire-and-forget write), `loadRow()` / `loadRows()` (query + 404 when empty) — the single choke point for Postgres access from routes
+- `server/lib/claude.ts`: `generateReading()` — one grounded Claude call (key guard, request, truncation warning, usage/cache log, text extraction); `createSystemRules()` appends the shared voice + no-claims lines to a rule list
+- `server/lib/validate.ts`: `optionalText()` — the optional `question` body field (absent/blank → null, non-string → 400)
+- `server/lib/http-error.ts`: `HttpError` + `toHttpError`, used by the helpers above and caught by `app.ts`'s error middleware
+- `server/lib/anthropic-client.ts`: the raw Anthropic client + model id (`lib/claude.ts` wraps it)
+- `server/db/pool.ts`: the connection pool and `withTransaction(work)` — BEGIN → COMMIT, or ROLLBACK + rethrow on any throw, always releasing the client (used by `readings.ts` `/draw`)
+- `server/db/queries/`: SQL strings, row types, and row-to-response mapping, one file per resource; `astrology.ts` also builds the cached reference digest
 - `server/spreads.ts`: the spread registry (label, position labels, prompt guidance) — the single place to add a spread; the API, client picker, draw count, and prompt instructions all derive from it
-- `server/lib/http-error.ts`: `HttpError` used by routes; caught by `app.ts`'s error middleware
-- `server/lib/anthropic-client.ts`: Anthropic client and model configuration
 - `client/src/App.tsx`: app shell — masthead, tab nav, and the lazily-loaded feature route for each section
-- `client/src/features/<feature>/`: one folder per section (`tarot`, `astrology`, `greek-oracle`), each with `…View.tsx` (state + API calls), `api.ts`, `types.ts`, a `.css` file, and a `components/` folder. `astrology/` also holds `TransitView.tsx` and `lib/` — `horoscope.ts` (the `circular-natal-horoscope-js` wrapper + chart geometry), `chartSummary.ts` / `transitSummary.ts` / `transits.ts` (flatten the horoscope for the API), `geocode.ts`, `geolocation.ts` — plus the SVG chart components
-- `client/src/components/`: shared UI — `WorkspaceLayout` (controls + two-column workspace + the Markdown reading), `ControlsSection`, `ReadingPanel`, `DetailOverlay` (the hover/focus details panel used by tarot cards and the Greek letter), `ButtonComponent`, `QuestionInput`, `Header`, `TabNav`
+- `client/src/features/<feature>/`: one folder per section (`tarot`, `astrology`, `greek-oracle`, `astragalomancy`), each with `…View.tsx` (state + API calls), `api.ts`, `types.ts`, a `.css` file, and a `components/` folder. `astrology/` also holds `TransitView.tsx` and `lib/` — `horoscope.ts` (the `circular-natal-horoscope-js` wrapper + chart geometry), `chartSummary.ts` / `transitSummary.ts` / `transits.ts` (flatten the horoscope for the API), `geocode.ts`, `geolocation.ts` — plus the SVG chart components
+- `client/src/components/`: shared UI — `WorkspaceLayout` (controls + two-column workspace + the Markdown reading), `ControlsSection`, `ReadingPanel`, `DetailOverlay` (the hover/focus details panel used by tarot cards, the Greek letter, and the zodiac dice), `ButtonComponent`, `QuestionInput`, `Header`, `TabNav`
 - `client/src/hooks/`: `useRetainedState` (a `useState` that survives tab switches), `useBirthChart` (the natal chart shared by the Astrology and Transits tabs)
 - `client/public/tarot/`: tarot card images
+
+### Backend request lifecycle
+
+Every route follows the same shape, so a handler is just its own logic:
+
+```ts
+router.post(
+  '/:readingId/interpret',
+  handler(async (request, response) => {
+    const reading = await loadRow<Row>(selectReading, [request.params.readingId], 'Reading not found.');
+    const interpretation = await generateReading(createSystemRules(RULES), { ...reading }, 500, 'greek-oracle');
+    await run(updateInterpretation, [interpretation, reading.id]);
+    response.json({ interpretation });
+  }, 'Could not generate the interpretation.'),
+);
+```
+
+- **`handler(fn, fallbackMessage)`** owns error handling — no `try/catch` in routes. A thrown `HttpError` keeps its status; anything else becomes a 500 with `fallbackMessage`.
+- **`loadRow` / `loadRows` / `run`** are the only way routes touch Postgres (`db/pool.ts`'s `withTransaction` for the one multi-statement write, in `readings.ts` `/draw`). A read that legitimately returns zero rows — e.g. astrology's "already generated?" check — still uses `pool.query` directly.
+- **`generateReading(system, prompt, maxTokens, label)`** is the one Claude call: it guards `ANTHROPIC_API_KEY` (503), sends the request, logs token/cache usage, warns on truncation, and returns the concatenated text. `createSystemRules(rules)` joins a rule list and appends the shared second-person-voice and no-claims lines.
+- **`optionalText(value, label)`** validates the optional `question` field.
 
 ## Requirements
 
@@ -113,7 +146,7 @@ Create or update the PostgreSQL tables:
 psql -d tarot_app -f server/schema.sql
 ```
 
-Load the tarot cards, astrology reference data, and Greek oracle letters:
+Load the tarot cards, astrology reference data, Greek oracle letters, and dice meanings:
 
 ```bash
 psql -d tarot_app -f server/seed.sql
@@ -229,6 +262,22 @@ POST /api/greek-oracle/:readingId/interpret
 
 Loads the reading's letter and asks Claude for a short (2–4 sentence) second-person reading grounded only in that letter's oracle line, meaning, and keywords — answering the question if one was given. Persists the result on the reading row and returns `{ "interpretation": "..." }`. Requires `ANTHROPIC_API_KEY`.
 
+### Roll the dice
+
+```text
+POST /api/astragalomancy/roll
+```
+
+Body: `{ "mode": "zodiac" | "standard", "question": "..." }` (both optional; `mode` defaults to `zodiac`). Rolls server-side, stores an `astragalomancy_readings` row, and returns `{ id, question, roll }`. For `standard`, `roll` is `{ mode, values: [n,n,n], total, meaning }`; for `zodiac`, `{ mode, planet, sign, house }` where each is the resolved reference row (name, glyph, keywords, associations). The client animates the dice toward this result.
+
+### Interpret a roll
+
+```text
+POST /api/astragalomancy/:readingId/interpret
+```
+
+Re-resolves the stored roll and asks Claude to read it in the second person — grounded only in the supplied meaning (standard) or the planet/sign/house keywords and associations (zodiac: planet = the situation, sign = the emotions, house = where the impact lands). Persists the result and returns `{ "interpretation": "..." }`. Requires `ANTHROPIC_API_KEY`.
+
 ## Validation
 
 Server — typecheck/build, lint, and format:
@@ -273,7 +322,7 @@ npm --prefix client run format:css
 
 - Claude interpretation requires an Anthropic API key and available API credits
 - There are no automated tests yet (`server`'s `test` script is a placeholder)
-- Readings, charts, transit readings, and letter draws are all stored, but there is not yet a history screen
+- Readings, charts, transit readings, letter draws, and dice rolls are all stored, but there is not yet a history screen
 - Astrology charts use the entered wall-clock birth time as-is; historical timezone / DST offsets are not resolved from the coordinates
 - Retained view state is in-memory only — it survives tab switches but not a page reload
 
@@ -282,7 +331,7 @@ npm --prefix client run format:css
 - Add additional spreads including custom spreads
 - Add more oracle decks and divination systems
 - Add additional language support starting with Brazilian Portuguese
-- Add history and retrieval across all four sections
+- Add history and retrieval across all five sections
 - Persist retained view state across reloads
 - Resolve historical timezone offsets for astrology charts
 - Add automated backend and frontend tests
