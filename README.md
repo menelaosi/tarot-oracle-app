@@ -5,8 +5,8 @@ A multi-oracle divination app built with React, TypeScript, Express, PostgreSQL,
 - **Tarot** — draw a spread and get an interpretation
 - **Astrology** — cast a natal chart in the browser and have Claude analyze it
 - **Transits** — see how a given day's sky moves across your natal chart
-- **Greek Alphabet Oracle** — draw one of the 24 letters of the Olympian inscription
-- **Astragalomancy** — roll three standard or three zodiac dice and read what lands
+- **Greek Alphabet Oracle** — draw one of the 24 letters of the Greek Alphabet for a Greek Alphabet Oracle
+- **Astragalomancy** — roll three standard or three zodiac dice and divine the result
 
 Every system's reference data — tarot card meanings and correspondences, astrology signs/planets/houses/aspects/dignities, the Greek oracle letters, the traditional three-dice meanings — lives in PostgreSQL and is supplied to Claude as grounding context. Claude interprets only from that data and is instructed to address the reader directly in the second person rather than writing about them in the third person. View state (the drawn spread, the cast chart, each reading) is retained across tab switches and persisted to `localStorage`, so it survives a page reload too.
 
@@ -50,6 +50,7 @@ Every system's reference data — tarot card meanings and correspondences, astro
 
 - Database-grounded, personally-addressed interpretations rendered from Markdown with `react-markdown`
 - Tab navigation between sections, with each view's state retained across switches and reloads (`localStorage`)
+- While a reading generates, the reading column shows a placeholder; failures surface as one dismissible line, and a render-time crash in a section is caught (`ErrorBoundary`) rather than blanking the app
 
 ## Project Structure
 
@@ -78,8 +79,9 @@ Important files:
 - `server/spreads.ts`: the spread registry (label, position labels, prompt guidance) — the single place to add a spread; the API, client picker, draw count, and prompt instructions all derive from it
 - `client/src/App.tsx`: app shell — masthead, tab nav, and the lazily-loaded feature route for each section
 - `client/src/features/<feature>/`: one folder per section (`tarot`, `astrology`, `greek-oracle`, `astragalomancy`), each with `…View.tsx` (state + API calls), `api.ts`, `types.ts`, a `.css` file, and a `components/` folder. `astrology/` also holds `TransitView.tsx` and `lib/` — `horoscope.ts` (the `circular-natal-horoscope-js` wrapper + chart geometry), `chartSummary.ts` / `transitSummary.ts` / `transits.ts` (flatten the horoscope for the API), `geocode.ts`, `geolocation.ts` — plus the SVG chart components
-- `client/src/components/`: shared UI — `WorkspaceLayout` (controls + two-column workspace + the Markdown reading), `ControlsSection`, `ReadingPanel`, `DetailOverlay` (the hover/focus details panel used by tarot cards, the Greek letter, and the zodiac dice), `ButtonComponent`, `QuestionInput`, `Header`, `TabNav`
-- `client/src/hooks/`: `useRetainedState` (a `useState` that survives tab switches and page reloads, backed by `localStorage` under a versioned `tarot-oracle:v1:` prefix; pass `{ persist: false }` to keep a value tab-switch-only), `useBirthChart` (the birth date/time/place shared by the Astrology and Transits tabs — each tab casts its own `Horoscope` from them)
+- `client/src/components/`: shared UI — `WorkspaceLayout` (controls + two-column workspace + the Markdown reading; shows a "Consulting the oracle…" placeholder while a reading generates and a dismissible error line), `ErrorBoundary` (catches a render-time throw in a feature view — keyed on the route in `App.tsx`), `ControlsSection`, `ReadingPanel`, `DetailOverlay` (the hover/focus details panel used by tarot cards, the Greek letter, and the zodiac dice), `ButtonComponent`, `QuestionInput`, `Header`, `TabNav`
+- `client/src/lib/http.ts`: the API transport — `getJson` / `postJson` with a 90 s abort timeout; a non-2xx becomes an `ApiError` carrying the HTTP status; `messageFrom(err)` turns any caught value into a display string (server message, a connection hint for network failures, or a fallback)
+- `client/src/hooks/`: `useRetainedState` (a `useState` that survives tab switches and page reloads, backed by `localStorage` under a versioned `tarot-oracle:v1:` prefix; pass `{ persist: false }` to keep a value tab-switch-only), `useBirthChart` (the birth date/time/place shared by the Astrology and Transits tabs — each tab casts its own `Horoscope` from them), `useError` (the one error line every feature view shows — `clearError` for the dismiss control and action resets, `failWith(cause)` for a caught value, `setError` for literal validation copy)
 - `client/public/tarot/`: tarot card images
 
 ### Backend request lifecycle
@@ -346,5 +348,5 @@ npm --prefix client run stylelint
 - Add history and retrieval across all five sections (a list of past readings, not just the last one restored from `localStorage`)
 - Resolve historical timezone offsets for astrology charts
 - Add automated backend and frontend tests
-- Improve error handling and loading states
+- Build on the error/loading pass: a "Try again" affordance on a failed reading, and per-status messaging (503 vs 5xx vs offline)
 - Add user accounts if readings need to persist per user

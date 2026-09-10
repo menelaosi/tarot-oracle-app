@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import WorkspaceLayout from '../../components/WorkspaceLayout';
+import { useError } from '../../hooks/useError';
 import { useRetainedState } from '../../hooks/useRetainedState';
-import { messageFrom } from '../../lib/http';
 import { drawReading, interpretReading, loadSpreads } from './api';
 import ReadingControls from './components/ReadingControls';
 import Spread from './components/Spread';
@@ -26,7 +26,7 @@ function TarotView() {
   const [interpretation, setInterpretation] = useRetainedState('tarot:interpretation', '');
   const [isDrawing, setIsDrawing] = useState(false);
   const [isInterpreting, setIsInterpreting] = useState(false);
-  const [error, setError] = useState('');
+  const { error, clearError, failWith } = useError();
 
   useEffect(() => {
     if (spreadOptions.length > 0) return; // already loaded (retained across mounts)
@@ -37,20 +37,20 @@ function TarotView() {
           setSpreadType(options[0]?.id ?? '');
         }
       })
-      .catch((loadError: unknown) => setError(messageFrom(loadError)));
+      .catch((loadError: unknown) => failWith(loadError));
     // Runs once on mount; spreadType is only read to keep a still-valid selection.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function drawCards() {
     setIsDrawing(true);
-    setError('');
+    clearError();
     setInterpretation(''); // a fresh draw invalidates the previous reading's interpretation
 
     try {
       setReading(await drawReading({ spreadType, question, includeReversals }));
     } catch (drawError) {
-      setError(messageFrom(drawError));
+      failWith(drawError);
     } finally {
       setIsDrawing(false);
     }
@@ -60,12 +60,12 @@ function TarotView() {
     if (!reading) return;
 
     setIsInterpreting(true);
-    setError('');
+    clearError();
 
     try {
       setInterpretation(await interpretReading(reading.id));
     } catch (interpretationError) {
-      setError(messageFrom(interpretationError));
+      failWith(interpretationError);
     } finally {
       setIsInterpreting(false);
     }
@@ -97,6 +97,8 @@ function TarotView() {
         ) : null
       }
       error={error}
+      onDismissError={clearError}
+      pending={isInterpreting}
       interpretationTitle="What the pattern says"
       interpretation={interpretation}
     />

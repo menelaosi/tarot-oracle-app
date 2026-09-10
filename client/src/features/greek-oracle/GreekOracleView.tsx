@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import WorkspaceLayout from '../../components/WorkspaceLayout';
+import { useError } from '../../hooks/useError';
 import { useRetainedState } from '../../hooks/useRetainedState';
-import { messageFrom } from '../../lib/http';
 import { drawLetter, interpretLetter } from './api';
 import GreekOracleControls from './components/GreekOracleControls';
 import LetterReading from './components/LetterReading';
@@ -16,17 +16,17 @@ function GreekOracleView() {
   const [interpretation, setInterpretation] = useRetainedState('greek:interpretation', '');
   const [isDrawing, setIsDrawing] = useState(false);
   const [isInterpreting, setIsInterpreting] = useState(false);
-  const [error, setError] = useState('');
+  const { error, clearError, failWith } = useError();
 
   async function draw() {
     setIsDrawing(true);
-    setError('');
+    clearError();
     setInterpretation(''); // a fresh draw invalidates the previous letter's reading
 
     try {
       setReading(await drawLetter(question));
     } catch (drawError) {
-      setError(messageFrom(drawError));
+      failWith(drawError);
     } finally {
       setIsDrawing(false);
     }
@@ -36,12 +36,12 @@ function GreekOracleView() {
     if (!reading) return;
 
     setIsInterpreting(true);
-    setError('');
+    clearError();
 
     try {
       setInterpretation(await interpretLetter(reading.id));
     } catch (interpretError) {
-      setError(messageFrom(interpretError));
+      failWith(interpretError);
     } finally {
       setIsInterpreting(false);
     }
@@ -67,6 +67,8 @@ function GreekOracleView() {
         ) : null
       }
       error={error}
+      onDismissError={clearError}
+      pending={isInterpreting}
       interpretationTitle="What the letter says"
       interpretation={interpretation}
     />

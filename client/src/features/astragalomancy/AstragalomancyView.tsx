@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import WorkspaceLayout from '../../components/WorkspaceLayout';
+import { useError } from '../../hooks/useError';
 import { useRetainedState } from '../../hooks/useRetainedState';
-import { messageFrom } from '../../lib/http';
 import { interpretRoll, rollDice } from './api';
 import AstragalomancyControls from './components/AstragalomancyControls';
 import DiceReading from './components/DiceReading';
@@ -20,17 +20,17 @@ function AstragalomancyView() {
   const [interpretation, setInterpretation] = useRetainedState('astragalomancy:interpretation', '');
   const [isRolling, setIsRolling] = useState(false);
   const [isInterpreting, setIsInterpreting] = useState(false);
-  const [error, setError] = useState('');
+  const { error, clearError, failWith } = useError();
 
   async function roll() {
     setIsRolling(true);
-    setError('');
+    clearError();
     setInterpretation(''); // a fresh roll invalidates the previous reading
 
     try {
       setReading(await rollDice(mode, question));
     } catch (rollError) {
-      setError(messageFrom(rollError));
+      failWith(rollError);
     } finally {
       setIsRolling(false);
     }
@@ -40,12 +40,12 @@ function AstragalomancyView() {
     if (!reading) return;
 
     setIsInterpreting(true);
-    setError('');
+    clearError();
 
     try {
       setInterpretation(await interpretRoll(reading.id));
     } catch (interpretError) {
-      setError(messageFrom(interpretError));
+      failWith(interpretError);
     } finally {
       setIsInterpreting(false);
     }
@@ -75,6 +75,8 @@ function AstragalomancyView() {
         ) : null
       }
       error={error}
+      onDismissError={clearError}
+      pending={isInterpreting}
       interpretationTitle="What the dice say"
       interpretation={interpretation}
     />

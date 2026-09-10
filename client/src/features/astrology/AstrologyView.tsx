@@ -2,6 +2,7 @@ import type { Horoscope } from 'circular-natal-horoscope-js';
 import { useMemo, useState } from 'react';
 import WorkspaceLayout from '../../components/WorkspaceLayout';
 import { useBirthChart } from '../../hooks/useBirthChart';
+import { useError } from '../../hooks/useError';
 import { useRetainedState } from '../../hooks/useRetainedState';
 import { messageFrom } from '../../lib/http';
 import { interpretChart } from './api';
@@ -25,7 +26,7 @@ function AstrologyView() {
   const [hasCast, setHasCast] = useRetainedState('astrology:hasCast', false);
   const [interpretation, setInterpretation] = useRetainedState('astrology:interpretation', '');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [error, setError] = useState('');
+  const { error, setError, clearError, failWith } = useError();
 
   // Casting is a local computation (the ephemeris runs in the browser); only
   // analyzeChart hits the server.
@@ -47,7 +48,7 @@ function AstrologyView() {
   }, [hasCast, birthMoment, place]);
 
   function castChart() {
-    setError('');
+    clearError();
     setInterpretation('');
 
     if (!birthMoment || !place) {
@@ -62,7 +63,7 @@ function AstrologyView() {
     if (!cast.horoscope || !place) return;
 
     setIsAnalyzing(true);
-    setError('');
+    clearError();
 
     try {
       const chart = buildChartSummary(cast.horoscope, {
@@ -73,7 +74,7 @@ function AstrologyView() {
       });
       setInterpretation(await interpretChart(chart));
     } catch (analysisError) {
-      setError(messageFrom(analysisError));
+      failWith(analysisError);
     } finally {
       setIsAnalyzing(false);
     }
@@ -100,6 +101,8 @@ function AstrologyView() {
         ) : null
       }
       error={error || cast.error}
+      onDismissError={clearError}
+      pending={isAnalyzing}
       interpretationTitle="What the chart says"
       interpretation={interpretation}
     />

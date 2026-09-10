@@ -7,6 +7,10 @@ type WorkspaceLayoutProps = {
   /** the left-hand subject — Spread / AstrologyReading — or null before it exists */
   main: ReactElement | null;
   error: string;
+  /** clears the error line; renders a dismiss control when provided */
+  onDismissError?: () => void;
+  /** a reading is being generated — show a placeholder in the right column */
+  pending?: boolean;
   interpretationTitle: string;
   interpretation: string;
 };
@@ -19,6 +23,8 @@ function WorkspaceLayout({
   controls,
   main,
   error,
+  onDismissError,
+  pending = false,
   interpretationTitle,
   interpretation,
 }: WorkspaceLayoutProps) {
@@ -31,17 +37,33 @@ function WorkspaceLayout({
           {error && (
             <p className="error-message" role="alert">
               {error}
+              {onDismissError && (
+                <button
+                  type="button"
+                  className="error-dismiss"
+                  onClick={onDismissError}
+                  aria-label="Dismiss"
+                >
+                  ×
+                </button>
+              )}
             </p>
           )}
         </div>
         <div className="workspace-right">
-          {interpretation && (
-            <section className="interpretation" aria-labelledby="interpretation-title">
-              <h2 id="interpretation-title">{interpretationTitle}</h2>
-              <div className="interpretation-copy">
-                <Markdown>{interpretation}</Markdown>
-              </div>
-            </section>
+          {pending ? (
+            <p className="reading-pending" role="status">
+              Consulting the oracle…
+            </p>
+          ) : (
+            interpretation && (
+              <section className="interpretation" aria-labelledby="interpretation-title">
+                <h2 id="interpretation-title">{interpretationTitle}</h2>
+                <div className="interpretation-copy">
+                  <Markdown>{interpretation}</Markdown>
+                </div>
+              </section>
+            )
           )}
         </div>
       </div>

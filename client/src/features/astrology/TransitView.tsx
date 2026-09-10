@@ -2,8 +2,8 @@ import type { Horoscope } from 'circular-natal-horoscope-js';
 import { useMemo, useState } from 'react';
 import WorkspaceLayout from '../../components/WorkspaceLayout';
 import { useBirthChart } from '../../hooks/useBirthChart';
+import { useError } from '../../hooks/useError';
 import { useRetainedState } from '../../hooks/useRetainedState';
-import { messageFrom } from '../../lib/http';
 import { interpretTransits } from './api';
 import './astrology.css';
 import TransitControl from './components/TransitControl';
@@ -55,7 +55,7 @@ function TransitView() {
   const [castNonce, setCastNonce] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
-  const [error, setError] = useState('');
+  const { error, setError, clearError, failWith } = useError();
 
   const usingCurrent = locationSource === 'current' && currentCoords !== null;
   const locationLabel = usingCurrent ? 'Current location' : (place?.label ?? 'Set a birthplace');
@@ -93,7 +93,7 @@ function TransitView() {
   }, [natal, location, day, castNonce]);
 
   function castTransits() {
-    setError('');
+    clearError();
     if (!birthMoment || !place) {
       setError('Enter your birth date, time, and place first.');
       return;
@@ -102,7 +102,7 @@ function TransitView() {
   }
 
   async function toggleLocation() {
-    setError('');
+    clearError();
     if (locationSource === 'current') {
       setLocationSource('birth');
       return;
@@ -122,7 +122,7 @@ function TransitView() {
     if (!natal || !chart || !place) return;
 
     setIsAnalyzing(true);
-    setError('');
+    clearError();
     try {
       const natalSummary = buildChartSummary(natal, {
         dateTime: birthMoment,
@@ -132,7 +132,7 @@ function TransitView() {
       });
       setInterpretation(await interpretTransits(natalSummary, chart.summary));
     } catch (analysisError) {
-      setError(messageFrom(analysisError));
+      failWith(analysisError);
     } finally {
       setIsAnalyzing(false);
     }
@@ -168,6 +168,8 @@ function TransitView() {
         ) : null
       }
       error={error}
+      onDismissError={clearError}
+      pending={isAnalyzing}
       interpretationTitle="What today holds"
       interpretation={interpretation}
     />

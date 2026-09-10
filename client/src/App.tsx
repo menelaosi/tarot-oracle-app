@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import './App.css';
+import ErrorBoundary from './components/ErrorBoundary';
 import Header from './components/Header';
 import TabNav from './components/TabNav';
 
@@ -46,17 +47,19 @@ function App() {
       <Header title={header.title} intro={header.intro} />
       <TabNav />
 
-      <Suspense fallback={<p className="route-loading">Loading…</p>}>
-        <Routes>
-          <Route path="/" element={<Navigate to="/tarot" replace />} />
-          <Route path="/tarot" element={<TarotView />} />
-          <Route path="/astrology" element={<AstrologyView />} />
-          <Route path="/transits" element={<TransitView />} />
-          <Route path="/greek-oracle" element={<GreekOracleView />} />
-          <Route path="/astragalomancy" element={<AstragalomancyView />} />
-          <Route path="*" element={<Navigate to="/tarot" replace />} />
-        </Routes>
-      </Suspense>
+      <ErrorBoundary key={pathname}>
+        <Suspense fallback={<p className="route-loading">Loading…</p>}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/tarot" replace />} />
+            <Route path="/tarot" element={<TarotView />} />
+            <Route path="/astrology" element={<AstrologyView />} />
+            <Route path="/transits" element={<TransitView />} />
+            <Route path="/greek-oracle" element={<GreekOracleView />} />
+            <Route path="/astragalomancy" element={<AstragalomancyView />} />
+            <Route path="*" element={<Navigate to="/tarot" replace />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
     </main>
   );
 }

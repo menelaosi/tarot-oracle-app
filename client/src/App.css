@@ -232,6 +232,10 @@ button:disabled {
 }
 
 .error-message {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
   margin: 24px 0 0;
   padding: 14px;
   color: var(--error);
@@ -240,12 +244,64 @@ button:disabled {
   font-size: 13px;
 }
 
+.error-dismiss {
+  flex: none;
+  padding: 0 4px;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.error-dismiss:hover {
+  color: var(--ink);
+}
+
 .route-loading {
   padding: 40px 0;
   color: var(--muted);
   font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+/* Shown while a route's render throws (ErrorBoundary). */
+.route-error {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 48px 0;
+  color: var(--copy);
+}
+
+/* Placeholder in the reading column while Claude is generating. */
+.reading-pending {
+  margin: 28px 0;
+  color: var(--muted);
+  font-family: Newsreader, Georgia, serif;
+  font-size: 18px;
+  animation: reading-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes reading-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reading-pending {
+    animation: none;
+  }
 }
 
 /* Two-column workspace: subject on the left, scrolling Claude reading on the

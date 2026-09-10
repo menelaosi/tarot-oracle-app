@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import DetailOverlay, { type DetailItem } from '../../../components/DetailOverlay';
+import { getJson, messageFrom } from '../../../lib/http';
 import type { CardDetails, DrawnCard } from '../types';
 
 type TarotCardProps = {
@@ -29,11 +30,9 @@ function TarotCard({ card, includeReversals = false }: TarotCardProps) {
     setDetailsError('');
 
     try {
-      const response = await fetch(`/api/cards/${card.id}`);
-      if (!response.ok) throw new Error('Card details unavailable.');
-      setDetails((await response.json()) as CardDetails);
+      setDetails(await getJson<CardDetails>(`/api/cards/${card.id}`, 'Card details unavailable.'));
     } catch (error) {
-      setDetailsError(error instanceof Error ? error.message : 'Card details unavailable.');
+      setDetailsError(messageFrom(error, 'Card details unavailable.'));
     } finally {
       setIsLoadingDetails(false);
     }
