@@ -3,7 +3,7 @@ import ButtonComponent from './ButtonComponent';
 
 type ReadingPanelProps = {
   sectionClassName: string;
-  /** Extra heading classes; "section-heading" is always prepended. */
+  /** Extra heading classes; "reading-heading" is always prepended. */
   headingClassName: string;
   /** Links the <h2> to the section via aria-labelledby. */
   titleId: string;
@@ -32,7 +32,7 @@ function ReadingPanel({
 }: ReadingPanelProps) {
   return (
     <section className={sectionClassName} aria-labelledby={titleId}>
-      <div className={`section-heading ${headingClassName}`}>
+      <div className={`reading-heading ${headingClassName}`}>
         <h2 id={titleId}>{title}</h2>
         <ButtonComponent
           className="secondary-action"

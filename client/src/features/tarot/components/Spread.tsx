@@ -18,7 +18,7 @@ function Spread({
 }: SpreadProps) {
   return (
     <ReadingPanel
-      sectionClassName="spread-section"
+      sectionClassName="reading-column spread-section"
       headingClassName="spread-heading"
       titleId="spread-title"
       title={reading.spreadLabel}

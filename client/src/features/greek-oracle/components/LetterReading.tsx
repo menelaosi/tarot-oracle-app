@@ -23,7 +23,7 @@ function LetterReading({
 
   return (
     <ReadingPanel
-      sectionClassName="letter-reading"
+      sectionClassName="reading-column letter-reading"
       headingClassName="letter-reading-heading"
       titleId="letter-reading-title"
       title={`${name} · ${letter}`}

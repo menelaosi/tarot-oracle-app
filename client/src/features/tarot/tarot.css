@@ -1,7 +1,3 @@
-/* Tarot-only styles. Shared tokens, shell, typography, form and button
-   primitives, and the .workspace / .interpretation layout live in ../../App.css.
-   Imported by TarotView. */
-
 .card-position {
   margin: 0;
   color: var(--indigo);
@@ -12,21 +8,14 @@
 
 .reading-controls {
   flex: 0 0 auto;
-}
-
-.reading-controls,
-.spread-section {
   padding: 28px 0;
   border-bottom: 1px solid var(--line);
 }
 
+/* Layout/padding come from .reading-column (App.css); the spread is the only
+   subject panel that keeps a rule beneath it. */
 .spread-section {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-  padding-top: 18px;
-  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
 }
 
 .control-grid {
@@ -53,24 +42,17 @@
   accent-color: var(--accent);
 }
 
+/* Base look from .reading-heading (App.css); pinned so the cards get the rest. */
 .spread-heading {
   flex: 0 0 auto;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 16px;
 }
 
-/* Cards sit centred in the height the column has left, so the section's bottom
-   rule stays near the foot of the page. Each card is ~a quarter of the column
-   width (capped); they wrap on narrow screens. */
 .cards-grid {
   display: flex;
   flex-wrap: wrap;
   flex: 1 1 auto;
-  align-items: stretch; /* every card the height of the tallest in the row */
-  align-content: center; /* ...with that row centred in the leftover height */
+  align-items: stretch; 
+  align-content: center;
   gap: 16px;
   min-height: 0;
   margin: 0;
@@ -125,8 +107,6 @@
   transform: rotate(180deg);
 }
 
-/* Anchor the shared .detail-panel (App.css) inside the card, top-left, rather
-   than hanging below it. The panel's look comes from .detail-panel. */
 .tarot-card-details {
   top: 12px;
   left: 12px;

@@ -32,7 +32,7 @@ function getTitle(horoscope: Horoscope): string {
 function AstrologyReading({ horoscope, isAnalyzing, onAnalyze }: AstrologyReadingProps) {
   return (
     <ReadingPanel
-      sectionClassName="astrology-reading"
+      sectionClassName="reading-column astrology-reading"
       headingClassName="astrology-reading-heading"
       titleId="astrology-reading-title"
       title={getTitle(horoscope)}

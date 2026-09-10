@@ -39,7 +39,7 @@ function TransitReading({
 }: TransitReadingProps) {
   return (
     <ReadingPanel
-      sectionClassName="astrology-reading"
+      sectionClassName="reading-column astrology-reading"
       headingClassName="astrology-reading-heading"
       titleId="transit-reading-title"
       title={`Transits — ${formatDay(day)}`}

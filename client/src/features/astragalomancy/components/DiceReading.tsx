@@ -65,7 +65,7 @@ function DiceReading({ roll, isInterpreting, onInterpret }: DiceReadingProps) {
   const isStandard = roll.mode === 'standard';
   return (
     <ReadingPanel
-      sectionClassName="dice-reading"
+      sectionClassName="reading-column dice-reading"
       headingClassName="dice-reading-heading"
       titleId="dice-reading-title"
       title={headingFor(roll)}

@@ -3,7 +3,7 @@ import { useCallback, useState, type Dispatch, type SetStateAction } from 'react
 // Bump the version segment to invalidate every persisted key at once — e.g. after
 // a change to a stored value's shape, or a database reseed that orphans stored
 // reading ids.
-const STORAGE_PREFIX = 'tarot-oracle:v1:';
+const STORAGE_PREFIX = 'tarot-oracle:v2:';
 
 // In-memory mirror of what's been read/written this session, so repeated mounts
 // (tab switches) don't re-parse JSON and state still survives a switch even when
