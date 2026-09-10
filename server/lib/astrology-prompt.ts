@@ -15,11 +15,10 @@ import {
   selectSigns,
   type AspectRow,
   type DignityRow,
-  type ElementRow,
   type HouseRow,
-  type ModalityRow,
   type NoteRow,
   type PlanetRow,
+  type SignGroupRow,
   type SignRow,
 } from '../db/queries/astrology.js';
 import type { AngleSummary, ChartSummary, TransitSummary } from './astrology-schema.js';
@@ -68,8 +67,8 @@ async function loadReferenceDigest(): Promise<string> {
       pool.query<HouseRow>(selectHouses),
       pool.query<AspectRow>(selectAspects),
       pool.query<DignityRow>(selectDignities),
-      pool.query<ModalityRow>(selectModalities),
-      pool.query<ElementRow>(selectElements),
+      pool.query<SignGroupRow>(selectModalities),
+      pool.query<SignGroupRow>(selectElements),
       pool.query<NoteRow>(selectReferenceNotes),
     ]);
 

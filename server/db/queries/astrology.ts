@@ -1,50 +1,23 @@
 // Reference data lives in eight small tables (see server/schema.sql, seeded from
-// Astrology.md). The interpret route loads them once, builds lookup maps, and
-// enriches each placement in the client-supplied chart summary.
+// Astrology.md), loaded once and rendered into the cached digest below.
 
-export type SignRow = {
-  key: string;
-  name: string;
-  glyph: string;
-  modality: string;
-  element: string;
-  ruling_planet: string;
-  keywords: string[];
-  associations: string[];
-};
+import { insertInto } from './fragments.js';
 
-export type PlanetRow = {
-  key: string;
-  name: string;
-  glyph: string;
-  keywords: string[];
-  associations: string[];
-};
+type Glyphed = { key: string; name: string; glyph: string };
+type Keyworded = { keywords: string[]; associations: string[] };
 
-export type HouseRow = {
-  number: number;
-  name: string;
-  keywords: string[];
-  associations: string[];
-};
-
-export type AspectRow = {
-  key: string;
-  name: string;
-  glyph: string;
-  angle: number;
-  meaning: string;
-};
-
+export type PlanetRow = Glyphed & Keyworded;
+export type SignRow = PlanetRow & { modality: string; element: string; ruling_planet: string };
+export type HouseRow = { number: number; name: string } & Keyworded;
+export type AspectRow = Glyphed & { angle: number; meaning: string };
 export type DignityRow = { planet_key: string; sign_key: string; dignity: string };
-
-export type ModalityRow = { key: string; name: string; keywords: string[]; signs: string[] };
-export type ElementRow = { key: string; name: string; keywords: string[]; signs: string[] };
+export type SignGroupRow = { key: string; name: string; keywords: string[]; signs: string[] };
 export type NoteRow = { key: string; title: string; body: string };
 
 function selectOrder(table: string, key: string = 'key'): string {
   return `SELECT * FROM astrology_${table} ORDER BY ${key}`;
 }
+
 // ORDER BY on every reference query keeps the serialized digest byte-stable
 // across requests, so the cached system prefix actually hits (see lib/astrology-prompt.ts).
 export const selectSigns = selectOrder('signs');
@@ -71,12 +44,14 @@ export const selectExistingInterpretation = latestInterpretation(
   'summary = $1::jsonb',
 );
 
-export const insertAstrologyReading = `
-  INSERT INTO astrology_readings
-    (birth_datetime, latitude, longitude, place_label, summary, interpretation)
-  VALUES ($1, $2, $3, $4, $5, $6)
-  RETURNING id
-`;
+export const insertAstrologyReading = insertInto('astrology_readings', [
+  'birth_datetime',
+  'latitude',
+  'longitude',
+  'place_label',
+  'summary',
+  'interpretation',
+]);
 
 /**
  * Stored transit reading for this exact natal chart on this calendar day, if
@@ -88,13 +63,18 @@ export const selectExistingTransitReading = latestInterpretation(
   'natal_summary = $1::jsonb AND transit_date = $2::date',
 );
 
-export const insertTransitReading = `
-  INSERT INTO astrology_transit_readings
-    (birth_datetime, latitude, longitude, place_label, transit_location,
-     transit_at, transit_date, natal_summary, transit_summary, interpretation)
-  VALUES ($1, $2, $3, $4, $5, $6, $7::date, $8, $9, $10)
-  RETURNING id
-`;
+export const insertTransitReading = insertInto('astrology_transit_readings', [
+  'birth_datetime',
+  'latitude',
+  'longitude',
+  'place_label',
+  'transit_location',
+  'transit_at',
+  'transit_date::date',
+  'natal_summary',
+  'transit_summary',
+  'interpretation',
+]);
 
 // The chart / transit summaries the client sends live in lib/astrology-schema.ts
 // (zod schemas + inferred types).
@@ -113,8 +93,8 @@ export type ReferenceRows = {
   houses: HouseRow[];
   aspects: AspectRow[];
   dignities: DignityRow[];
-  modalities: ModalityRow[];
-  elements: ElementRow[];
+  modalities: SignGroupRow[];
+  elements: SignGroupRow[];
   notes: NoteRow[];
 };
 

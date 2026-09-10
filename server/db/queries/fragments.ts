@@ -26,6 +26,22 @@ export const CARD_CORRESPONDENCE_JOINS = `
 export const setInterpretation = (table: string): string =>
   `UPDATE ${table} SET interpretation = $1 WHERE id = $2`;
 
+/**
+ * `INSERT INTO <table> (<columns>) VALUES ($1, …) RETURNING <returning>`. The
+ * placeholders are derived from the column count, so they can't drift out of
+ * sync. A column may carry a cast — `'dice::jsonb'` -> column `dice`, value
+ * `$n::jsonb`. Omit `returning` for an insert whose row nobody reads back.
+ */
+export const insertInto = (table: string, columns: string[], returning?: string): string => {
+  const names = columns.map((column) => column.split('::')[0]);
+  const values = columns.map((column, i) => {
+    const cast = column.split('::')[1];
+    return cast ? `$${i + 1}::${cast}` : `$${i + 1}`;
+  });
+  const sql = `INSERT INTO ${table} (${names.join(', ')}) VALUES (${values.join(', ')})`;
+  return returning ? `${sql} RETURNING ${returning}` : sql;
+};
+
 /** Prefixes each column in a `"a, b, c"` list with a table alias: `"t.a, t.b, t.c"`. */
 export const withAlias = (columns: string, alias: string): string =>
   columns

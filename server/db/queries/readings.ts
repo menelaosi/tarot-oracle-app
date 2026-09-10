@@ -1,7 +1,7 @@
 // SQL for the readings routes. selectInterpretationCards joins each drawn
 // card to its correspondences so one query feeds the whole Claude prompt.
 
-import { CARD_CORRESPONDENCE_JOINS, setInterpretation } from './fragments.js';
+import { CARD_CORRESPONDENCE_JOINS, insertInto, setInterpretation } from './fragments.js';
 
 export type ReadingRow = {
   id: string;
@@ -40,16 +40,14 @@ export type InterpretationCardRow = {
   representations: string[];
 };
 
-export const insertReading = `
-  INSERT INTO readings (spread_type, question)
-  VALUES ($1, $2)
-  RETURNING id, question
-`;
+export const insertReading = insertInto('readings', ['spread_type', 'question'], 'id, question');
 
-export const insertReadingCard = `
-  INSERT INTO reading_cards (reading_id, card_id, position, orientation)
-  VALUES ($1, $2, $3, $4)
-`;
+export const insertReadingCard = insertInto('reading_cards', [
+  'reading_id',
+  'card_id',
+  'position',
+  'orientation',
+]);
 
 export const selectDrawnCards = `
   SELECT c.id, c.name, c.image_path AS "imagePath", rc.orientation, rc.position
