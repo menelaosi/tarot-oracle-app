@@ -1,6 +1,9 @@
 // SQL for the cards routes, plus the row -> DTO mapper. selectCardDetails
 // LEFT JOINs every correspondence table so a card with sparse data still
-// returns (nulls / empty arrays), which toCardDetails normalizes.
+// returns; the array columns are COALESCEd to '{}', so a miss is an empty
+// array, not null, and toCardDetails is a straight snake_case -> camelCase remap.
+
+import { CARD_CORRESPONDENCE_JOINS } from './fragments.js';
 
 export type CardDetailsRow = {
   id: number;
@@ -11,20 +14,20 @@ export type CardDetailsRow = {
   meaning_upright: string;
   meaning_reversed: string;
   element: string | null;
-  suit_positive: string[] | null;
-  suit_negative: string[] | null;
-  numerology: string[] | null;
+  suit_positive: string[];
+  suit_negative: string[];
+  numerology: string[];
   court_rank: string | null;
   court_description: string | null;
-  court_positive: string[] | null;
-  court_negative: string[] | null;
+  court_positive: string[];
+  court_negative: string[];
   major_element: string | null;
   major_core_theme: string | null;
-  major_planets: string[] | null;
-  major_signs: string[] | null;
-  major_positive: string[] | null;
-  major_negative: string[] | null;
-  major_representations: string[] | null;
+  major_planets: string[];
+  major_signs: string[];
+  major_positive: string[];
+  major_negative: string[];
+  major_representations: string[];
 };
 
 export type DrawnCardRow = {
@@ -60,31 +63,54 @@ export type CardDetailsDto = {
   majorRepresentations: string[];
 };
 
-/** Row (snake_case, nullable) -> client DTO (camelCase, arrays defaulted to []). */
-export function toCardDetails(row: CardDetailsRow): CardDetailsDto {
+/** Row (snake_case) -> client DTO (camelCase). Arrays are already `[]`-safe from the query. */
+export function toCardDetails({
+  id,
+  name,
+  arcana,
+  suit,
+  number,
+  meaning_upright: meaningUpright,
+  meaning_reversed: meaningReversed,
+  element,
+  suit_positive: suitPositiveAssociations,
+  suit_negative: suitNegativeAssociations,
+  numerology: numerologyAssociations,
+  court_rank: courtRank,
+  court_description: courtDescription,
+  court_positive: courtPositiveAssociations,
+  court_negative: courtNegativeAssociations,
+  major_element: majorElement,
+  major_core_theme: majorCoreTheme,
+  major_planets: majorPlanets,
+  major_signs: majorSigns,
+  major_positive: majorPositiveAssociations,
+  major_negative: majorNegativeAssociations,
+  major_representations: majorRepresentations,
+}: CardDetailsRow): CardDetailsDto {
   return {
-    id: row.id,
-    name: row.name,
-    arcana: row.arcana,
-    suit: row.suit,
-    number: row.number,
-    meaningUpright: row.meaning_upright,
-    meaningReversed: row.meaning_reversed,
-    element: row.element,
-    suitPositiveAssociations: row.suit_positive ?? [],
-    suitNegativeAssociations: row.suit_negative ?? [],
-    numerologyAssociations: row.numerology ?? [],
-    courtRank: row.court_rank,
-    courtDescription: row.court_description,
-    courtPositiveAssociations: row.court_positive ?? [],
-    courtNegativeAssociations: row.court_negative ?? [],
-    majorElement: row.major_element,
-    majorCoreTheme: row.major_core_theme,
-    majorPlanets: row.major_planets ?? [],
-    majorSigns: row.major_signs ?? [],
-    majorPositiveAssociations: row.major_positive ?? [],
-    majorNegativeAssociations: row.major_negative ?? [],
-    majorRepresentations: row.major_representations ?? [],
+    id,
+    name,
+    arcana,
+    suit,
+    number,
+    meaningUpright,
+    meaningReversed,
+    element,
+    suitPositiveAssociations,
+    suitNegativeAssociations,
+    numerologyAssociations,
+    courtRank,
+    courtDescription,
+    courtPositiveAssociations,
+    courtNegativeAssociations,
+    majorElement,
+    majorCoreTheme,
+    majorPlanets,
+    majorSigns,
+    majorPositiveAssociations,
+    majorNegativeAssociations,
+    majorRepresentations,
   };
 }
 
@@ -92,34 +118,21 @@ export const selectCardDetails = `
   SELECT c.id, c.name, c.arcana, c.suit, c.number,
          c.meaning_upright, c.meaning_reversed,
          s.element,
-         s.positive_associations AS suit_positive,
-         s.negative_associations AS suit_negative,
-         n.associations AS numerology,
+         COALESCE(s.positive_associations, '{}'::text[]) AS suit_positive,
+         COALESCE(s.negative_associations, '{}'::text[]) AS suit_negative,
+         COALESCE(n.associations, '{}'::text[]) AS numerology,
          cr.rank AS court_rank,
          cr.description AS court_description,
-         cp.associations AS court_positive,
-         cn.associations AS court_negative,
+         COALESCE(cp.associations, '{}'::text[]) AS court_positive,
+         COALESCE(cn.associations, '{}'::text[]) AS court_negative,
          m.element AS major_element,
          m.core_theme AS major_core_theme,
-         m.planets AS major_planets,
-         m.signs AS major_signs,
-         m.positive_associations AS major_positive,
-         m.negative_associations AS major_negative,
-         m.representations AS major_representations
-  FROM cards c
-  LEFT JOIN suit_correspondences s ON s.suit = c.suit
-  LEFT JOIN numerology_correspondences n ON n.number = c.number
-  LEFT JOIN court_rank_correspondences cr ON cr.rank = CASE c.number
-    WHEN 11 THEN 'page'
-    WHEN 12 THEN 'knight'
-    WHEN 13 THEN 'queen'
-    WHEN 14 THEN 'king'
-  END
-  LEFT JOIN court_suit_correspondences cp
-    ON cp.rank = cr.rank AND cp.suit = c.suit AND cp.orientation = 'positive'
-  LEFT JOIN court_suit_correspondences cn
-    ON cn.rank = cr.rank AND cn.suit = c.suit AND cn.orientation = 'negative'
-  LEFT JOIN major_arcana_correspondences m ON m.card_id = c.id
+         COALESCE(m.planets, '{}'::text[]) AS major_planets,
+         COALESCE(m.signs, '{}'::text[]) AS major_signs,
+         COALESCE(m.positive_associations, '{}'::text[]) AS major_positive,
+         COALESCE(m.negative_associations, '{}'::text[]) AS major_negative,
+         COALESCE(m.representations, '{}'::text[]) AS major_representations
+  FROM cards c${CARD_CORRESPONDENCE_JOINS}
   WHERE c.id = $1
 `;
 

@@ -69,10 +69,12 @@ Important files:
 - `server/lib/db.ts`: `run()` (fire-and-forget write), `loadRow()` / `loadRows()` (query + 404 when empty) — the single choke point for Postgres access from routes
 - `server/lib/claude.ts`: `generateReading()` — one grounded Claude call (key guard, request, truncation warning, usage/cache log, text extraction); `createSystemRules()` appends the shared voice + no-claims lines to a rule list
 - `server/lib/validate.ts`: `optionalText()` — the optional `question` body field (absent/blank → null, non-string → 400)
+- `server/lib/astrology-schema.ts`: zod schemas for the two payloads the astrology routes accept — the single source of truth for their shape (types via `z.infer`), with `assertChartSummary()` / `assertTransitSummary()` guards that 400 on a bad shape
+- `server/lib/astrology-prompt.ts`: builds the astrology Claude request — the rule list, the per-request chart prompt, and the process-memoised reference digest that forms the cached system prefix; `generateAstrologyReading()` makes the call
 - `server/lib/http-error.ts`: `HttpError` + `toHttpError`, used by the helpers above and caught by `app.ts`'s error middleware
 - `server/lib/anthropic-client.ts`: the raw Anthropic client + model id (`lib/claude.ts` wraps it)
 - `server/db/pool.ts`: the connection pool and `withTransaction(work)` — BEGIN → COMMIT, or ROLLBACK + rethrow on any throw, always releasing the client (used by `readings.ts` `/draw`)
-- `server/db/queries/`: SQL strings, row types, and row-to-response mapping, one file per resource; `astrology.ts` also builds the cached reference digest
+- `server/db/queries/`: SQL strings, row types, and row-to-response mapping, one file per resource; `astrology.ts` also holds `buildReferenceDigest()` (rendered and memoised by `lib/astrology-prompt.ts`)
 - `server/spreads.ts`: the spread registry (label, position labels, prompt guidance) — the single place to add a spread; the API, client picker, draw count, and prompt instructions all derive from it
 - `client/src/App.tsx`: app shell — masthead, tab nav, and the lazily-loaded feature route for each section
 - `client/src/features/<feature>/`: one folder per section (`tarot`, `astrology`, `greek-oracle`, `astragalomancy`), each with `…View.tsx` (state + API calls), `api.ts`, `types.ts`, a `.css` file, and a `components/` folder. `astrology/` also holds `TransitView.tsx` and `lib/` — `horoscope.ts` (the `circular-natal-horoscope-js` wrapper + chart geometry), `chartSummary.ts` / `transitSummary.ts` / `transits.ts` (flatten the horoscope for the API), `geocode.ts`, `geolocation.ts` — plus the SVG chart components

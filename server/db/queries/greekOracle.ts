@@ -2,6 +2,8 @@
 // data (server/seed.sql); a reading stores the drawn letter and, later, Claude's
 // interpretation of it.
 
+import { setInterpretation, withAlias } from './fragments.js';
+
 export type GreekLetterRow = {
   letter: string;
   name: string;
@@ -36,14 +38,10 @@ export const insertGreekReading = `
 /** A reading joined to its letter — everything the interpret prompt needs. */
 export const selectGreekReading = `
   SELECT r.id, r.question, r.interpretation,
-         l.letter, l.name, l.position, l.oracle, l.meaning, l.keywords
+         ${withAlias(LETTER_COLUMNS, 'l')}
   FROM greek_oracle_readings r
   JOIN greek_oracle_letters l ON l.letter = r.letter
   WHERE r.id = $1
 `;
 
-export const updateGreekInterpretation = `
-  UPDATE greek_oracle_readings
-  SET interpretation = $1
-  WHERE id = $2
-`;
+export const updateGreekInterpretation = setInterpretation('greek_oracle_readings');

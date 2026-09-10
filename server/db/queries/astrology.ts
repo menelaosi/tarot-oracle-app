@@ -46,7 +46,7 @@ function selectOrder(table: string, key: string = 'key'): string {
   return `SELECT * FROM astrology_${table} ORDER BY ${key}`;
 }
 // ORDER BY on every reference query keeps the serialized digest byte-stable
-// across requests, so the cached system prefix actually hits (see routes/astrology.ts).
+// across requests, so the cached system prefix actually hits (see lib/astrology-prompt.ts).
 export const selectSigns = selectOrder('signs');
 export const selectPlanets = selectOrder('planets');
 export const selectHouses = selectOrder('houses', 'number');
@@ -56,14 +56,20 @@ export const selectModalities = selectOrder('modalities');
 export const selectElements = selectOrder('elements');
 export const selectReferenceNotes = selectOrder('reference_notes');
 
-/** Most recent stored analysis for an identical chart, if one exists. */
-export const selectExistingInterpretation = `
+/** The newest interpreted row of `table` whose reuse key matches `match`. */
+const latestInterpretation = (table: string, match: string): string => `
   SELECT interpretation
-  FROM astrology_readings
-  WHERE summary = $1::jsonb AND interpretation IS NOT NULL
+  FROM ${table}
+  WHERE ${match} AND interpretation IS NOT NULL
   ORDER BY created_at DESC
   LIMIT 1
 `;
+
+/** Most recent stored analysis for an identical chart, if one exists. */
+export const selectExistingInterpretation = latestInterpretation(
+  'astrology_readings',
+  'summary = $1::jsonb',
+);
 
 export const insertAstrologyReading = `
   INSERT INTO astrology_readings
@@ -77,13 +83,10 @@ export const insertAstrologyReading = `
  * one exists. Transits move daily, so the date is part of the key — yesterday's
  * reading is never served for today.
  */
-export const selectExistingTransitReading = `
-  SELECT interpretation
-  FROM astrology_transit_readings
-  WHERE natal_summary = $1::jsonb AND transit_date = $2::date AND interpretation IS NOT NULL
-  ORDER BY created_at DESC
-  LIMIT 1
-`;
+export const selectExistingTransitReading = latestInterpretation(
+  'astrology_transit_readings',
+  'natal_summary = $1::jsonb AND transit_date = $2::date',
+);
 
 export const insertTransitReading = `
   INSERT INTO astrology_transit_readings
@@ -93,74 +96,8 @@ export const insertTransitReading = `
   RETURNING id
 `;
 
-// ---------------------------------------------------------------------------
-// Chart summary sent by the client (client/src/features/astrology/lib/chartSummary.ts)
-// ---------------------------------------------------------------------------
-
-export type Placement = {
-  body: string;
-  sign: string;
-  house: number | null;
-  degree: number;
-  degreeInSign: number;
-  retrograde: boolean;
-};
-
-export type AngleSummary = { sign: string; degree: number };
-
-export type AspectSummary = { from: string; to: string; type: string; orb: number };
-
-export type ChartSummary = {
-  birth: { dateTime: string; latitude: number; longitude: number; placeLabel: string };
-  placements: Placement[];
-  angles: {
-    ascendant: AngleSummary;
-    midheaven: AngleSummary;
-    descendant: AngleSummary;
-    imumCoeli: AngleSummary;
-  };
-  aspects: AspectSummary[];
-};
-
-// ---------------------------------------------------------------------------
-// Transit summary sent by the client
-// (client/src/features/astrology/lib/transitSummary.ts)
-// ---------------------------------------------------------------------------
-
-/** Where a transiting body currently sits, and which natal house it falls in. */
-export type TransitingPlacement = {
-  body: string;
-  sign: string;
-  degreeInSign: number;
-  retrograde: boolean;
-  /** Natal house the transiting body is passing through, if resolvable. */
-  natalHouse: number | null;
-};
-
-/** A transiting body forming a major aspect to a natal body or angle. */
-export type TransitContact = {
-  transiting: string;
-  natal: string;
-  type: string;
-  orb: number;
-  /** true = tightening toward exact (intensifying), false = separating. */
-  applying: boolean;
-};
-
-export type TransitSummary = {
-  /** ISO instant the transit chart was cast for. */
-  at: string;
-  /** Calendar day (YYYY-MM-DD) the reading is for — the reuse key with the natal chart. */
-  date: string;
-  location: {
-    latitude: number;
-    longitude: number;
-    label: string | null;
-  };
-  transitingPlacements: TransitingPlacement[];
-  /** Ranked most-significant-first by the client. */
-  contacts: TransitContact[];
-};
+// The chart / transit summaries the client sends live in lib/astrology-schema.ts
+// (zod schemas + inferred types).
 
 // ---------------------------------------------------------------------------
 // Reference digest

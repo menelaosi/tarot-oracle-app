@@ -71,28 +71,50 @@ router.post(
 // or reversed variant per the card's orientation; this is the only tarot context
 // the model gets, so anything not here can't be used.
 function toInterpretationContext(
-  card: InterpretationCardRow,
-  definition: { positions: readonly string[] },
+  {
+    court_description,
+    court_negative,
+    court_positive,
+    court_rank,
+    element,
+    major_element,
+    major_negative,
+    major_planets,
+    major_positive,
+    major_signs,
+    meaning_reversed,
+    meaning_upright,
+    name,
+    number,
+    number_associations,
+    orientation,
+    position,
+    representations,
+    suit,
+    suit_negative,
+    suit_positive,
+  }: InterpretationCardRow,
+  positions: readonly string[],
 ) {
-  const isUpright = card.orientation === 'upright';
+  const isUpright = orientation === 'upright';
   return {
-    position: definition.positions[card.position - 1],
-    card: card.name,
-    orientation: card.orientation,
-    meaning: isUpright ? card.meaning_upright : card.meaning_reversed,
-    suit: card.suit,
-    number: card.number,
-    element: card.element,
-    suitAssociations: [...(card.suit_positive ?? []), ...(card.suit_negative ?? [])],
-    numerology: card.number_associations ?? [],
-    courtRank: card.court_rank,
-    courtDescription: card.court_description,
-    courtAssociations: isUpright ? (card.court_positive ?? []) : (card.court_negative ?? []),
-    majorArcanaElement: card.major_element,
-    majorArcanaPlanets: card.major_planets ?? [],
-    majorArcanaSigns: card.major_signs ?? [],
-    majorArcanaAssociations: isUpright ? (card.major_positive ?? []) : (card.major_negative ?? []),
-    majorArcanaRepresentations: card.representations ?? [],
+    position: positions[position - 1],
+    card: name,
+    orientation,
+    meaning: isUpright ? meaning_upright : meaning_reversed,
+    suit,
+    number,
+    element,
+    suitAssociations: [...suit_positive, ...suit_negative],
+    numerology: number_associations,
+    courtRank: court_rank,
+    courtDescription: court_description,
+    courtAssociations: isUpright ? court_positive : court_negative,
+    majorArcanaElement: major_element,
+    majorArcanaPlanets: major_planets,
+    majorArcanaSigns: major_signs,
+    majorArcanaAssociations: isUpright ? major_positive : major_negative,
+    majorArcanaRepresentations: representations,
   };
 }
 
@@ -124,7 +146,7 @@ router.post(
       throw new HttpError(404, 'Reading not found.');
     }
 
-    const cards = rows.map((card) => toInterpretationContext(card, definition));
+    const cards = rows.map((card) => toInterpretationContext(card, definition.positions));
     const interpretation = await generateReading(
       createSystemRules([...READING_RULES, getSpreadInstructions(definition)]),
       { question, cards },
