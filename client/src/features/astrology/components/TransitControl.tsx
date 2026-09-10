@@ -63,12 +63,10 @@ function TransitControl({
         <div className="transit-location">
           <span className="transit-location-name">{locationLabel}</span>
           <ButtonComponent
-            className='link-button'
+            className="link-button"
             onClick={onToggleLocation}
-            buttonText={locationSource === 'current'
-                ? 'Use birthplace'
-                : 'Use my location'}
-            loadingButtonText='Locating...'
+            buttonText={locationSource === 'current' ? 'Use birthplace' : 'Use my location'}
+            loadingButtonText="Locating..."
             isLoading={isLocating}
             showIcon={false}
           />

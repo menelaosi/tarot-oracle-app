@@ -27,11 +27,7 @@ function PlanetGlyph({ planet, point, longitude, halo }: PlanetGlyphProps) {
           <Glyph point={point} spec={spec} stroke={halo} strokeWidth={Number(POINTS_STROKE) + 2} />
         </g>
       )}
-      <Glyph
-        point={point}
-        spec={spec}
-        stroke={SIGN_COLOR[getSign(longitude)] ?? BLACK}
-      />
+      <Glyph point={point} spec={spec} stroke={SIGN_COLOR[getSign(longitude)] ?? BLACK} />
     </>
   );
 }

@@ -114,6 +114,8 @@ async function resolveZodiacRefs(planet: string, sign: string, house: number) {
     },
     house: {
       ...houseRow,
+      // Houses have no symbol of their own — the die face is just the number.
+      glyph: String(houseRow.number),
       keywords: houseRow.keywords ?? [],
       associations: houseRow.associations ?? [],
     },

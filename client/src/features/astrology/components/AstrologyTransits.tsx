@@ -1,10 +1,5 @@
 import { ASPECT_COLOR, NEUTRAL_ASPECT_COLOR, aspectLineStyle } from '../lib/aspectStyle';
-import {
-  BLACK,
-  FULL_CIRCLE,
-  LIGHT_GRAY,
-  getPointPosition
-} from '../lib/horoscope';
+import { BLACK, FULL_CIRCLE, LIGHT_GRAY, getPointPosition } from '../lib/horoscope';
 import { transitAspectMaxOrb, type TransitContact } from '../lib/transits';
 import {
   ZODIAC_SIGNS,
@@ -65,11 +60,7 @@ function AstrologyTransits({
 
   return (
     <g id="transits">
-      <AstrologySegment
-        point={point}
-        radius={outerRadius}
-        thickness={innerRadius}
-      />
+      <AstrologySegment point={point} radius={outerRadius} thickness={innerRadius} />
       <AstrologyCircle point={point} radius={outerRadius} stroke={LIGHT_GRAY} strokeWidth={1} />
 
       {ZODIAC_SIGNS.map((sign, index) => (

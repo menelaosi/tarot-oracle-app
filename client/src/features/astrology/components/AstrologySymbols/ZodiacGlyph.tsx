@@ -10,13 +10,7 @@ type ZodiacGlyphProps = {
 
 /** Draws a zodiac sign glyph in its sign colour at the given anchor point. */
 function ZodiacGlyph({ sign, point }: ZodiacGlyphProps) {
-  return (
-    <Glyph
-      point={point}
-      spec={ZODIAC_GLYPHS[sign]}
-      stroke={SIGN_COLOR[sign]}
-    />
-  );
+  return <Glyph point={point} spec={ZODIAC_GLYPHS[sign]} stroke={SIGN_COLOR[sign]} />;
 }
 
 export default ZodiacGlyph;

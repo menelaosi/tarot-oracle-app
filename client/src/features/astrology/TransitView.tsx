@@ -9,6 +9,7 @@ import './astrology.css';
 import TransitControl from './components/TransitControl';
 import TransitReading from './components/TransitReading';
 import { buildChartSummary } from './lib/chartSummary';
+import type { Place } from './lib/geocode';
 import { requestCurrentLocation, type Coordinates } from './lib/geolocation';
 import { getHoroscope } from './lib/horoscope';
 import { buildTransitSummary, type TransitFrame } from './lib/transitSummary';
@@ -59,29 +60,17 @@ function TransitView() {
   const usingCurrent = locationSource === 'current' && currentCoords !== null;
   const locationLabel = usingCurrent ? 'Current location' : (place?.label ?? 'Set a birthplace');
 
-  const location = useMemo<TransitFrame['location'] | null>(() => {
+  const location = useMemo<Place | null>(() => {
     if (usingCurrent && currentCoords) {
-      return { ...currentCoords, label: 'Current location', source: 'current' };
+      return { ...currentCoords, label: 'Current location' };
     }
-    if (place) {
-      return {
-        latitude: place.latitude,
-        longitude: place.longitude,
-        label: place.label,
-        source: 'birth',
-      };
-    }
-    return null;
+    return place ?? null;
   }, [usingCurrent, currentCoords, place]);
 
   const natal = useMemo<Horoscope | null>(() => {
     if (!birthMoment || !place) return null;
     try {
-      return getHoroscope({
-        date: new Date(birthMoment),
-        latitude: place.latitude,
-        longitude: place.longitude,
-      });
+      return getHoroscope(new Date(birthMoment), place);
     } catch {
       return null; // unparseable birth input — the form still shows
     }
@@ -93,9 +82,8 @@ function TransitView() {
     void castNonce;
     try {
       const at = instantForDay(day);
-      const coords = { latitude: location.latitude, longitude: location.longitude };
-      const now = getHoroscope({ date: at, ...coords });
-      const next = getHoroscope({ date: new Date(at.getTime() + DAY_MS), ...coords });
+      const now = getHoroscope(at, location);
+      const next = getHoroscope(new Date(at.getTime() + DAY_MS), location);
       const frame: TransitFrame = { at: at.toISOString(), date: day, location };
       const summary = buildTransitSummary(natal, now, next, frame);
       return { now, next, frame, summary };

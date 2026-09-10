@@ -11,13 +11,7 @@ type TarotCardProps = {
  *  time the card is hovered or focused, then stay cached on the component and
  *  feed the shared hover panel. */
 function TarotCard({ card, includeReversals = false }: TarotCardProps) {
-  const { 
-    position, 
-    orientation,
-    name,
-    imagePath,
-    positionLabel,
-  } = card;
+  const { position, orientation, name, imagePath, positionLabel } = card;
   const [details, setDetails] = useState<CardDetails | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [detailsError, setDetailsError] = useState('');

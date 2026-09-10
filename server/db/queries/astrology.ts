@@ -156,7 +156,6 @@ export type TransitSummary = {
     latitude: number;
     longitude: number;
     label: string | null;
-    source: 'birth' | 'current';
   };
   transitingPlacements: TransitingPlacement[];
   /** Ranked most-significant-first by the client. */

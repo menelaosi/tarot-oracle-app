@@ -12,11 +12,7 @@ type AstrologyBackgroundProps = {
 function AstrologyBackground({ id, point, radius, thickness }: AstrologyBackgroundProps) {
   return (
     <g id={id}>
-      <AstrologySegment
-        point={point}
-        radius={radius}
-        thickness={thickness}
-      />
+      <AstrologySegment point={point} radius={radius} thickness={thickness} />
     </g>
   );
 }

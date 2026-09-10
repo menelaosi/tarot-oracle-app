@@ -14,7 +14,7 @@ import { getHoroscope } from './lib/horoscope';
 type HoroscopeMemo = {
   horoscope: Horoscope | null;
   error: string;
-}
+};
 
 /** Astrology section: birth form, the cast chart, and Claude's analysis. */
 function AstrologyView() {
@@ -39,7 +39,7 @@ function AstrologyView() {
         error: '',
       };
     } catch (chartError) {
-      return { 
+      return {
         horoscope: null,
         error: messageFrom(chartError, 'Could not build the chart.'),
       };

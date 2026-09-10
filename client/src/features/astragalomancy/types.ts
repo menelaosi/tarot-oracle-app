@@ -16,6 +16,8 @@ export type SignRef = PlanetRef & { modality: string; element: string };
 export type HouseRef = {
   number: number;
   name: string;
+  /** Houses have no symbol; the server sends the number as the die face. */
+  glyph: string;
   keywords: string[];
   associations: string[];
 };

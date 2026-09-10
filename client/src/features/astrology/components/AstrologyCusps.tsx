@@ -3,7 +3,7 @@ import {
   CUSPS_STROKE,
   FULL_CIRCLE,
   SYMBOL_AXIS_STROKE,
-  getPointPosition
+  getPointPosition,
 } from '../lib/horoscope';
 import type { LocatedPoint, Point } from '../types';
 import AstrologyLine from './AstrologySymbols/AstrologyLine';

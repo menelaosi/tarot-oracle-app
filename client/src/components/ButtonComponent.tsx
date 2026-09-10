@@ -18,12 +18,7 @@ function ButtonComponent({
   showIcon = true,
 }: ButtonComponentProps) {
   return (
-    <button
-      className={className}
-      type="button"
-      onClick={onClick}
-      disabled={isLoading}
-    >
+    <button className={className} type="button" onClick={onClick} disabled={isLoading}>
       {isLoading ? loadingButtonText : buttonText}
       {showIcon && <span aria-hidden="true">✦</span>}
     </button>

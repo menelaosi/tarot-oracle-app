@@ -7,12 +7,7 @@ import {
   getDignities,
   getPointPosition,
 } from '../lib/horoscope';
-import type {
-  CelestialBodyPosition,
-  LocatedPoint,
-  Planet,
-  Point,
-} from '../types';
+import type { CelestialBodyPosition, LocatedPoint, Planet, Point } from '../types';
 import AstrologyLine from './AstrologySymbols/AstrologyLine';
 import AstrologyText from './AstrologySymbols/AstrologyText';
 import PlanetGlyph from './AstrologySymbols/PlanetGlyph';
@@ -55,14 +50,14 @@ function AstrologyPlanets({
       {locatedPoints.map((locatedPoint) => {
         const { planetName, angle } = locatedPoint;
         const { longitude, retrograde } = planets[planetName] ?? {};
-        
+
         const planetAngle = longitude ?? -1;
         const planetShift = planetAngle + shift;
         const isDisplaced = planetShift !== angle;
-        
+
         const pointerStart = getPointPosition(point, pointerRadius, planetShift);
         const pointerEnd = getPointPosition(point, pointerRadius + rulerRadius / 2, planetShift);
-       
+
         const ration = COLLISION_RADIUS / 1.4;
         const x = locatedPoint.point.x + ration;
         const y = locatedPoint.point.y - COLLISION_RADIUS;
@@ -71,10 +66,10 @@ function AstrologyPlanets({
           Math.round(planetAngle % 30).toString(),
           ...(retrograde ? ['R'] : []),
           ...getDignities(planetName, planetAngle),
-        ].map((text, i) => ({ 
-          text, 
-          point: { x, y: y + ration * i } }),
-        );
+        ].map((text, i) => ({
+          text,
+          point: { x, y: y + ration * i },
+        }));
 
         return (
           <g key={planetName}>

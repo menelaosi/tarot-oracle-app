@@ -1,7 +1,7 @@
 import DetailOverlay, { type DetailItem } from '../../../components/DetailOverlay';
 import ReadingPanel from '../../../components/ReadingPanel';
-import type { AstragalomancyRoll, HouseRef, PlanetRef, SignRef } from '../types';
-import Die, { Pips } from './Die';
+import type { AstragalomancyRoll, HouseRef, PlanetRef, SignRef, ZodiacRoll } from '../types';
+import Die, { DieGlyph, Pips } from './Die';
 
 type DiceReadingProps = {
   roll: AstragalomancyRoll;
@@ -9,9 +9,7 @@ type DiceReadingProps = {
   onInterpret: () => void;
 };
 
-// Variation selector U+FE0E forces text (monochrome) rendering, so the zodiac
-// sign symbols don't fall back to colour emoji glyphs on some platforms.
-const TEXT_PRESENTATION = '︎';
+type ZodiacSlot = { role: string; ref: PlanetRef | SignRef | HouseRef };
 
 function headingFor(roll: AstragalomancyRoll): string {
   return roll.mode === 'standard'
@@ -19,42 +17,52 @@ function headingFor(roll: AstragalomancyRoll): string {
     : `${roll.planet.name} · ${roll.sign.name} · ${roll.house.name}`;
 }
 
-/** One zodiac die with its role caption and a hover panel of its DB keywords. */
-function ZodiacDie({
-  role,
-  face,
-  name,
-  reference,
-  index,
-}: {
-  role: string;
-  face: string;
-  name: string;
-  reference: PlanetRef | SignRef | HouseRef;
-  index: number;
-}) {
+/** One zodiac die: its role caption and a hover panel of the DB keywords. */
+function ZodiacDie({ slot, index }: { slot: ZodiacSlot; index: number }) {
+  const { role, ref } = slot;
   const items: DetailItem[] = [
-    { value: name, lead: true },
-    { label: 'Keywords', value: reference.keywords },
-    { label: 'Associations', value: reference.associations },
+    { value: ref.name, lead: true },
+    { label: 'Keywords', value: ref.keywords },
+    { label: 'Associations', value: ref.associations },
   ];
   return (
     <DetailOverlay
       className="die-slot"
       panelClassName="die-details"
       items={items}
-      ariaLabel={`${name} — ${role.toLowerCase()}`}
+      ariaLabel={`${ref.name} — ${role.toLowerCase()}`}
     >
       <Die variant="zodiac" index={index}>
-        <span className="die-glyph">{face + TEXT_PRESENTATION}</span>
+        <DieGlyph glyph={ref.glyph} />
       </Die>
       <span className="die-caption">{role}</span>
     </DetailOverlay>
   );
 }
 
-/** The three landed dice plus the interpret action, in the shared ReadingPanel. */
+/** The three zodiac dice: planet = situation, sign = emotions, house = impact. */
+function ZodiacDice({ roll: { planet, sign, house } }: { roll: ZodiacRoll }) {
+  return [
+    { role: 'Situation', ref: planet },
+    { role: 'Emotions', ref: sign },
+    { role: 'Impact', ref: house },
+  ].map((slot, index) => <ZodiacDie key={slot.role} slot={slot} index={index} />);
+}
+
+/** The three rolled six-sided dice, each showing its pip face. */
+function StandardDice({ values }: { values: number[] }) {
+  return values.map((value, index) => (
+    <div className="die-slot" key={index}>
+      <Die variant="standard" index={index}>
+        <Pips value={value} />
+      </Die>
+    </div>
+  ));
+}
+
+/** The landed dice plus the interpret action, in the shared ReadingPanel. */
 function DiceReading({ roll, isInterpreting, onInterpret }: DiceReadingProps) {
+  const isStandard = roll.mode === 'standard';
   return (
     <ReadingPanel
       sectionClassName="dice-reading"
@@ -68,42 +76,10 @@ function DiceReading({ roll, isInterpreting, onInterpret }: DiceReadingProps) {
     >
       <div className="dice-body">
         <div className="dice-stage">
-          {roll.mode === 'standard' ? (
-            roll.values.map((value, index) => (
-              <div className="die-slot" key={index}>
-                <Die variant="standard" index={index}>
-                  <Pips value={value} />
-                </Die>
-              </div>
-            ))
-          ) : (
-            <>
-              <ZodiacDie
-                role="Situation"
-                face={roll.planet.glyph}
-                name={roll.planet.name}
-                reference={roll.planet}
-                index={0}
-              />
-              <ZodiacDie
-                role="Emotions"
-                face={roll.sign.glyph}
-                name={roll.sign.name}
-                reference={roll.sign}
-                index={1}
-              />
-              <ZodiacDie
-                role="Impact"
-                face={String(roll.house.number)}
-                name={roll.house.name}
-                reference={roll.house}
-                index={2}
-              />
-            </>
-          )}
+          {isStandard ? <StandardDice values={roll.values} /> : <ZodiacDice roll={roll} />}
         </div>
 
-        {roll.mode === 'standard' && <p className="dice-meaning">{roll.meaning}</p>}
+        {isStandard && <p className="dice-meaning">{roll.meaning}</p>}
       </div>
     </ReadingPanel>
   );

@@ -78,6 +78,6 @@ function AstrologySegment({
       strokeWidth={strokeWidth}
     />
   );
-};
+}
 
 export default AstrologySegment;

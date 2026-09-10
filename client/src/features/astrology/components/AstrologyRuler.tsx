@@ -62,11 +62,7 @@ function AstrologyRuler({
   return (
     <g id="ruler">
       {rulerPositions}
-      <AstrologyCircle
-        point={point}
-        radius={circleRadius}
-        strokeWidth={CUSPS_STROKE}
-      />
+      <AstrologyCircle point={point} radius={circleRadius} strokeWidth={CUSPS_STROKE} />
     </g>
   );
 }

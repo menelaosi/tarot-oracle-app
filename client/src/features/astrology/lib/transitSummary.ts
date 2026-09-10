@@ -1,21 +1,17 @@
 import type { Horoscope } from 'circular-natal-horoscope-js';
+import { Planet } from '../types';
+import type { Place } from './geocode';
 import { FULL_CIRCLE, getCelestialBody, getSign } from './horoscope';
 import { getTransitContacts, rankTransitContacts, type TransitContact } from './transits';
-import { Planet } from '../types';
 
-/** Where the transiting location and moment came from. */
+/** Where and when the transiting chart is anchored. */
 export type TransitFrame = {
   /** ISO instant the transit chart is cast for. */
   at: string;
   /** Calendar day (YYYY-MM-DD) the reading is for. */
   date: string;
-  location: {
-    latitude: number;
-    longitude: number;
-    /** Human label, when we have one (birth place, or null for a raw fix). */
-    label: string | null;
-    source: 'birth' | 'current';
-  };
+  /** Birthplace, or the browser's current location when the user opts in. */
+  location: Place;
 };
 
 export type TransitingPlacement = {

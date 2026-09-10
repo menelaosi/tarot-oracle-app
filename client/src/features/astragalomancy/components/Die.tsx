@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 
 type DieProps = {
   variant: 'standard' | 'zodiac';
-  /** Position in the row, used to stagger the roll animation. */
   index: number;
   children: ReactNode;
 };
@@ -23,10 +22,17 @@ export function Pips({ value }: { value: number }) {
   return (
     <div className="die-pips" aria-hidden="true">
       {Array.from({ length: 9 }, (_, cell) => (
-        <span key={cell} className={lit.has(cell) ? 'pip pip-on' : 'pip'} />
+        <span key={cell} className={`pip${lit.has(cell) ? ' pip-on' : ''}`} />
       ))}
     </div>
   );
+}
+
+/** A zodiac glyph (or house number) as a die face, pinned to text — not emoji — rendering. */
+export function DieGlyph({ glyph }: { glyph: string }) {
+  // U+FE0E (variation selector-15) forces text rendering, so zodiac symbols
+  // don't fall back to colour emoji glyphs on some platforms.
+  return <span className="die-glyph">{`${glyph}\uFE0E`}</span>;
 }
 
 /**

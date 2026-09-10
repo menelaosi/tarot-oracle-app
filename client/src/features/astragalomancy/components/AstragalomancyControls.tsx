@@ -37,16 +37,16 @@ function AstragalomancyControls({
     >
       <fieldset className="dice-mode">
         <legend>Dice</legend>
-        {MODES.map((option) => (
-          <label key={option.value} className="dice-mode-option">
+        {MODES.map(({ label, value }) => (
+          <label key={value} className="dice-mode-option">
             <input
               type="radio"
               name="dice-mode"
-              value={option.value}
-              checked={mode === option.value}
-              onChange={() => onModeChange(option.value)}
+              value={value}
+              checked={mode === value}
+              onChange={() => onModeChange(value)}
             />
-            <span>{option.label}</span>
+            <span>{label}</span>
           </label>
         ))}
       </fieldset>
