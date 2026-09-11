@@ -5,10 +5,9 @@ import {
   SYMBOL_AXIS_STROKE,
   getPointPosition,
 } from '../lib/horoscope';
-import type { LocatedPoint, Point } from '../types';
+import type { CuspNumber, LocatedPoint, Point } from '../types';
 import AstrologyLine from './AstrologySymbols/AstrologyLine';
 import CuspGlyph from './AstrologySymbols/CuspGlyph';
-import type { CuspNumber } from './AstrologySymbols/glyphs/cuspGlyphs';
 
 type AstrologyCuspsProps = {
   readonly point: Point;

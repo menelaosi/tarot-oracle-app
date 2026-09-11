@@ -1,8 +1,7 @@
 type ButtonComponentProps = {
   className: string;
   onClick: () => void;
-  /** Doubles as the disabled state — the button can't be clicked while the request runs. */
-  isLoading: boolean;
+  isLoading: boolean; // Doubles as the disabled state — the button can't be clicked while the request runs.
   buttonText?: string;
   loadingButtonText?: string;
   showIcon?: boolean;

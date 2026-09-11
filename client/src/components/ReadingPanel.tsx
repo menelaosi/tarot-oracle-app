@@ -3,10 +3,8 @@ import ButtonComponent from './ButtonComponent';
 
 type ReadingPanelProps = {
   sectionClassName: string;
-  /** Extra heading classes; "reading-heading" is always prepended. */
-  headingClassName: string;
-  /** Links the <h2> to the section via aria-labelledby. */
-  titleId: string;
+  headingClassName: string; // Extra heading classes; "reading-heading" is always prepended.
+  titleId: string; // Links the <h2> to the section via aria-labelledby.
   title: ReactNode;
   onAnalyze: () => void;
   isAnalyzing: boolean;

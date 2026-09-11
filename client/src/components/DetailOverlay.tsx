@@ -3,28 +3,20 @@ import { useState, type ReactNode } from 'react';
 export type DetailItem = {
   label?: string;
   value: string | readonly string[] | null | undefined;
-  /** Render as the larger lead line (a card meaning, the oracle text). */
-  lead?: boolean;
+  lead?: boolean; // Render as the larger lead line (a card meaning, the oracle text).
 };
 
 type DetailOverlayProps = {
-  /** The always-visible surface the panel anchors to (a card, the letter disc). */
-  children: ReactNode;
-  /** Rows for the panel; empty or absent values are skipped. */
-  items: readonly DetailItem[];
-  /** A line shown before the rows — typically a loading or error message. */
-  status?: string;
-  /** Extra class on the anchor element, e.g. "tarot-card" / "letter-disc". */
-  className?: string;
-  /** Extra class on the floating panel, for per-feature positioning. */
-  panelClassName?: string;
-  /** When set, the anchor becomes an image role with this name (children stay decorative). */
-  ariaLabel?: string;
-  /** Fired each time the panel is revealed — e.g. to lazy-load the details. */
-  onReveal?: () => void;
+  children: ReactNode; // The always-visible surface the panel anchors to (a card, the letter disc).
+  items: readonly DetailItem[]; // Rows for the panel; empty or absent values are skipped.
+  status?: string; // A line shown before the rows — typically a loading or error message.
+  className?: string; // Extra class on the anchor element, e.g. "tarot-card" / "letter-disc".
+  panelClassName?: string; // Extra class on the floating panel, for per-feature positioning.
+  ariaLabel?: string; // When set, the anchor becomes an image role with this name (children stay decorative).
+  onReveal?: () => void; // Fired each time the panel is revealed — e.g. to lazy-load the details.
 };
 
-/** Longest a string[] value is shown before it's truncated. */
+// Longest a string[] value is shown before it's truncated.
 const MAX_LIST_ITEMS = 6;
 
 function toText(value: DetailItem['value']): string {
@@ -73,9 +65,9 @@ function DetailOverlay({
           aria-live="polite"
         >
           {status && <p className="detail-row">{status}</p>}
-          {rows.map((item, index) => (
-            <p key={index} className={`detail-row ${item.lead ? ' detail-row-lead' : ''}`}>
-              {item.label ? `${item.label}: ${toText(item.value)}` : toText(item.value)}
+          {rows.map(({ value, label, lead }, index) => (
+            <p key={index} className={`detail-row ${lead ? ' detail-row-lead' : ''}`}>
+              {label ? `${label}: ${toText(value)}` : toText(value)}
             </p>
           ))}
         </div>

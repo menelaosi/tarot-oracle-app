@@ -103,6 +103,9 @@ export const ZODIAC_SIGNS = [
 ] as const;
 export type ZodiacSign = (typeof ZODIAC_SIGNS)[number];
 
+/** House cusp number, 1 through 12. */
+export type CuspNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+
 /** 1-based zodiac position, e.g. zodiacNumber('Aries') === 1. */
 export function zodiacNumber(sign: ZodiacSign): number {
   return ZODIAC_SIGNS.indexOf(sign) + 1;

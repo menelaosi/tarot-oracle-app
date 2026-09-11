@@ -1,6 +1,6 @@
 import ReadingPanel from '../../../components/ReadingPanel';
-import TarotCard from './TarotCard';
 import type { Reading } from '../types';
+import TarotCard from './TarotCard';
 
 type SpreadProps = {
   reading: Reading;
@@ -16,19 +16,21 @@ function Spread({
   isInterpreting,
   onGenerateInterpretation,
 }: SpreadProps) {
+  const { spreadLabel, cards } = reading;
+
   return (
     <ReadingPanel
       sectionClassName="reading-column spread-section"
       headingClassName="spread-heading"
       titleId="spread-title"
-      title={reading.spreadLabel}
+      title={spreadLabel}
       onAnalyze={onGenerateInterpretation}
       isAnalyzing={isInterpreting}
       buttonText="Generate interpretation"
       loadingButtonText="Consulting the record..."
     >
       <div className="cards-grid">
-        {reading.cards.map((card) => (
+        {cards.map((card) => (
           <TarotCard card={card} includeReversals={includeReversals} key={card.id} />
         ))}
       </div>

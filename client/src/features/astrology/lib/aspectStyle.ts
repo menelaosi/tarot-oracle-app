@@ -2,13 +2,10 @@
 // (AstrologyAspects) and the transit-to-natal chords (AstrologyTransits).
 
 export type AspectLine = {
-  /** conjunction | sextile | square | trine | opposition */
-  aspect: string;
-  /** ecliptic longitude of each endpoint, in wheel degrees */
-  from: number;
+  aspect: string; // conjunction | sextile | square | trine | opposition
+  from: number; // ecliptic longitude of each endpoint, in wheel degrees
   to: number;
-  /** how far from exact this aspect is, and the max orb allowed for it */
-  orb: number;
+  orb: number; // how far from exact this aspect is, and the max orb allowed for it
   orbUsed: number;
 };
 

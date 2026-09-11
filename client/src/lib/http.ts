@@ -24,10 +24,11 @@ const TIMEOUT_MS = 90_000;
 async function send(url: string, init: RequestInit): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const { signal } = controller;
   try {
-    return await fetch(url, { ...init, signal: controller.signal });
+    return await fetch(url, { ...init, signal });
   } catch (error) {
-    if (controller.signal.aborted) {
+    if (signal.aborted) {
       throw new Error('The request took too long. Please try again.', { cause: error });
     }
     throw error; // network failure — messageFrom() turns it into a friendly line

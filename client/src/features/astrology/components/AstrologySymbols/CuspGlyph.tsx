@@ -1,7 +1,7 @@
 import { BLACK, CUSPS_STROKE } from '../../lib/horoscope';
-import type { Point } from '../../types';
+import type { CuspNumber, Point } from '../../types';
 import Glyph from './Glyph';
-import { CUSP_GLYPHS, type CuspNumber } from './glyphs/cuspGlyphs';
+import { CUSP_GLYPHS } from './glyphs/cuspGlyphs';
 
 type CuspGlyphProps = {
   readonly house: CuspNumber;

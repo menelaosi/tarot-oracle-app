@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { Place } from '../features/astrology/lib/geocode';
 import { useRetainedState } from './useRetainedState';
 
-export type BirthChart = {
+type BirthChart = {
   birthMoment: string;
   setBirthMoment: Dispatch<SetStateAction<string>>;
   place: Place | null;

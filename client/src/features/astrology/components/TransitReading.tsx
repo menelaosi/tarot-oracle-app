@@ -1,4 +1,5 @@
 import type { Horoscope } from 'circular-natal-horoscope-js';
+import { useMemo } from 'react';
 import ReadingPanel from '../../../components/ReadingPanel';
 import type { TransitContact } from '../lib/transits';
 import AstrologyChart from './AstrologyChart';
@@ -33,6 +34,10 @@ function TransitReading({
   isAnalyzing,
   onAnalyze,
 }: TransitReadingProps) {
+  // Stable across re-renders that don't touch horoscope/contacts, so AstrologyChart's
+  // memo isn't defeated by a fresh object literal on every render (e.g. isAnalyzing).
+  const transit = useMemo(() => ({ horoscope, contacts }), [horoscope, contacts]);
+
   return (
     <ReadingPanel
       sectionClassName="reading-column astrology-reading"
@@ -44,7 +49,7 @@ function TransitReading({
       buttonText="Analyze day"
       loadingButtonText="Analyzing..."
     >
-      <AstrologyChart horoscope={natal} transit={{ horoscope, contacts }} />
+      <AstrologyChart horoscope={natal} transit={transit} />
     </ReadingPanel>
   );
 }

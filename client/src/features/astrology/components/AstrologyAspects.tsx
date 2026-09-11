@@ -10,8 +10,7 @@ import AstrologyLine from './AstrologySymbols/AstrologyLine';
 
 type AstrologyAspectsProps = {
   readonly point: Point;
-  /** radius the chords are anchored at — the inner circle */
-  readonly radius: number;
+  readonly radius: number; // radius the chords are anchored at — the inner circle
   readonly shift: number;
   readonly lines: readonly AspectLine[];
 };
@@ -24,13 +23,13 @@ type AstrologyAspectsProps = {
 function AstrologyAspects({ point, radius, shift, lines }: AstrologyAspectsProps) {
   return (
     <g id="aspects">
-      {lines.map((line, index) => (
+      {lines.map(({ aspect, from, orb, orbUsed, to }, index) => (
         <AstrologyLine
           key={index}
-          startingPoint={getPointPosition(point, radius, line.from + shift)}
-          endingPoint={getPointPosition(point, radius, line.to + shift)}
-          stroke={ASPECT_COLOR[line.aspect] ?? NEUTRAL_ASPECT_COLOR}
-          {...aspectLineStyle(line.orb, line.orbUsed)}
+          startingPoint={getPointPosition(point, radius, from + shift)}
+          endingPoint={getPointPosition(point, radius, to + shift)}
+          stroke={ASPECT_COLOR[aspect] ?? NEUTRAL_ASPECT_COLOR}
+          {...aspectLineStyle(orb, orbUsed)}
         />
       ))}
     </g>

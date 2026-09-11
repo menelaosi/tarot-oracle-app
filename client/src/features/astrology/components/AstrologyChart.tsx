@@ -1,4 +1,5 @@
 import { Horoscope } from 'circular-natal-horoscope-js';
+import { memo } from 'react';
 import type { AspectLine } from '../lib/aspectStyle';
 import {
   COLLISION_RADIUS,
@@ -162,7 +163,12 @@ function getLocatedPoints(
  * background / signs / ruler / planets / cusps / axis subcomponents. `shift`
  * rotates the whole wheel so the Ascendant sits on the left.
  */
-function AstrologyChart({ horoscope, height = 800, width = 800, transit }: AstrologyChartProps) {
+function AstrologyChartComponent({
+  horoscope,
+  height = 800,
+  width = 800,
+  transit,
+}: AstrologyChartProps) {
   const x = width / 2;
   const y = height / 2;
   const point: Point = { x, y };
@@ -264,5 +270,11 @@ function AstrologyChart({ horoscope, height = 800, width = 800, transit }: Astro
     </svg>
   );
 }
+
+// Casting + geometry (getCelestialBodyPositions, getAspectLines, the collision
+// layout) is real work for an SVG this size, and horoscope/transit are stable
+// references from the callers' useMemo — skip re-deriving all of it when a
+// sibling state change (e.g. the analyze button's isAnalyzing) re-renders the view.
+const AstrologyChart = memo(AstrologyChartComponent);
 
 export default AstrologyChart;

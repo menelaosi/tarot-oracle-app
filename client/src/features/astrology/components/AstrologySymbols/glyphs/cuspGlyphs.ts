@@ -1,7 +1,5 @@
+import type { CuspNumber } from '../../../types';
 import type { GlyphSpec } from './types';
-
-/** House cusp number, 1 through 12. */
-export type CuspNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
 // Compact numerals shared by the two-digit house numbers (10-12). House 1 has
 // its own slightly larger "1" form below and does not reuse DIGIT_ONE.

@@ -41,14 +41,18 @@ router.post(
       const { rows: picked } = await client.query<{ id: number }>(selectRandomCards, [
         definition.positions.length,
       ]);
-      for (const [index, card] of picked.entries()) {
-        await client.query(insertReadingCard, [
-          row.id,
-          card.id,
-          index + 1,
-          includeReversals && Math.random() < 0.25 ? 'reversed' : 'upright',
-        ]);
-      }
+      // Independent inserts on the same client — fire them together so they pipeline
+      // over the one connection instead of paying a round trip per card.
+      await Promise.all(
+        picked.map(({ id }, index) =>
+          client.query(insertReadingCard, [
+            row.id,
+            id,
+            index + 1,
+            includeReversals && Math.random() < 0.25 ? 'reversed' : 'upright',
+          ]),
+        ),
+      );
 
       const { rows } = await client.query<DrawnCardRow>(selectDrawnCards, [row.id]);
       return { reading: row, drawn: rows };

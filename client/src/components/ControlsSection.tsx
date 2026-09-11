@@ -5,8 +5,7 @@ type ControlsSectionProps = {
   sectionClassName: string;
   gridClassName: string;
   ariaLabel: string;
-  /** Field <label>s; they render before the submit button, which the grid columns rely on. */
-  children: ReactNode;
+  children: ReactNode; // Field <label>s; they render before the submit button, which the grid columns rely on.
   onSubmit: () => void;
   isSubmitting: boolean;
   submitText: string;

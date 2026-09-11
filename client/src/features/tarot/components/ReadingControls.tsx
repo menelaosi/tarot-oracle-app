@@ -43,9 +43,9 @@ function ReadingControls({
           onChange={(event) => onSpreadTypeChange(event.target.value)}
           disabled={spreadOptions.length === 0}
         >
-          {spreadOptions.map((option) => (
-            <option value={option.id} key={option.id}>
-              {option.label} · {option.positions.length}-card
+          {spreadOptions.map(({ id, label, positions }) => (
+            <option value={id} key={id}>
+              {label} · {positions.length}-card
             </option>
           ))}
         </select>
