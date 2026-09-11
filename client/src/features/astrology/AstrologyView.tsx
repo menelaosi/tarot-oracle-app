@@ -28,9 +28,7 @@ function AstrologyView() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { error, setError, clearError, failWith } = useError();
 
-  // Casting is a local computation (the ephemeris runs in the browser); only
-  // analyzeChart hits the server.
-  const cast = useMemo<HoroscopeMemo>(() => {
+  const { horoscope, error: castError } = useMemo<HoroscopeMemo>(() => {
     if (!hasCast || !birthMoment || !place) {
       return { horoscope: null, error: '' };
     }
@@ -60,18 +58,13 @@ function AstrologyView() {
   }
 
   async function analyzeChart() {
-    if (!cast.horoscope || !place) return;
+    if (!horoscope || !place) return;
 
     setIsAnalyzing(true);
     clearError();
 
     try {
-      const chart = buildChartSummary(cast.horoscope, {
-        dateTime: birthMoment,
-        latitude: place.latitude,
-        longitude: place.longitude,
-        placeLabel: place.label,
-      });
+      const chart = buildChartSummary(horoscope, { dateTime: birthMoment, ...place });
       setInterpretation(await interpretChart(chart));
     } catch (analysisError) {
       failWith(analysisError);
@@ -92,15 +85,15 @@ function AstrologyView() {
         />
       }
       main={
-        cast.horoscope ? (
+        horoscope ? (
           <AstrologyReading
-            horoscope={cast.horoscope}
+            horoscope={horoscope}
             isAnalyzing={isAnalyzing}
             onAnalyze={analyzeChart}
           />
         ) : null
       }
-      error={error || cast.error}
+      error={error || castError}
       onDismissError={clearError}
       pending={isAnalyzing}
       interpretationTitle="What the chart says"

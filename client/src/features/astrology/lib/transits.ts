@@ -1,9 +1,11 @@
-// Cross-chart (transit -> natal) aspect maths. circular-natal-horoscope-js only
-// finds aspects *within* one chart, so for "where does today's sky land on your
-// birth chart" we compare the two sets of longitudes ourselves.
 import type { Horoscope } from 'circular-natal-horoscope-js';
-import { FULL_CIRCLE, getCelestialBody } from './horoscope';
 import { Planet } from '../types';
+import {
+  FULL_CIRCLE,
+  getCelestialBody,
+  longitudeOf,
+  longitudeOfMidheavenAscendant,
+} from './horoscope';
 
 /** Exact separation, in degrees, for each major aspect. */
 export const MAJOR_ASPECT_ANGLES: Record<string, number> = {
@@ -23,11 +25,6 @@ const TRANSIT_ORBS: Record<string, number> = {
   trine: 3,
   opposition: 4,
 };
-
-/** Widest orb (degrees) a transit of this type is reported within. */
-export function transitAspectMaxOrb(type: string): number {
-  return TRANSIT_ORBS[type] ?? 3;
-}
 
 // How much weight a transiting body carries: the slower it moves, the rarer and
 // more defining the transit, so Pluto outranks the Moon by a wide margin.
@@ -68,16 +65,17 @@ const ASPECT_WEIGHT: Record<string, number> = {
 };
 
 export type TransitContact = {
-  /** Planet key of the moving body (Planet value: 'mars', 'nnode', …). */
-  transiting: string;
-  /** Natal point it contacts: a Planet value, or 'ascendant' / 'midheaven'. */
-  natal: string;
+  transiting: string; // Planet key of the moving body (Planet value: 'mars', 'nnode', …).
+  natal: string; // Natal point it contacts: a Planet value, or 'ascendant' / 'midheaven'.
   type: string;
-  /** Degrees from exact right now. */
-  orb: number;
-  /** true = tightening toward exact (intensifying), false = separating. */
-  applying: boolean;
+  orb: number; // Degrees from exact right now.
+  applying: boolean; // true = tightening toward exact (intensifying), false = separating.
 };
+
+/** Widest orb (degrees) a transit of this type is reported within. */
+export function transitAspectMaxOrb(type: string): number {
+  return TRANSIT_ORBS[type] ?? 3;
+}
 
 /** Smallest angle between two ecliptic longitudes, 0–180. */
 function separation(a: number, b: number): number {
@@ -86,22 +84,19 @@ function separation(a: number, b: number): number {
 }
 
 function bodyLongitude(horoscope: Horoscope, planet: Planet): number | undefined {
-  const value = getCelestialBody(horoscope, planet)?.ChartPosition?.Ecliptic?.DecimalDegrees;
-  return typeof value === 'number' ? value : undefined;
+  return longitudeOf(getCelestialBody(horoscope, planet));
 }
 
 /** Natal longitudes of every body plus the Ascendant/MC axis, keyed as the reading expects. */
 function natalLongitudes(natal: Horoscope): Record<string, number> {
   const longitudes: Record<string, number> = {};
+
   for (const planet of Object.values(Planet)) {
     const longitude = bodyLongitude(natal, planet);
-    if (longitude !== undefined) longitudes[planet] = longitude;
+    if (longitude != null) longitudes[planet] = longitude;
   }
-  const ascendant = natal.Ascendant?.ChartPosition?.Ecliptic?.DecimalDegrees;
-  if (typeof ascendant === 'number') longitudes.ascendant = ascendant;
-  const midheaven = natal.Midheaven?.ChartPosition?.Ecliptic?.DecimalDegrees;
-  if (typeof midheaven === 'number') longitudes.midheaven = midheaven;
-  return longitudes;
+
+  return longitudeOfMidheavenAscendant(natal, longitudes);
 }
 
 /**
@@ -117,23 +112,23 @@ export function getTransitContacts(
   const natalPoints = natalLongitudes(natal);
   const contacts: TransitContact[] = [];
 
-  for (const planet of Object.values(Planet)) {
-    const now = bodyLongitude(transitNow, planet);
-    const next = bodyLongitude(transitNext, planet);
-    if (now === undefined) continue;
+  for (const transiting of Object.values(Planet)) {
+    const now = bodyLongitude(transitNow, transiting);
+    const next = bodyLongitude(transitNext, transiting);
+
+    if (now == null) continue;
 
     for (const [natalKey, natalLongitude] of Object.entries(natalPoints)) {
       // A body does not aspect its own natal position in a day reading.
-      if (natalKey === planet) continue;
+      if (natalKey === transiting) continue;
 
       for (const [type, exact] of Object.entries(MAJOR_ASPECT_ANGLES)) {
         const orb = Math.abs(separation(now, natalLongitude) - exact);
         if (orb > TRANSIT_ORBS[type]) continue;
 
-        const orbNext =
-          next === undefined ? orb : Math.abs(separation(next, natalLongitude) - exact);
+        const orbNext = next == null ? orb : Math.abs(separation(next, natalLongitude) - exact);
 
-        contacts.push({ transiting: planet, natal: natalKey, type, orb, applying: orbNext < orb });
+        contacts.push({ transiting, natal: natalKey, type, orb, applying: orbNext < orb });
       }
     }
   }
@@ -142,14 +137,14 @@ export function getTransitContacts(
 }
 
 /** Significance score — bigger is more worth leading the reading with. */
-function score(contact: TransitContact): number {
-  const transiting = TRANSITING_WEIGHT[contact.transiting] ?? 3;
-  const natal = NATAL_WEIGHT[contact.natal] ?? 1;
-  const aspect = ASPECT_WEIGHT[contact.type] ?? 1;
-  const orbUsed = TRANSIT_ORBS[contact.type] ?? 3;
-  const exactness = 1 + (1 - Math.min(contact.orb / orbUsed, 1));
-  const momentum = contact.applying ? 1.15 : 1;
-  return transiting * natal * aspect * exactness * momentum;
+function score({ transiting, natal, type, orb, applying }: TransitContact): number {
+  return (
+    (TRANSITING_WEIGHT[transiting] ?? 3) *
+    (NATAL_WEIGHT[natal] ?? 1) *
+    (ASPECT_WEIGHT[type] ?? 1) *
+    (1 + (1 - Math.min(orb / transitAspectMaxOrb(type), 1))) *
+    (applying ? 1.15 : 1)
+  );
 }
 
 /** Contacts ordered most significant first, so the prompt and UI lead with them. */

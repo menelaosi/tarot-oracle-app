@@ -1,12 +1,12 @@
 import type { Horoscope } from 'circular-natal-horoscope-js';
-import { FULL_CIRCLE, getCelestialBody, getSign } from './horoscope';
 import { Planet } from '../types';
+import { FULL_CIRCLE, getCelestialBody, getSign } from './horoscope';
 
 export type BirthInput = {
   dateTime: string;
   latitude: number;
   longitude: number;
-  placeLabel: string;
+  label: string;
 };
 
 export type Placement = {

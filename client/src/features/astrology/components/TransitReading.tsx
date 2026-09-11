@@ -4,14 +4,10 @@ import type { TransitContact } from '../lib/transits';
 import AstrologyChart from './AstrologyChart';
 
 type TransitReadingProps = {
-  /** The natal chart the transits are read against. */
-  natal: Horoscope;
-  /** Today's sky, drawn as the outer ring. */
-  transitNow: Horoscope;
-  /** Ranked transit→natal contacts, most significant first. */
-  contacts: readonly TransitContact[];
-  /** Day being read, as a YYYY-MM-DD string. */
-  day: string;
+  natal: Horoscope; // The natal chart the transits are read against.
+  transitNow: Horoscope; // Today's sky, drawn as the outer ring.
+  contacts: readonly TransitContact[]; // Ranked transit→natal contacts, most significant first.
+  day: string; // Day being read, as a YYYY-MM-DD string.
   isAnalyzing: boolean;
   onAnalyze: () => void;
 };
@@ -31,7 +27,7 @@ function formatDay(day: string): string {
 /** The bi-wheel for a given day plus the button that sends the transits to Claude. */
 function TransitReading({
   natal,
-  transitNow,
+  transitNow: horoscope,
   contacts,
   day,
   isAnalyzing,
@@ -48,7 +44,7 @@ function TransitReading({
       buttonText="Analyze day"
       loadingButtonText="Analyzing..."
     >
-      <AstrologyChart horoscope={natal} transit={{ horoscope: transitNow, contacts }} />
+      <AstrologyChart horoscope={natal} transit={{ horoscope, contacts }} />
     </ReadingPanel>
   );
 }

@@ -9,6 +9,7 @@ import {
   selectStandardMeaning,
   updateAstragalomancyInterpretation,
   type AstragalomancyReadingRow,
+  type AstragalomancyRoll,
   type HouseRefRow,
   type PlanetRefRow,
   type RefRow,
@@ -38,7 +39,8 @@ const PLANET_FACES = [
   'pluto',
   'nnode',
   'snode',
-];
+] as const;
+
 const SIGN_FACES = [
   'aries',
   'taurus',
@@ -52,7 +54,7 @@ const SIGN_FACES = [
   'capricorn',
   'aquarius',
   'pisces',
-];
+] as const;
 
 const rollDie = (sides: number) => 1 + Math.floor(Math.random() * sides);
 
@@ -63,20 +65,28 @@ function pick<T>(items: readonly T[]): T {
   return items[Math.floor(Math.random() * items.length)] as T;
 }
 
-function isMode(value: unknown): value is Mode {
-  return value === 'standard' || value === 'zodiac';
+function getMode(value: unknown): Mode {
+  return value === 'standard' || value === 'zodiac' ? value : 'zodiac';
 }
 
-function rollStandard() {
+function rollStandard(): AstragalomancyRoll {
   const values = [rollDie(6), rollDie(6), rollDie(6)];
-  return { values, total: sum(values) };
+  return {
+    mode: 'standard',
+    dice: { values, total: sum(values) },
+  };
 }
 
-const rollZodiac = () => ({
-  planet: pick(PLANET_FACES),
-  sign: pick(SIGN_FACES),
-  house: rollDie(12),
-});
+function rollZodiac(): AstragalomancyRoll {
+  return {
+    mode: 'zodiac',
+    dice: {
+      planet: pick(PLANET_FACES),
+      sign: pick(SIGN_FACES),
+      house: rollDie(12),
+    },
+  };
+}
 
 const DIRECTIVE =
   'You are giving an astragalomancy (dice divination) reading directly to the person who rolled';
@@ -107,8 +117,12 @@ const ZODIAC_SYSTEM = createSystemRules(ZODIAC_RULES);
 const STANDARD_SYSTEM = createSystemRules(STANDARD_RULES);
 
 async function resolveStandardMeaning(total: number): Promise<string> {
-  const result = await pool.query<StandardMeaningRow>(selectStandardMeaning, [total]);
-  return result.rows[0]?.meaning ?? '';
+  const { meaning } = await loadRow<StandardMeaningRow>(
+    selectStandardMeaning,
+    [total],
+    'Standard meaning not found.',
+  );
+  return meaning;
 }
 
 /** Loads the planet / sign / house reference rows for a zodiac roll. */
@@ -133,11 +147,11 @@ async function resolveZodiacRefs(planet: string, sign: string, house: number) {
 }
 
 /** The client-facing roll object — a discriminated union on `mode`. */
-async function toRollDto(row: Pick<AstragalomancyReadingRow, 'mode' | 'dice'>) {
-  const { mode, dice } = row;
+async function toRollDto({ mode, dice }: AstragalomancyRoll) {
   if (mode === 'standard') {
     const values = dice.values ?? [];
-    const total = dice.total ?? sum(values);
+    const total = dice.total ?? values.reduce((sum, value) => sum + value, 0);
+
     return {
       mode: 'standard' as const,
       values,
@@ -145,7 +159,10 @@ async function toRollDto(row: Pick<AstragalomancyReadingRow, 'mode' | 'dice'>) {
       meaning: await resolveStandardMeaning(total),
     };
   }
-  const refs = await resolveZodiacRefs(dice.planet ?? '', dice.sign ?? '', dice.house ?? 0);
+
+  const { planet = '', sign = '', house = 0 } = dice;
+  const refs = await resolveZodiacRefs(planet, sign, house);
+
   return { mode: 'zodiac' as const, ...refs };
 }
 
@@ -175,22 +192,21 @@ function toRollPrompt(roll: Roll, question: string | null) {
 // stores the reading, and returns the resolved result for the client to animate.
 router.post(
   '/roll',
-  handler(async (request, response) => {
-    const question = optionalText(request.body.question, 'Question');
-    const mode: Mode = isMode(request.body.mode) ? request.body.mode : 'zodiac';
-
-    const dice = mode === 'standard' ? rollStandard() : rollZodiac();
+  handler(async ({ body }, response) => {
+    const question = optionalText(body.question, 'Question');
+    const mode = getMode(body.mode);
+    const roll = mode === 'standard' ? rollStandard() : rollZodiac();
 
     const reading = await loadRow<Pick<AstragalomancyReadingRow, 'id' | 'question'>>(
       insertAstragalomancyReading,
-      [question, mode, JSON.stringify(dice)],
+      [question, mode, JSON.stringify(roll.dice)],
       'The reading was not created.',
     );
 
     response.status(201).json({
       id: reading.id,
       question: reading.question,
-      roll: await toRollDto({ mode, dice }),
+      roll: await toRollDto(roll),
     });
   }, 'Could not roll the dice.'),
 );

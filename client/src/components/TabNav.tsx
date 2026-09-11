@@ -13,13 +13,13 @@ const tabs = [
 function TabNav() {
   return (
     <nav className="tab-nav" aria-label="Sections">
-      {tabs.map((tab) => (
+      {tabs.map(({ to, label }) => (
         <NavLink
-          key={tab.to}
-          to={tab.to}
+          key={to}
+          to={to}
           className={({ isActive }) => `tab-link${isActive ? ' tab-link-active' : ''}`}
         >
-          {tab.label}
+          {label}
         </NavLink>
       ))}
     </nav>

@@ -47,8 +47,8 @@ function AstrologyPlanets({
 
   return (
     <g id="points">
-      {locatedPoints.map((locatedPoint) => {
-        const { planetName, angle } = locatedPoint;
+      {locatedPoints.map((located) => {
+        const { planetName, angle, point: locatedPoint } = located;
         const { longitude, retrograde } = planets[planetName] ?? {};
 
         const planetAngle = longitude ?? -1;
@@ -59,8 +59,8 @@ function AstrologyPlanets({
         const pointerEnd = getPointPosition(point, pointerRadius + rulerRadius / 2, planetShift);
 
         const ration = COLLISION_RADIUS / 1.4;
-        const x = locatedPoint.point.x + ration;
-        const y = locatedPoint.point.y - COLLISION_RADIUS;
+        const x = locatedPoint.x + ration;
+        const y = locatedPoint.y - COLLISION_RADIUS;
 
         const descriptionPositions = [
           Math.round(planetAngle % 30).toString(),
@@ -79,12 +79,12 @@ function AstrologyPlanets({
                 pointerEnd,
                 getPointPosition(point, pointRadius - COLLISION_RADIUS, angle),
               )}
-            <PlanetGlyph planet={planetName} point={locatedPoint.point} longitude={planetAngle} />
-            {descriptionPositions.map((description, i) => (
+            <PlanetGlyph planet={planetName} point={locatedPoint} longitude={planetAngle} />
+            {descriptionPositions.map(({ point: descriptionPoint, text }, i) => (
               <AstrologyText
                 key={i}
-                text={description.text}
-                point={description.point}
+                text={text}
+                point={descriptionPoint}
                 size={POINTS_TEXT_SIZE}
                 color={BLACK}
               />

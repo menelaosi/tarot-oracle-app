@@ -76,21 +76,22 @@ function TransitView() {
     }
   }, [birthMoment, place]);
 
-  const chart = useMemo<TransitChart | null>(() => {
-    if (!natal || !location) return null;
-    // castNonce is read only to re-run this when the user asks for a fresh cast.
-    void castNonce;
-    try {
-      const at = instantForDay(day);
-      const now = getHoroscope(at, location);
-      const next = getHoroscope(new Date(at.getTime() + DAY_MS), location);
-      const frame: TransitFrame = { at: at.toISOString(), date: day, location };
-      const summary = buildTransitSummary(natal, now, next, frame);
-      return { now, next, frame, summary };
-    } catch {
-      return null;
-    }
-  }, [natal, location, day, castNonce]);
+  const { summary, frame, now } =
+    useMemo<TransitChart | null>(() => {
+      if (!natal || !location) return null;
+      // castNonce is read only to re-run this when the user asks for a fresh cast.
+      void castNonce;
+      try {
+        const at = instantForDay(day);
+        const now = getHoroscope(at, location);
+        const next = getHoroscope(new Date(at.getTime() + DAY_MS), location);
+        const frame: TransitFrame = { at: at.toISOString(), date: day, location };
+        const summary = buildTransitSummary(natal, now, next, frame);
+        return { now, next, frame, summary };
+      } catch {
+        return null;
+      }
+    }, [natal, location, day, castNonce]) ?? {};
 
   function castTransits() {
     clearError();
@@ -119,18 +120,13 @@ function TransitView() {
   }
 
   async function analyzeTransits() {
-    if (!natal || !chart || !place) return;
+    if (!natal || !now || !summary || !place) return;
 
     setIsAnalyzing(true);
     clearError();
     try {
-      const natalSummary = buildChartSummary(natal, {
-        dateTime: birthMoment,
-        latitude: place.latitude,
-        longitude: place.longitude,
-        placeLabel: place.label,
-      });
-      setInterpretation(await interpretTransits(natalSummary, chart.summary));
+      const natalSummary = buildChartSummary(natal, { dateTime: birthMoment, ...place });
+      setInterpretation(await interpretTransits(natalSummary, summary));
     } catch (analysisError) {
       failWith(analysisError);
     } finally {
@@ -156,12 +152,12 @@ function TransitView() {
         />
       }
       main={
-        natal && chart ? (
+        natal && now && summary ? (
           <TransitReading
             natal={natal}
-            transitNow={chart.now}
-            contacts={chart.summary.contacts}
-            day={chart.frame.date}
+            transitNow={now}
+            contacts={summary.contacts}
+            day={frame?.date ?? ''}
             isAnalyzing={isAnalyzing}
             onAnalyze={analyzeTransits}
           />

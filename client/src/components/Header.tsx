@@ -1,8 +1,6 @@
 type HeaderProps = {
-  /** Section name; " LLM" is appended and the whole thing is uppercased in CSS. */
-  title: string;
-  /** Section-specific opening sentence; a shared AI disclosure line follows it. */
-  intro: string;
+  title: string; // Section name; " LLM" is appended and the whole thing is uppercased in CSS.
+  intro: string; // Section-specific opening sentence; a shared AI disclosure line follows it.
 };
 
 /** The app masthead. Title and intro vary per route (see HEADERS in App.tsx). */

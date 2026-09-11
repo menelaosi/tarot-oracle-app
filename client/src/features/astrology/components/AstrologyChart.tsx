@@ -14,6 +14,8 @@ import {
   assembleLocatedPoints,
   getCelestialBody,
   getPointPosition,
+  longitudeOf,
+  longitudeOfMidheavenAscendant,
 } from '../lib/horoscope';
 import type { TransitContact } from '../lib/transits';
 import type { CelestialBodyPosition, LocatedPoint, Point } from '../types';
@@ -58,39 +60,23 @@ type Cusp = {
   };
 };
 
-// One entry of horoscope.Aspects.all — the pairing the library found between two
-// points, plus how far off exact it is (`orb`) and the widest orb it allowed for
-// that aspect type (`orbUsed`).
-type RawAspect = {
-  point1Key: string;
-  point2Key: string;
-  aspectKey: string;
-  aspectLevel: 'major' | 'minor';
-  orb: number;
-  orbUsed: number;
-};
-
 function getCelestialBodyPositions(
   horoscope: Horoscope,
 ): Record<Planet, CelestialBodyPosition | undefined> {
   return Object.values(Planet).reduce<Record<Planet, CelestialBodyPosition | undefined>>(
     (positions, planet) => {
       const body = getCelestialBody(horoscope, planet);
-      const longitude = body?.ChartPosition?.Ecliptic?.DecimalDegrees;
+      const longitude = longitudeOf(body);
       positions[planet] =
-        longitude === undefined
-          ? undefined
-          : { longitude, retrograde: Boolean(body?.isRetrograde) };
+        longitude == null ? undefined : { longitude, retrograde: Boolean(body?.isRetrograde) };
       return positions;
     },
     {} as Record<Planet, CelestialBodyPosition | undefined>,
   );
 }
 
-function getCuspPositions(horoscope: Horoscope): number[] {
-  return horoscope?.Houses.map(
-    (cusp: Cusp) => cusp.ChartPosition.StartPosition.Ecliptic.DecimalDegrees,
-  );
+function getCuspPositions({ Houses }: Horoscope): number[] {
+  return Houses.map((cusp: Cusp) => cusp.ChartPosition.StartPosition.Ecliptic.DecimalDegrees);
 }
 
 /**
@@ -103,29 +89,29 @@ function getAspectLines(
   horoscope: Horoscope,
   celestialBodyPositions: Record<Planet, CelestialBodyPosition | undefined>,
 ): AspectLine[] {
-  const longitudeByKey: Record<string, number> = {};
+  let longitudeByKey: Record<string, number> = {};
+
   for (const planet of Object.values(Planet)) {
-    const longitude = celestialBodyPositions[planet]?.longitude;
-    if (longitude === undefined) continue;
+    const { longitude } = celestialBodyPositions[planet] ?? {};
+    if (longitude == null) continue;
+
     // Aspects name the lunar node 'northnode'; every other library key already
     // matches the Planet value we store positions under.
     longitudeByKey[planet === Planet.NorthNode ? 'northnode' : planet] = longitude;
   }
-  const ascendant = horoscope.Ascendant?.ChartPosition?.Ecliptic?.DecimalDegrees;
-  if (ascendant !== undefined) longitudeByKey.ascendant = ascendant;
-  const midheaven = horoscope.Midheaven?.ChartPosition?.Ecliptic?.DecimalDegrees;
-  if (midheaven !== undefined) longitudeByKey.midheaven = midheaven;
 
-  const rawAspects: RawAspect[] = horoscope?.Aspects?.all ?? [];
-  return rawAspects
-    .filter((aspect) => aspect.aspectLevel === 'major')
-    .map((aspect) => {
-      const from = longitudeByKey[aspect.point1Key];
-      const to = longitudeByKey[aspect.point2Key];
-      if (from === undefined || to === undefined) return undefined;
-      return { aspect: aspect.aspectKey, from, to, orb: aspect.orb, orbUsed: aspect.orbUsed };
+  longitudeByKey = longitudeOfMidheavenAscendant(horoscope, longitudeByKey);
+
+  return (horoscope?.Aspects?.all ?? [])
+    .filter(({ aspectLevel }) => aspectLevel === 'major')
+    .map(({ point1Key, point2Key, aspectKey: aspect, orb, orbUsed }) => {
+      const from = longitudeByKey[point1Key];
+      const to = longitudeByKey[point2Key];
+
+      if (from == null || to == null) return undefined;
+      return { aspect, from, to, orb, orbUsed };
     })
-    .filter((line): line is AspectLine => line !== undefined);
+    .filter((line): line is AspectLine => line != null);
 }
 
 /**
@@ -137,15 +123,13 @@ function getNatalLongitudes(
   positions: Record<Planet, CelestialBodyPosition | undefined>,
 ): Record<string, number> {
   const longitudes: Record<string, number> = {};
+
   for (const planet of Object.values(Planet)) {
-    const longitude = positions[planet]?.longitude;
+    const { longitude } = positions[planet] ?? {};
     if (longitude !== undefined) longitudes[planet] = longitude;
   }
-  const ascendant = horoscope.Ascendant?.ChartPosition?.Ecliptic?.DecimalDegrees;
-  if (ascendant !== undefined) longitudes.ascendant = ascendant;
-  const midheaven = horoscope.Midheaven?.ChartPosition?.Ecliptic?.DecimalDegrees;
-  if (midheaven !== undefined) longitudes.midheaven = midheaven;
-  return longitudes;
+
+  return longitudeOfMidheavenAscendant(horoscope, longitudes);
 }
 
 function getLocatedPoints(
@@ -194,7 +178,7 @@ function AstrologyChart({ horoscope, height = 800, width = 800, transit }: Astro
   const celestialBodyPositions = getCelestialBodyPositions(horoscope);
   const cuspPositions = getCuspPositions(horoscope);
 
-  const shift = cuspPositions && cuspPositions[0] ? FULL_CIRCLE - cuspPositions[0] : 0;
+  const shift = cuspPositions[0] ? FULL_CIRCLE - cuspPositions[0] : 0;
 
   const locatedPoints = getLocatedPoints(celestialBodyPositions, point, pointRadius, shift);
 
@@ -211,11 +195,6 @@ function AstrologyChart({ horoscope, height = 800, width = 800, transit }: Astro
 
   return (
     <svg id="chart" viewBox={`0 0 ${height} ${width}`} preserveAspectRatio="xMinYMin meet">
-      {/*
-        The wheel's rings stop at the inner circle, leaving the middle open. Fill
-        it with the band colour first so the aspect chords drawn over it read
-        against the same background as the rest of the chart, not the page.
-      */}
       <circle cx={x} cy={y} r={thickness} fill={WHITE} />
       <AstrologyAspects point={point} radius={thickness} shift={shift} lines={aspectLines} />
       {transit && transitPositions && (

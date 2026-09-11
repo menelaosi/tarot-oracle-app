@@ -6,12 +6,9 @@ import { getTransitContacts, rankTransitContacts, type TransitContact } from './
 
 /** Where and when the transiting chart is anchored. */
 export type TransitFrame = {
-  /** ISO instant the transit chart is cast for. */
-  at: string;
-  /** Calendar day (YYYY-MM-DD) the reading is for. */
-  date: string;
-  /** Birthplace, or the browser's current location when the user opts in. */
-  location: Place;
+  at: string; // ISO instant the transit chart is cast for.
+  date: string; // Calendar day (YYYY-MM-DD) the reading is for.
+  location: Place; // Birthplace, or the browser's current location when the user opts in.
 };
 
 export type TransitingPlacement = {
@@ -19,26 +16,28 @@ export type TransitingPlacement = {
   sign: string;
   degreeInSign: number;
   retrograde: boolean;
-  /** Natal house the transiting body is currently passing through. */
-  natalHouse: number | null;
+  natalHouse: number | null; // Natal house the transiting body is currently passing through.
 };
 
 export type TransitSummary = TransitFrame & {
   transitingPlacements: TransitingPlacement[];
-  /** Ranked most-significant-first. */
-  contacts: TransitContact[];
+  contacts: TransitContact[]; // Most significant first
 };
 
 /** Which natal house (whole-sign, so 30° wide) a longitude falls in. */
-function natalHouseOf(natal: Horoscope, longitude: number): number | null {
-  const houses = natal?.Houses;
-  if (!Array.isArray(houses)) return null;
-  for (let i = 0; i < houses.length; i += 1) {
-    const start = houses[i]?.ChartPosition?.StartPosition?.Ecliptic?.DecimalDegrees;
-    if (typeof start !== 'number') continue;
-    const offset = (((longitude - start) % FULL_CIRCLE) + FULL_CIRCLE) % FULL_CIRCLE;
-    if (offset < 30) return houses[i]?.id ?? i + 1;
+function natalHouseOf({ Houses }: Horoscope, longitude: number): number | null {
+  if (!Array.isArray(Houses)) return null;
+
+  for (let i = 0; i < Houses.length; i += 1) {
+    const { id, ChartPosition } = Houses[i];
+    const DecimalDegrees = ChartPosition?.StartPosition?.Ecliptic?.DecimalDegrees;
+
+    if (typeof DecimalDegrees !== 'number') continue;
+
+    const offset = (((longitude - DecimalDegrees) % FULL_CIRCLE) + FULL_CIRCLE) % FULL_CIRCLE;
+    if (offset < 30) return id ?? i + 1;
   }
+
   return null;
 }
 
@@ -53,16 +52,21 @@ export function buildTransitSummary(
   frame: TransitFrame,
 ): TransitSummary {
   const transitingPlacements: TransitingPlacement[] = [];
+
   for (const body of Object.values(Planet)) {
-    const raw = getCelestialBody(transitNow, body);
-    const degree = raw?.ChartPosition?.Ecliptic?.DecimalDegrees;
-    if (typeof degree !== 'number') continue;
+    const celestialBody = getCelestialBody(transitNow, body);
+    const DecimalDegrees = celestialBody?.ChartPosition?.Ecliptic?.DecimalDegrees;
+    if (typeof DecimalDegrees !== 'number') continue;
+
+    const key = celestialBody?.Sign?.key;
+    const isRetrograde = celestialBody?.isRetrograde;
+
     transitingPlacements.push({
       body,
-      sign: raw?.Sign?.key ?? getSign(degree).toLowerCase(),
-      degreeInSign: degree % 30,
-      retrograde: Boolean(raw?.isRetrograde),
-      natalHouse: natalHouseOf(natal, degree),
+      sign: key ?? getSign(DecimalDegrees).toLowerCase(),
+      degreeInSign: DecimalDegrees % 30,
+      retrograde: Boolean(isRetrograde),
+      natalHouse: natalHouseOf(natal, DecimalDegrees),
     });
   }
 

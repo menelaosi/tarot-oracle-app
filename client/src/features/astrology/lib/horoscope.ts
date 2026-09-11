@@ -25,6 +25,10 @@ const CUSTOM_ORBS = {
   'semi-sextile': 1,
 };
 
+type CelestialBody = {
+  ChartPosition?: { Ecliptic?: { DecimalDegrees?: number } };
+};
+
 export function getHoroscope(date: Date, place: Place): Horoscope {
   const { latitude, longitude } = place;
   const origin = new Origin({
@@ -283,4 +287,22 @@ export function assembleLocatedPoints(
   locatedPoints = assembleLocatedPoints(locatedPoints, locatedPoint, centerPoint, pointRadius);
 
   return locatedPoints;
+}
+
+export function longitudeOf(body: CelestialBody | undefined) {
+  const longitude = body?.ChartPosition?.Ecliptic?.DecimalDegrees;
+  return typeof longitude === 'number' ? longitude : undefined;
+}
+
+export function longitudeOfMidheavenAscendant(
+  { Ascendant, Midheaven }: Horoscope,
+  record: Record<string, number>,
+) {
+  const ascendant = longitudeOf(Ascendant);
+  if (ascendant != null) record.ascendant = ascendant;
+
+  const midheaven = longitudeOf(Midheaven);
+  if (midheaven != null) record.midheaven = midheaven;
+
+  return record;
 }

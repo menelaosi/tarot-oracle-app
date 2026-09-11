@@ -13,19 +13,30 @@ const READINGS = 'astragalomancy_readings';
 
 export type StandardMeaningRow = { total: number; meaning: string };
 
+type StandardReading = {
+  mode: 'standard';
+  dice: {
+    values: number[];
+    total: number;
+  };
+};
+
+type ZodiacReading = {
+  mode: 'zodiac';
+  dice: {
+    planet: string;
+    sign: string;
+    house: number;
+  };
+};
+
+export type AstragalomancyRoll = StandardReading | ZodiacReading;
+
 export type AstragalomancyReadingRow = {
   id: string;
   question: string | null;
-  mode: 'standard' | 'zodiac';
-  dice: {
-    values?: number[];
-    total?: number;
-    planet?: string;
-    sign?: string;
-    house?: number;
-  };
   interpretation: string | null;
-};
+} & AstragalomancyRoll;
 
 export const selectStandardMeaning = selectByKey(
   'total, meaning',

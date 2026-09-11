@@ -15,21 +15,14 @@ import PlanetGlyph from './AstrologySymbols/PlanetGlyph';
 
 type AstrologyTransitsProps = {
   readonly point: Point;
-  /** Inner circle — where the transit→natal chords anchor, shared with the natal aspects. */
-  readonly hubRadius: number;
-  /** Natal wheel edge — the transit band starts just outside this. */
-  readonly wheelRadius: number;
-  /** Centre line of the band the transiting glyphs sit on. */
-  readonly ringRadius: number;
+  readonly hubRadius: number; // Inner circle — where the transit→natal chords anchor, shared with the natal aspects.
+  readonly wheelRadius: number; // Natal wheel edge — the transit band starts just outside this.
+  readonly ringRadius: number; // Centre line of the band the transiting glyphs sit on.
   readonly shift: number;
-  /** Transiting-body longitudes, keyed by Planet value. */
-  readonly transitPositions: Record<Planet, CelestialBodyPosition | undefined>;
-  /** Natal longitudes, keyed by Planet value plus 'ascendant' / 'midheaven'. */
-  readonly natalLongitudes: Record<string, number>;
-  /** Collision-spread glyph positions for the transiting bodies, at ringRadius. */
-  readonly locatedPoints: readonly LocatedPoint[];
-  /** Transit→natal contacts, already ranked most-significant-first. */
-  readonly contacts: readonly TransitContact[];
+  readonly transitPositions: Record<Planet, CelestialBodyPosition | undefined>; // Transiting-body longitudes, keyed by Planet value.
+  readonly natalLongitudes: Record<string, number>; // Natal longitudes, keyed by Planet value plus 'ascendant' / 'midheaven'.
+  readonly locatedPoints: readonly LocatedPoint[]; // Collision-spread glyph positions for the transiting bodies, at ringRadius.
+  readonly contacts: readonly TransitContact[]; // Transit→natal contacts, already ranked most-significant-first.
 };
 
 /** Half the width of the light band the transit glyphs sit on. */
@@ -73,39 +66,39 @@ function AstrologyTransits({
         />
       ))}
 
-      {contacts.map((contact, index) => {
-        const fromLongitude = transitPositions[contact.transiting as Planet]?.longitude;
-        const toLongitude = natalLongitudes[contact.natal];
-        if (fromLongitude === undefined || toLongitude === undefined) return null;
+      {contacts.map(({ natal, orb, transiting, type }, index) => {
+        const fromLongitude = transitPositions[transiting as Planet]?.longitude;
+        const toLongitude = natalLongitudes[natal];
+        if (fromLongitude == null || toLongitude === null) return null;
 
         return (
           <AstrologyLine
             key={index}
             startingPoint={getPointPosition(point, hubRadius, fromLongitude + shift)}
             endingPoint={getPointPosition(point, hubRadius, toLongitude + shift)}
-            stroke={ASPECT_COLOR[contact.type] ?? NEUTRAL_ASPECT_COLOR}
+            stroke={ASPECT_COLOR[type] ?? NEUTRAL_ASPECT_COLOR}
             dashed
-            {...aspectLineStyle(contact.orb, transitAspectMaxOrb(contact.type))}
+            {...aspectLineStyle(orb, transitAspectMaxOrb(type))}
           />
         );
       })}
 
-      {locatedPoints.map((located) => {
-        const longitude = transitPositions[located.planetName]?.longitude ?? -1;
+      {locatedPoints.map(({ planetName, point: locatedPoint }) => {
+        const longitude = transitPositions[planetName]?.longitude ?? -1;
         // Short spoke from the wheel rim to the true degree, so a nudged glyph
         // still points back to where the planet actually is.
         const spokeEnd = getPointPosition(point, innerRadius, longitude + shift);
 
         return (
-          <g key={located.planetName}>
+          <g key={planetName}>
             <AstrologyLine
               startingPoint={getPointPosition(point, wheelRadius, longitude + shift)}
               endingPoint={spokeEnd}
               strokeWidth={0.75}
             />
             <PlanetGlyph
-              planet={located.planetName}
-              point={located.point}
+              planet={planetName}
+              point={locatedPoint}
               longitude={longitude}
               halo={BLACK}
             />

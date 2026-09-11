@@ -33,7 +33,7 @@ function TarotView() {
     loadSpreads()
       .then((options) => {
         setSpreadOptions(options);
-        if (!options.some((option) => option.id === spreadType)) {
+        if (!options.some(({ id }) => id === spreadType)) {
           setSpreadType(options[0]?.id ?? '');
         }
       })

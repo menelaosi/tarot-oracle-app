@@ -2,15 +2,11 @@ import type { ReactElement } from 'react';
 import Markdown from 'react-markdown';
 
 type WorkspaceLayoutProps = {
-  /** the controls section — ReadingControls / BirthdayControl (both wrap ControlsSection) */
-  controls: ReactElement;
-  /** the left-hand subject — Spread / AstrologyReading — or null before it exists */
-  main: ReactElement | null;
+  controls: ReactElement; // the controls section — ReadingControls / BirthdayControl (both wrap ControlsSection)
+  main: ReactElement | null; // the left-hand subject — Spread / AstrologyReading — or null before it exists
   error: string;
-  /** clears the error line; renders a dismiss control when provided */
-  onDismissError?: () => void;
-  /** a reading is being generated — show a placeholder in the right column */
-  pending?: boolean;
+  onDismissError?: () => void; // clears the error line; renders a dismiss control when provided
+  pending?: boolean; // a reading is being generated — show a placeholder in the right column
   interpretationTitle: string;
   interpretation: string;
 };

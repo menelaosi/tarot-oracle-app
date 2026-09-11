@@ -7,18 +7,14 @@ import DateInput from './DateInput';
 type TransitControlProps = {
   birthMoment: string;
   place: Place | null;
-  /** Day to read transits for, as a YYYY-MM-DD string. */
-  day: string;
-  /** Which coordinates the transit chart uses. */
-  locationSource: 'birth' | 'current';
-  /** Label for the location currently in effect. */
-  locationLabel: string;
+  day: string; // Day to read transits for, as a YYYY-MM-DD string.
+  locationSource: 'birth' | 'current'; // Which coordinates the transit chart uses.
+  locationLabel: string; // Label for the location currently in effect.
   isLocating: boolean;
   onBirthMomentChange: (value: string) => void;
   onPlaceChange: (value: Place | null) => void;
   onDayChange: (value: string) => void;
-  /** Switch between birthplace and the browser's current location. */
-  onToggleLocation: () => void;
+  onToggleLocation: () => void; // Switch between birthplace and the browser's current location.
   onCast: () => void;
 };
 
