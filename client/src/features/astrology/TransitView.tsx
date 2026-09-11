@@ -125,7 +125,7 @@ function TransitView() {
     setIsAnalyzing(true);
     clearError();
     try {
-      const natalSummary = buildChartSummary(natal, { dateTime: birthMoment, ...place });
+      const natalSummary = buildChartSummary(natal, birthMoment, place);
       setInterpretation(await interpretTransits(natalSummary, summary));
     } catch (analysisError) {
       failWith(analysisError);

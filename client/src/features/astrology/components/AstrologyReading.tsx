@@ -30,6 +30,7 @@ function getTitle(horoscope: Horoscope): string {
 
 /** The cast chart, a one-line summary of it, and the button that sends it to Claude. */
 function AstrologyReading({ horoscope, isAnalyzing, onAnalyze }: AstrologyReadingProps) {
+  console.log(horoscope);
   return (
     <ReadingPanel
       sectionClassName="reading-column astrology-reading"

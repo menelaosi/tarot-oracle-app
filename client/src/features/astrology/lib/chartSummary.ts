@@ -1,12 +1,15 @@
 import type { Horoscope } from 'circular-natal-horoscope-js';
 import { Planet } from '../types';
 import { FULL_CIRCLE, getCelestialBody, getSign } from './horoscope';
+import type { Place } from './geocode';
 
+// Matches the server's chartSummary zod schema (server/lib/astrology-schema.ts) —
+// keep the field name in sync with `placeLabel` there.
 export type BirthInput = {
   dateTime: string;
   latitude: number;
   longitude: number;
-  label: string;
+  placeLabel: string;
 };
 
 export type Placement = {
@@ -45,9 +48,19 @@ function angleAt(degrees: number): AngleSummary {
 
 /**
  * Flattens the library's Horoscope into the compact payload the
- * `/api/astrology/interpret` endpoint enriches with reference data.
+ * `/api/astrology/interpret` endpoint enriches with reference data. Takes
+ * `dateTime` and `place` separately (rather than one pre-merged object) so
+ * `place.label` is explicitly mapped to `birth.placeLabel` here instead of
+ * relying on a spread that only works if the field names happen to match.
  */
-export function buildChartSummary(horoscope: Horoscope, birth: BirthInput): ChartSummary {
+export function buildChartSummary(horoscope: Horoscope, dateTime: string, place: Place): ChartSummary {
+  const birth: BirthInput = {
+    dateTime,
+    latitude: place.latitude,
+    longitude: place.longitude,
+    placeLabel: place.label,
+  };
+
   const placements: Placement[] = [];
   for (const body of Object.values(Planet)) {
     const raw = getCelestialBody(horoscope, body);

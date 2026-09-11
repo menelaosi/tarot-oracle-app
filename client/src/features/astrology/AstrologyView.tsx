@@ -64,7 +64,7 @@ function AstrologyView() {
     clearError();
 
     try {
-      const chart = buildChartSummary(horoscope, { dateTime: birthMoment, ...place });
+      const chart = buildChartSummary(horoscope, birthMoment, place);
       setInterpretation(await interpretChart(chart));
     } catch (analysisError) {
       failWith(analysisError);
