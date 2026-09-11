@@ -1,8 +1,7 @@
+import { AstrologyChart, type TransitContact } from '@menelaos/react-natal-chart';
 import type { Horoscope } from 'circular-natal-horoscope-js';
 import { useMemo } from 'react';
 import ReadingPanel from '../../../components/ReadingPanel';
-import type { TransitContact } from '../lib/transits';
-import AstrologyChart from './AstrologyChart';
 
 type TransitReadingProps = {
   natal: Horoscope; // The natal chart the transits are read against.

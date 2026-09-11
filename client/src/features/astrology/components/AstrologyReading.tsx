@@ -1,8 +1,12 @@
+import {
+  AstrologyChart,
+  Planet,
+  SIGN_EMOJI,
+  getCelestialBody,
+  type ZodiacSign,
+} from '@menelaos/react-natal-chart';
 import type { Horoscope } from 'circular-natal-horoscope-js';
 import ReadingPanel from '../../../components/ReadingPanel';
-import { getCelestialBody } from '../lib/horoscope';
-import { Planet, SIGN_EMOJI, type ZodiacSign } from '../types';
-import AstrologyChart from './AstrologyChart';
 
 type AstrologyReadingProps = {
   horoscope: Horoscope;
@@ -30,7 +34,6 @@ function getTitle(horoscope: Horoscope): string {
 
 /** The cast chart, a one-line summary of it, and the button that sends it to Claude. */
 function AstrologyReading({ horoscope, isAnalyzing, onAnalyze }: AstrologyReadingProps) {
-  console.log(horoscope);
   return (
     <ReadingPanel
       sectionClassName="reading-column astrology-reading"

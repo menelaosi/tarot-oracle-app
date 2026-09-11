@@ -1,3 +1,4 @@
+import { buildChartSummary, getHoroscope } from '@menelaos/react-natal-chart';
 import type { Horoscope } from 'circular-natal-horoscope-js';
 import { useMemo, useState } from 'react';
 import WorkspaceLayout from '../../components/WorkspaceLayout';
@@ -9,8 +10,6 @@ import { interpretChart } from './api';
 import './astrology.css';
 import AstrologyReading from './components/AstrologyReading';
 import BirthdayControl from './components/BirthdayControl';
-import { buildChartSummary } from './lib/chartSummary';
-import { getHoroscope } from './lib/horoscope';
 
 type HoroscopeMemo = {
   horoscope: Horoscope | null;

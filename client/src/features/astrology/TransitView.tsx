@@ -1,3 +1,9 @@
+import {
+  buildChartSummary,
+  buildTransitSummary,
+  getHoroscope,
+  type TransitFrame,
+} from '@menelaos/react-natal-chart';
 import type { Horoscope } from 'circular-natal-horoscope-js';
 import { useMemo, useState } from 'react';
 import WorkspaceLayout from '../../components/WorkspaceLayout';
@@ -8,11 +14,8 @@ import { interpretTransits } from './api';
 import './astrology.css';
 import TransitControl from './components/TransitControl';
 import TransitReading from './components/TransitReading';
-import { buildChartSummary } from './lib/chartSummary';
 import type { Place } from './lib/geocode';
 import { requestCurrentLocation, type Coordinates } from './lib/geolocation';
-import { getHoroscope } from './lib/horoscope';
-import { buildTransitSummary, type TransitFrame } from './lib/transitSummary';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

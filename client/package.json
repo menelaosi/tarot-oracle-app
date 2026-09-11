@@ -15,6 +15,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@menelaos/react-natal-chart": "^0.1.0",
     "circular-natal-horoscope-js": "^1.1.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

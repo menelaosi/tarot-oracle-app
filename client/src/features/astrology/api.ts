@@ -1,8 +1,7 @@
 // Astrology endpoints. The charts themselves are computed client-side; these are
 // the only calls to our backend.
+import type { ChartSummary, TransitSummary } from '@menelaos/react-natal-chart';
 import { getInterpretationResponse } from '../../lib/http';
-import type { ChartSummary } from './lib/chartSummary';
-import type { TransitSummary } from './lib/transitSummary';
 
 const astrologyApi = '/api/astrology/';
 

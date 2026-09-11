@@ -10,6 +10,18 @@ A multi-oracle divination app built with React, TypeScript, Express, PostgreSQL,
 
 Every system's reference data — tarot card meanings and correspondences, astrology signs/planets/houses/aspects/dignities, the Greek oracle letters, the traditional three-dice meanings — lives in PostgreSQL and is supplied to Claude as grounding context. Claude interprets only from that data and is instructed to address the reader directly in the second person rather than writing about them in the third person. View state (the drawn spread, the cast chart, each reading) is retained across tab switches and persisted to `localStorage`, so it survives a page reload too.
 
+## Reusable astrology library
+
+The Astrology and Transits sections use my open-source React library [@menelaos/react-natal-chart](https://github.com/menelaosi/react-natal-chart), published as an npm package: [@menelaos/react-natal-chart](https://www.npmjs.com/package/@menelaos/react-natal-chart).
+
+The library provides the SVG natal chart and transit bi-wheel components, along with reusable chart summaries, transit calculations, aspect ranking, geometry helpers, and astrology domain data. Tarot Oracle is its primary consumer and serves as the real-world application driving its API and feature development.
+
+```bash
+npm install @menelaos/react-natal-chart circular-natal-horoscope-js
+```
+
+This separation keeps the astrology visualization and chart-processing logic reusable while leaving Tarot Oracle responsible for application-specific concerns such as persistence, reference data, and Claude-powered interpretation. It also allows others to use the work I have done in their own React projects using the npm library 
+
 ## Features
 
 ### Tarot
@@ -22,13 +34,13 @@ Every system's reference data — tarot card meanings and correspondences, astro
 
 ### Astrology
 
-- Cast a natal chart from a birth date, time, and place — computed in the browser with `circular-natal-horoscope-js` and drawn as an SVG wheel (signs, houses, planets, angles, and major aspect lines)
+- Cast a natal chart from a birth date, time, and place — computed in the browser with `@menelaos/react-natal-chart and rendered as an SVG wheel showing signs, houses, planets, angles, and major aspect lines
 - Have Claude analyze the chart against seeded reference data (signs, planets, houses, aspects, dignities, modalities, elements, and degree-theory notes), reading it in the second person
 - The whole reference library is sent as a **cached** system prefix; identical charts are served from the stored reading without a new Claude call
 
 ### Transits
 
-- A chosen day's sky (today by default) drawn as an outer ring on the natal wheel, with dashed transit-to-natal aspect chords
+- A chosen day's sky (today by default) is rendered as an outer ring on the natal wheel by `@menelaos/react-natal-chart`, with dashed transit-to-natal aspect chords
 - Anchored to the birthplace, or — with permission — the browser's current location
 - Claude reads the day from the ranked transit contacts, leading with the most significant one and noting whether each is applying or separating
 - Same natal chart + calendar day is served from its stored row
@@ -78,7 +90,8 @@ Important files:
 - `server/db/queries/`: SQL strings, row types, and row-to-response mapping, one file per resource; `astrology.ts` also holds `buildReferenceDigest()` (rendered and memoised by `lib/astrology-prompt.ts`)
 - `server/spreads.ts`: the spread registry (label, position labels, prompt guidance) — the single place to add a spread; the API, client picker, draw count, and prompt instructions all derive from it
 - `client/src/App.tsx`: app shell — masthead, tab nav, and the lazily-loaded feature route for each section
-- `client/src/features/<feature>/`: one folder per section (`tarot`, `astrology`, `greek-oracle`, `astragalomancy`), each with `…View.tsx` (state + API calls), `api.ts`, `types.ts`, a `.css` file, and a `components/` folder. `astrology/` also holds `TransitView.tsx` and `lib/` — `horoscope.ts` (the `circular-natal-horoscope-js` wrapper + chart geometry), `chartSummary.ts` / `transitSummary.ts` / `transits.ts` (flatten the horoscope for the API), `aspectStyle.ts` (the aspect-line type + styling shared by the natal and transit charts), `geocode.ts`, `geolocation.ts` — plus the SVG chart components (`AstrologyChart` is `React.memo`'d — casting + collision-layout geometry is real work, and it's fed stable `useMemo`'d props from the view)
+- `client/src/features/<feature>/`: one folder per section (`tarot`, `astrology`, `greek-oracle`, `astragalomancy`), each with `…View.tsx` (state + API calls), `api.ts`, `types.ts`, a `.css` file, and a `components/` folder.
+- `@menelaos/react-natal-chart`: reusable open-source React library used by both the Astrology and Transits sections. The library owns the SVG chart rendering, transit bi-wheel rendering, chart/transit summaries, transit calculations and ranking, and reusable astrology geometry/domain helpers using `circular-natal-js`
 - `client/src/components/`: shared UI — `WorkspaceLayout` (controls + two-column workspace + the Markdown reading; shows a "Consulting the oracle…" placeholder while a reading generates and a dismissible error line), `ErrorBoundary` (catches a render-time throw in a feature view — keyed on the route in `App.tsx`), `ControlsSection`, `ReadingPanel`, `DetailOverlay` (the hover/focus details panel used by tarot cards, the Greek letter, and the zodiac dice), `ButtonComponent`, `QuestionInput`, `Header`, `TabNav`
 - `client/src/lib/http.ts`: the API transport — `getJson` / `postJson` with a 90 s abort timeout; a non-2xx becomes an `ApiError` carrying the HTTP status; `messageFrom(err)` turns any caught value into a display string (server message, a connection hint for network failures, or a fallback)
 - `client/src/hooks/`: `useRetainedState` (a `useState` that survives tab switches and page reloads, backed by `localStorage` under a versioned `tarot-oracle:v1:` prefix; pass `{ persist: false }` to keep a value tab-switch-only), `useBirthChart` (the birth date/time/place shared by the Astrology and Transits tabs — each tab casts its own `Horoscope` from them), `useError` (the one error line every feature view shows — `clearError` for the dismiss control and action resets, `failWith(cause)` for a caught value, `setError` for literal validation copy)
