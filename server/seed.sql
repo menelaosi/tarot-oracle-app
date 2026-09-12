@@ -264,8 +264,9 @@ INSERT INTO astrology_planets (key, name, glyph, keywords, associations) VALUES
 ('pluto','Pluto','♇',ARRAY['transformation','death','depth','power'],ARRAY['Extreme power','Transformative acts','Reborn faith','Modifying lifestyle','Death','Evolution']),
 ('nnode','North Node','☊',ARRAY['destiny','fate','lessons'],ARRAY['The road ahead','Future knowledge and lessons that must be learned','Rational and irrational fear including of the unknown','Destiny and fate']),
 ('snode','South Node','☋',ARRAY['past','karma','release'],ARRAY['Cosmic past','Spiritual misgivings','Examining past mistakes','Karmic baggage']),
-('chiron','Chiron','⚷',ARRAY[]::TEXT[],ARRAY[]::TEXT[]),
-('lilith','Lilith','⚸',ARRAY[]::TEXT[],ARRAY[]::TEXT[])
+('chiron','Chiron','⚷',ARRAY['healing','wounds','vulnerability'],ARRAY['The wounded healer archetype','Deep-seated pain that becomes a source of wisdom','Old wounds or chronic ailments resurfacing to be addressed','Compassion earned through personal suffering','Mentoring or healing others through your own scars']),
+('lilith','Lilith','⚸',ARRAY['shadow self','repressed desire','rebellion'],ARRAY['The untamed, primal feminine','Repressed desires demanding acknowledgment','Rebellion against imposed limits or shame','Raw instinct and unfiltered passion','Reclaiming power from what was denied or hidden']),
+('sirius','Sirius','✱',ARRAY['fame','ambition','honor'],ARRAY['Worldly renown and recognition','Influence earned through prestige and reputation rather than force — soft power','Burning ambition and natural leadership','Risk of excess or hubris when afflicted','A brilliant, guiding fixed point of destiny'])
 ON CONFLICT (key) DO UPDATE SET name=EXCLUDED.name, glyph=EXCLUDED.glyph, keywords=EXCLUDED.keywords, associations=EXCLUDED.associations;
 
 INSERT INTO astrology_houses (number, name, keywords, associations) VALUES

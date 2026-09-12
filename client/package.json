@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "test": "vitest run --passWithNoTests",
     "stylelint": "stylelint \"src/**/*.css\"",
     "stylelint:fix": "stylelint \"src/**/*.css\" --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
@@ -15,7 +16,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@menelaos/react-natal-chart": "^0.1.0",
+    "@menelaos/react-natal-chart": "^0.4.0",
     "circular-natal-horoscope-js": "^1.1.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
@@ -38,6 +39,7 @@
     "stylelint-config-standard": "^40.0.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.67.0",
-    "vite": "^8.2.2"
+    "vite": "^8.2.2",
+    "vitest": "^5.0.0"
   }
 }

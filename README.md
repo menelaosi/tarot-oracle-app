@@ -20,7 +20,7 @@ The library provides the SVG natal chart and transit bi-wheel components, along 
 npm install @menelaos/react-natal-chart circular-natal-horoscope-js
 ```
 
-This separation keeps the astrology visualization and chart-processing logic reusable while leaving Tarot Oracle responsible for application-specific concerns such as persistence, reference data, and Claude-powered interpretation. It also allows others to use the work I have done in their own React projects using the npm library 
+This separation keeps the astrology visualization and chart-processing logic reusable while leaving Tarot Oracle responsible for application-specific concerns such as persistence, reference data, and Claude-powered interpretation. It also allows others to use the work I have done in their own React projects using the npm library
 
 ## Features
 
@@ -105,8 +105,17 @@ Every route follows the same shape, so a handler is just its own logic:
 router.post(
   '/:readingId/interpret',
   handler(async (request, response) => {
-    const reading = await loadRow<Row>(selectReading, [request.params.readingId], 'Reading not found.');
-    const interpretation = await generateReading(createSystemRules(RULES), { ...reading }, 500, 'greek-oracle');
+    const reading = await loadRow<Row>(
+      selectReading,
+      [request.params.readingId],
+      'Reading not found.',
+    );
+    const interpretation = await generateReading(
+      createSystemRules(RULES),
+      { ...reading },
+      500,
+      'greek-oracle',
+    );
     await run(updateInterpretation, [interpretation, reading.id]);
     response.json({ interpretation });
   }, 'Could not generate the interpretation.'),
@@ -304,7 +313,8 @@ The root `package.json` fans the common tasks out to both packages:
 ```bash
 npm run lint          # eslint, client + server
 npm run format:check  # prettier --check, client + server
-npm run check         # lint + stylelint + format:check — the full gate
+npm run test          # vitest run, client + server
+npm run check         # lint + stylelint + format:check + test — the full gate
 npm run fix           # eslint --fix + stylelint --fix + prettier --write
 npm run build         # client + server builds
 npm run install:all   # npm install in both packages
@@ -312,18 +322,20 @@ npm run install:all   # npm install in both packages
 
 Or run a package on its own:
 
-Server — typecheck/build, lint, and format:
+Server — typecheck/build, lint, format, and test:
 
 ```bash
 npm --prefix server run build
 npm --prefix server run lint
 npm --prefix server run format:check   # prettier --check "**/*.ts"
+npm --prefix server run test           # vitest run
 ```
 
 Client — TypeScript and Vite build:
 
 ```bash
 npm --prefix client run build
+npm --prefix client run test   # vitest run
 ```
 
 Run ESLint (add `lint:fix` to auto-fix):
@@ -348,7 +360,7 @@ npm --prefix client run stylelint
 ## Current Limitations
 
 - Claude interpretation requires an Anthropic API key and available API credits
-- There are no automated tests yet (`server`'s `test` script is a placeholder)
+- Automated tests (Vitest, `npm run test`) cover the pure domain/library logic in both packages — validation, the SQL/prompt/reference-digest builders, the spread registry, the API transport, geocoding/geolocation. Express route handlers and the stateful React hooks (`useRetainedState`, `useError`, `useBirthChart`) don't have coverage yet: the routes would need request mocking or `supertest`, and the hooks need a real DOM test environment (`jsdom` + `@testing-library/react`) to exercise state updates, which `vitest`'s current no-DOM setup doesn't provide
 - Readings, charts, transit readings, letter draws, and dice rolls are all stored, but there is not yet a history screen — a reload restores only the most recent view per section (from `localStorage`), not a browsable list
 - Astrology charts use the entered wall-clock birth time as-is; historical timezone / DST offsets are not resolved from the coordinates
 - Retained view state lives in the browser's `localStorage` (per-device, not synced); clearing site data resets it, and a stored reading id can 404 on interpret if the database is reseeded
@@ -360,6 +372,6 @@ npm --prefix client run stylelint
 - Add additional language support starting with Brazilian Portuguese
 - Add history and retrieval across all five sections (a list of past readings, not just the last one restored from `localStorage`)
 - Resolve historical timezone offsets for astrology charts
-- Add automated backend and frontend tests
+- Extend test coverage to Express routes (request mocking or `supertest`) and the stateful hooks (`jsdom` + `@testing-library/react`)
 - Build on the error/loading pass: a "Try again" affordance on a failed reading, and per-status messaging (503 vs 5xx vs offline)
 - Add user accounts if readings need to persist per user

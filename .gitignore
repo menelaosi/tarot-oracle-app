@@ -15,6 +15,9 @@ server/**/*.d.ts.map
 # ...except real source config files that happen to live in server/ and end in .js
 !server/eslint.config.js
 
+# Claude Code project instructions — personal, not shared
+CLAUDE.md
+
 # macOS
 .DS_Store
 
