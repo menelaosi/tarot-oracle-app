@@ -5,7 +5,7 @@
 // client/src/features/astrology/lib/{chartSummary,transitSummary}.ts.
 
 import { z } from 'zod';
-import { HttpError } from './http-error.js';
+import { badRequest, HttpError } from './http-error.js';
 
 const angleSummary = z.object({
   sign: z.string(),
@@ -81,14 +81,14 @@ export type TransitingPlacement = z.infer<typeof transitingPlacement>;
 export type TransitContact = z.infer<typeof transitContact>;
 export type TransitSummary = z.infer<typeof transitSummary>;
 
+function getError(summary: string): HttpError {
+  return badRequest(`A valid ${summary} summary is required.`);
+}
+
 export function assertChartSummary(value: unknown): asserts value is ChartSummary {
-  if (!chartSummary.safeParse(value).success) {
-    throw new HttpError(400, 'A valid chart summary is required.');
-  }
+  if (!chartSummary.safeParse(value).success) throw getError('chart');
 }
 
 export function assertTransitSummary(value: unknown): asserts value is TransitSummary {
-  if (!transitSummary.safeParse(value).success) {
-    throw new HttpError(400, 'A valid transit summary is required.');
-  }
+  if (!transitSummary.safeParse(value).success) throw getError('transit');
 }

@@ -19,13 +19,15 @@ export type GreekReadingRow = {
   interpretation: string | null;
 } & GreekLetterRow;
 
-const READINGS = 'greek_oracle_readings';
+const ORACLE = 'greek_oracle';
+const READINGS = `${ORACLE}_readings`;
+const LETTERS = `${ORACLE}_letters`;
 const LETTER_COLUMNS = 'letter, name, position, oracle, meaning, keywords';
 
 /** One random letter — the "draw a stone from the bag" step. */
 export const selectRandomLetter = `
   SELECT ${LETTER_COLUMNS}
-  FROM greek_oracle_letters
+  FROM ${LETTERS}
   ORDER BY random()
   LIMIT 1
 `;
@@ -37,7 +39,7 @@ export const selectGreekReading = `
   SELECT r.id, r.question, r.interpretation,
          ${withAlias(LETTER_COLUMNS, 'l')}
   FROM ${READINGS} r
-  JOIN greek_oracle_letters l ON l.letter = r.letter
+  JOIN ${LETTERS} l ON l.letter = r.letter
   WHERE r.id = $1
 `;
 

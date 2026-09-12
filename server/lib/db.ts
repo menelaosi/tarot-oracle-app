@@ -1,6 +1,6 @@
 import type { QueryResultRow } from 'pg';
 import { pool } from '../db/pool.js';
-import { HttpError } from './http-error.js';
+import { notFound } from './http-error.js';
 
 /**
  * Data-access helpers so routes never touch `pool` directly — one place to add
@@ -13,24 +13,24 @@ export async function run(text: string, params: unknown[] = []): Promise<void> {
   await pool.query(text, params);
 }
 
-/** Runs a query and 404s (with `notFound`) when it returns no rows. */
+/** Runs a query and 404s (with `notFoundMessage`) when it returns no rows. */
 export async function loadRows<T extends QueryResultRow>(
   text: string,
   params: unknown[],
-  notFound: string,
+  notFoundMessage: string,
 ): Promise<T[]> {
-  const result = await pool.query<T>(text, params);
-  if (!result.rows.length) throw new HttpError(404, notFound);
-  return result.rows;
+  const { rows } = await pool.query<T>(text, params);
+  if (!rows.length) throw notFound(notFoundMessage);
+  return rows;
 }
 
 /** Like `loadRows`, but returns just the first row. 404s when there are none. */
 export async function loadRow<T extends QueryResultRow>(
   text: string,
   params: unknown[],
-  notFound: string,
+  notFoundMessage: string,
 ): Promise<T> {
-  const [row] = await loadRows<T>(text, params, notFound);
-  if (!row) throw new HttpError(404, notFound);
+  const [row] = await loadRows<T>(text, params, notFoundMessage);
+  if (!row) throw notFound(notFoundMessage);
   return row;
 }

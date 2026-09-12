@@ -18,7 +18,7 @@ import {
 } from '../db/queries/astragalomancy.js';
 import { createSystemRules, generateReading } from '../lib/claude.js';
 import { loadRow, run } from '../lib/db.js';
-import { HttpError } from '../lib/http-error.js';
+import { serverError } from '../lib/http-error.js';
 import { handler } from '../lib/route.js';
 import { optionalText } from '../lib/validate.js';
 
@@ -136,7 +136,7 @@ async function resolveZodiacRefs(planet: string, sign: string, house: number) {
   const signRow = signResult.rows[0];
   const houseRow = houseResult.rows[0];
   if (!planetRow || !signRow || !houseRow) {
-    throw new HttpError(500, 'The rolled dice could not be resolved.');
+    throw serverError('The rolled dice could not be resolved.');
   }
 
   return {

@@ -233,4 +233,23 @@ CREATE TABLE IF NOT EXISTS astragalomancy_readings (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- ---------------------------------------------------------------------------
+-- API usage / cost tracking: one row per Claude call (see lib/claude.ts),
+-- used to enforce the daily spend cap (lib/usage.ts) and for cost visibility.
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS api_usage (
+    id BIGSERIAL PRIMARY KEY,
+    label TEXT NOT NULL,
+    model TEXT NOT NULL,
+    input_tokens INTEGER NOT NULL,
+    output_tokens INTEGER NOT NULL,
+    cache_creation_input_tokens INTEGER NOT NULL DEFAULT 0,
+    cache_read_input_tokens INTEGER NOT NULL DEFAULT 0,
+    estimated_cost_usd NUMERIC(10, 6) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS api_usage_created_at_idx ON api_usage (created_at);
+
 COMMIT;

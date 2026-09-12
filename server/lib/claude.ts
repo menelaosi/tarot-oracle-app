@@ -1,6 +1,7 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import { anthropic, claudeModel } from './anthropic-client.js';
-import { HttpError } from './http-error.js';
+import { serviceUnavailable } from './http-error.js';
+import { assertUnderBudget, normalizeUsage, recordUsage } from './usage.js';
 
 /** Plain text, or ordered blocks whose last entry can carry `cache_control`
  *  for prompt caching (astrology's reference digest). Typed from the SDK so it
@@ -9,7 +10,7 @@ export type SystemPrompt = NonNullable<Anthropic.MessageCreateParams['system']>;
 
 export function requireAnthropic(): NonNullable<typeof anthropic> {
   if (!anthropic) {
-    throw new HttpError(503, 'ANTHROPIC_API_KEY is not configured.');
+    throw serviceUnavailable('ANTHROPIC_API_KEY is not configured.');
   }
   return anthropic;
 }
@@ -29,9 +30,10 @@ export async function generateReading(
   label: string,
 ): Promise<string> {
   const client = requireAnthropic();
+  await assertUnderBudget();
 
   const messageContent = typeof prompt === 'string' ? prompt : JSON.stringify(prompt);
-  const message = await client.messages.create({
+  const { content, stop_reason, usage } = await client.messages.create({
     model: claudeModel,
     max_tokens: maxTokens,
     system,
@@ -40,21 +42,29 @@ export async function generateReading(
 
   const labelString = `${label} interpret`;
 
-  if (message.stop_reason === 'max_tokens') {
+  if (stop_reason === 'max_tokens')
     console.warn('Claude %s reached the max token limit.', labelString);
-  }
-  const { usage } = message;
+
+  const normalizedUsage = normalizeUsage(usage);
   console.info(
     '%s — cache write %d, cache read %d, input %d, output %d',
     labelString,
-    usage.cache_creation_input_tokens ?? 0,
-    usage.cache_read_input_tokens ?? 0,
-    usage.input_tokens,
-    usage.output_tokens,
+    normalizedUsage.cache_creation_input_tokens,
+    normalizedUsage.cache_read_input_tokens,
+    normalizedUsage.input_tokens,
+    normalizedUsage.output_tokens,
   );
 
-  return message.content
+  // Best-effort: a logging hiccup must never fail a reading Claude already
+  // generated and the user already paid for in tokens.
+  try {
+    await recordUsage(label, claudeModel, normalizedUsage);
+  } catch (error) {
+    console.error('Failed to record Claude usage for %s:', labelString, error);
+  }
+
+  return content
     .filter((block): block is Anthropic.TextBlock => block.type === 'text')
-    .map((block) => block.text)
+    .map(({ text }) => text)
     .join('\n');
 }

@@ -1,4 +1,4 @@
-import { HttpError } from './http-error.js';
+import { badRequest } from './http-error.js';
 
 /**
  * A trimmed optional string field: absent or blank → null; present but not a
@@ -6,6 +6,6 @@ import { HttpError } from './http-error.js';
  */
 export function optionalText(value: unknown, label: string = 'Value'): string | null {
   if (value == null) return null;
-  if (typeof value !== 'string') throw new HttpError(400, `${label} must be text.`);
+  if (typeof value !== 'string') throw badRequest(`${label} must be text.`);
   return value.trim() || null;
 }

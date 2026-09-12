@@ -12,7 +12,7 @@ import {
 } from '../db/queries/readings.js';
 import { createSystemRules, generateReading } from '../lib/claude.js';
 import { loadRows, run } from '../lib/db.js';
-import { HttpError } from '../lib/http-error.js';
+import { badRequest, notFound } from '../lib/http-error.js';
 import { handler } from '../lib/route.js';
 import { optionalText } from '../lib/validate.js';
 import { getSpreadInstructions, isSupportedSpread, spreads } from '../spreads.js';
@@ -23,14 +23,12 @@ const router = Router();
 // reading + its cards in one transaction, so a partial draw is never stored.
 router.post(
   '/draw',
-  handler(async (request, response) => {
-    const { spreadType = 'three_card', includeReversals = false } = request.body;
-    const question = optionalText(request.body.question, 'Question');
+  handler(async ({ body }, response) => {
+    const { spreadType = 'three_card', includeReversals = false } = body;
+    if (!isSupportedSpread(spreadType)) throw badRequest('Unsupported spread type.');
 
-    if (!isSupportedSpread(spreadType)) {
-      throw new HttpError(400, 'Unsupported spread type.');
-    }
-    const definition = spreads[spreadType];
+    const question = optionalText(body.question, 'Question');
+    const { positions, label: spreadLabel } = spreads[spreadType];
 
     const { reading, drawn } = await withTransaction(async (client) => {
       const {
@@ -39,7 +37,7 @@ router.post(
       if (!row) throw new Error('The reading was not created.');
 
       const { rows: picked } = await client.query<{ id: number }>(selectRandomCards, [
-        definition.positions.length,
+        positions.length,
       ]);
       // Independent inserts on the same client — fire them together so they pipeline
       // over the one connection instead of paying a round trip per card.
@@ -61,11 +59,11 @@ router.post(
     response.status(201).json({
       id: reading.id,
       spreadType,
-      spreadLabel: definition.label,
+      spreadLabel,
       question: reading.question,
       cards: drawn.map((card) => ({
         ...card,
-        positionLabel: definition.positions[card.position - 1],
+        positionLabel: positions[card.position - 1],
       })),
     });
   }, 'Could not draw the cards.'),
@@ -147,7 +145,7 @@ router.post(
     const { spread_type, question } = rows[0]!;
     const definition = isSupportedSpread(spread_type) ? spreads[spread_type] : null;
     if (!definition || rows.length !== definition.positions.length) {
-      throw new HttpError(404, 'Reading not found.');
+      throw notFound('Reading not found.');
     }
 
     const cards = rows.map((card) => toInterpretationContext(card, definition.positions));
