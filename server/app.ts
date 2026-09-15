@@ -4,6 +4,7 @@ import { HttpError } from './lib/http-error.js';
 import { claudeRateLimit } from './lib/rate-limit.js';
 import astragalomancyRouter from './routes/astragalomancy.js';
 import astrologyRouter from './routes/astrology.js';
+import authRouter from './routes/auth.js';
 import cardsRouter from './routes/cards.js';
 import greekOracleRouter from './routes/greekOracle.js';
 import readingsRouter from './routes/readings.js';
@@ -17,6 +18,7 @@ const READINGS = `${API}readings`;
 const ASTROLOGY = `${API}astrology`;
 const GREEK_ORACLE = `${API}greek-oracle`;
 const ASTRAGALOMANCY = `${API}astragalomancy`;
+const AUTH = `${API}auth`;
 const LLM = '/interpret';
 const LLM_BY_ID = `/:readingId${LLM}`;
 
@@ -29,7 +31,9 @@ const app = express();
 // no X-Forwarded-For header, Express falls back to the socket address.
 app.set('trust proxy', 1);
 
-app.use(cors({ origin: process.env.CLIENT_ORIGIN ?? 'http://localhost:5173' }));
+// credentials: true — the browser only sends/accepts the session cookie
+// cross-origin when both this and the client's `credentials: 'include'` agree.
+app.use(cors({ origin: process.env.CLIENT_ORIGIN ?? 'http://localhost:5173', credentials: true }));
 app.use(express.json());
 
 app.get(`${API}health`, (_request, response) => {
@@ -55,6 +59,7 @@ app.use(READINGS, readingsRouter);
 app.use(ASTROLOGY, astrologyRouter);
 app.use(GREEK_ORACLE, greekOracleRouter);
 app.use(ASTRAGALOMANCY, astragalomancyRouter);
+app.use(AUTH, authRouter);
 
 /** Every error response's one shape — `{ "error": "..." }` — pinned in one place. */
 function sendError(response: Response, status: number, message: string): void {

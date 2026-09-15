@@ -9,3 +9,13 @@ export function optionalText(value: unknown, label: string = 'Value'): string | 
   if (typeof value !== 'string') throw badRequest(`${label} must be text.`);
   return value.trim() || null;
 }
+
+/**
+ * A required, trimmed string field: absent, blank, or not a string → 400.
+ * Reuses optionalText's own type/trim check rather than duplicating it.
+ */
+export function requireText(value: unknown, label: string = 'Value'): string {
+  const text = optionalText(value, label);
+  if (!text) throw badRequest(`${label} is required.`);
+  return text;
+}

@@ -4,6 +4,8 @@ import './App.css';
 import ErrorBoundary from './components/ErrorBoundary';
 import Header from './components/Header';
 import TabNav from './components/TabNav';
+import AccountControl from './features/auth/AccountControl';
+import { useSession } from './features/auth/useSession';
 
 // Each feature is its own chunk — the astrology ephemeris only loads on /astrology.
 const TarotView = lazy(() => import('./features/tarot/TarotView'));
@@ -41,10 +43,15 @@ const HEADERS: Record<string, { title: string; intro: string }> = {
 function App() {
   const { pathname } = useLocation();
   const header = HEADERS[pathname] ?? HEADERS['/tarot'];
+  const { state, onSignedIn, onSignOut } = useSession();
 
   return (
     <main className="app-shell">
-      <Header title={header.title} intro={header.intro} />
+      <Header
+        title={header.title}
+        intro={header.intro}
+        accessory={<AccountControl session={state} onSignedIn={onSignedIn} onSignOut={onSignOut} />}
+      />
       <TabNav />
 
       <ErrorBoundary key={pathname}>

@@ -133,19 +133,56 @@ h3 {
   font-size: 13px;
 }
 
+/* Now a <button> (see AccountControl) — background/padding neutralize the
+   native button chrome so it still looks exactly like the plain decorative
+   mark it used to be; font/cursor are already handled by the global button
+   reset in index.css. */
 .moon-mark {
   display: grid;
   place-items: center;
   width: 72px;
   height: 72px;
   flex: 0 0 auto;
+  padding: 0;
   color: var(--accent);
+  background: none;
   border: 1px solid var(--accent);
   border-radius: 50%;
   font-family: Georgia, serif;
   font-size: 42px;
   transform: rotate(-22deg);
   box-shadow: 0 0 28px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.account-control {
+  position: relative;
+}
+
+/* The moon-mark's popover — same floating-panel language as .detail-panel
+   (tarot cards / Greek oracle), but right-aligned since the moon sits at the
+   masthead's right edge and a left-aligned panel would overflow the viewport. */
+.account-popover {
+  position: absolute;
+  z-index: 5;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 200px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  box-shadow: 0 16px 36px color-mix(in srgb, var(--shadow-popup) 55%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.account-popover .error-message {
+  margin-top: 0; /* .error-message's own 24px top margin assumes a full content column, not a compact popover */
+  width: 100%;
 }
 
 .reading-column {

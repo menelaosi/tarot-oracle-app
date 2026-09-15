@@ -252,4 +252,38 @@ CREATE TABLE IF NOT EXISTS api_usage (
 
 CREATE INDEX IF NOT EXISTS api_usage_created_at_idx ON api_usage (created_at);
 
+-- ---------------------------------------------------------------------------
+-- User accounts and sessions. Provider-agnostic: auth_provider/auth_provider_id
+-- (unique together) so Apple/GitHub/email-password can be added later without
+-- a redesign. Google is the only provider wired up today (see lib/google-auth.ts).
+-- Sessions are opaque, revocable server state — the cookie carries a signed
+-- reference to a row here, never a JWT of our own.
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    auth_provider TEXT NOT NULL,
+    auth_provider_id TEXT NOT NULL,
+    email TEXT NOT NULL,
+    display_name TEXT,
+    avatar_url TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (auth_provider, auth_provider_id)
+);
+
+-- Supports future account-linking / lookup-by-email; not unique on its own —
+-- the same email could theoretically arrive via two different providers.
+CREATE INDEX IF NOT EXISTS users_email_idx ON users (email);
+
+CREATE TABLE IF NOT EXISTS sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMPTZ NOT NULL,
+    last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS sessions_user_id_idx ON sessions (user_id);
+CREATE INDEX IF NOT EXISTS sessions_expires_at_idx ON sessions (expires_at);
+
 COMMIT;

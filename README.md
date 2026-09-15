@@ -10,6 +10,8 @@ A multi-oracle divination app built with React, TypeScript, Express, PostgreSQL,
 
 Every system's reference data — tarot card meanings and correspondences, astrology signs/planets/houses/aspects/dignities, the Greek oracle letters, the traditional three-dice meanings — lives in PostgreSQL and is supplied to Claude as grounding context. Claude interprets only from that data and is instructed to address the reader directly in the second person rather than writing about them in the third person. View state (the drawn spread, the cast chart, each reading) is retained across tab switches and persisted to `localStorage`, so it survives a page reload too.
 
+Sign-in is optional — the app is fully usable anonymously. Signing in with Google (see [Accounts](#accounts) below) doesn't change any reading behavior yet; it's the first piece of infrastructure a later pass will build cross-device history and personalization on top of.
+
 ## Reusable astrology library
 
 The Astrology and Transits sections use my open-source React library [@menelaos/react-natal-chart](https://github.com/menelaosi/react-natal-chart), published as an npm package: [@menelaos/react-natal-chart](https://www.npmjs.com/package/@menelaos/react-natal-chart).
@@ -58,6 +60,12 @@ This separation keeps the astrology visualization and chart-processing logic reu
 - **Zodiac**: three d12 drawn from the astrology reference tables — a planet (the situation), a sign (the emotions), and a house (where the impact lands); hover a die for its keywords and associations
 - Claude reads the roll grounded only in the supplied meaning / reference data
 
+### Accounts
+
+- Sign in with Google (Google Identity Services — a client-side button, no server redirect flow) via the moon mark in the masthead, which doubles as the account entry point: click it to open a popover with the sign-in button (signed out) or your name and a sign-out control (signed in)
+- Sessions are opaque, revocable Postgres rows referenced by a signed, httpOnly cookie — not a JWT — so signing out (or a future "sign out everywhere") is just deleting rows, and the cookie itself can't be read or forged client-side
+- Schema is provider-agnostic (`auth_provider` / `auth_provider_id`, not a Google-specific column) so Apple/GitHub/email-password could be added later without a redesign, even though only Google is wired up today
+
 ### Shared
 
 - Database-grounded, personally-addressed interpretations rendered from Markdown with `react-markdown`
@@ -73,27 +81,34 @@ server/   Express and TypeScript backend
 
 Important files:
 
-- `server/schema.sql`: PostgreSQL table definitions — tarot (`cards`, `readings`, correspondence tables); astrology reference tables + `astrology_readings` + `astrology_transit_readings`; `greek_oracle_letters` + `greek_oracle_readings`; `astragalomancy_meanings` + `astragalomancy_readings`
+- `server/schema.sql`: PostgreSQL table definitions — tarot (`cards`, `readings`, correspondence tables); astrology reference tables + `astrology_readings` + `astrology_transit_readings`; `greek_oracle_letters` + `greek_oracle_readings`; `astragalomancy_meanings` + `astragalomancy_readings`; `api_usage` (Claude cost tracking); `users` + `sessions` (accounts)
 - `server/seed.sql`: tarot cards, meanings, and correspondences; astrology reference data (transcribed from `Astrology.md`); the 24 Greek oracle letters; the 16 three-dice meanings
 - `server/index.ts`: process entrypoint — loads env, then starts the Express app
 - `server/app.ts`: Express app assembly — middleware, the per-resource routers, centralized error handling
-- `server/routes/`: one thin file per resource — `cards.ts`, `readings.ts` (`draw` + `interpret`), `astrology.ts` (`interpret` + `transits`), `greekOracle.ts` (`draw` + `interpret`), `astragalomancy.ts` (`roll` + `interpret`). Handlers are `handler(async (req, res) => { … }, fallbackMessage)` and reach for the shared `lib/` helpers below rather than touching `pool` or the Anthropic SDK directly
+- `server/routes/`: one thin file per resource — `cards.ts`, `readings.ts` (`draw` + `interpret`), `astrology.ts` (`interpret` + `transits`), `greekOracle.ts` (`draw` + `interpret`), `astragalomancy.ts` (`roll` + `interpret`), `auth.ts` (`google` + `logout` + `me`). Handlers are `handler(async (req, res) => { … }, fallbackMessage)` and reach for the shared `lib/` helpers below rather than touching `pool` or the Anthropic SDK directly
 - `server/lib/route.ts`: `handler()` — wraps an async route so any throw is normalized (`HttpError` passes through, anything else becomes a 500 with `fallbackMessage`) and forwarded to the error middleware. No per-handler `try/catch`
 - `server/lib/db.ts`: `run()` (fire-and-forget write), `loadRow()` / `loadRows()` (query + 404 when empty) — the single choke point for Postgres access from routes
-- `server/lib/claude.ts`: `generateReading()` — one grounded Claude call (key guard, request, truncation warning, usage/cache log, text extraction); `createSystemRules()` appends the shared voice + no-claims lines to a rule list
-- `server/lib/validate.ts`: `optionalText()` — the optional `question` body field (absent/blank → null, non-string → 400)
+- `server/lib/claude.ts`: `generateReading()` — one grounded Claude call (key guard, spend-cap guard, request, truncation warning, usage/cache log + cost recording, text extraction); `createSystemRules()` appends the shared voice + no-claims lines to a rule list
+- `server/lib/usage.ts`: Claude cost tracking — `estimateCostUsd()` (pure, priced against `MODEL_PRICING`), `recordUsage()` / `getRecentSpendUsd()` (the `api_usage` table), `assertUnderBudget()` (the `DAILY_SPEND_CAP_USD` gate `generateReading()` calls)
+- `server/lib/rate-limit.ts`: `claudeRateLimit` — the 5-requests/hour/IP limiter `app.ts` applies to the Claude-costing routes only
+- `server/lib/validate.ts`: `optionalText()` (absent/blank → null, non-string → 400) and `requireText()` (also 400s on blank) — the `question` body field and the Google `credential` field respectively
 - `server/lib/astrology-schema.ts`: zod schemas for the two payloads the astrology routes accept — the single source of truth for their shape (types via `z.infer`), with `assertChartSummary()` / `assertTransitSummary()` guards that 400 on a bad shape
 - `server/lib/astrology-prompt.ts`: builds the astrology Claude request — the rule list, the per-request chart prompt, and the process-memoised reference digest that forms the cached system prefix; `generateAstrologyReading()` makes the call
-- `server/lib/http-error.ts`: `HttpError` + `toHttpError`, used by the helpers above and caught by `app.ts`'s error middleware
+- `server/lib/http-error.ts`: `HttpError` + `toHttpError`, plus one named factory per status this app throws deliberately (`badRequest`, `unauthorized`, `notFound`, `serverError`, `serviceUnavailable`) so a throw site reads as its HTTP semantics rather than a bare code
+- `server/lib/require-env.ts`: `requireEnv()` — reads a required env var, throwing at process boot (not on first request) if it's unset; used by `google-auth.ts` and `session.ts`
+- `server/lib/google-auth.ts`: `verifyGoogleIdToken()` — the one place `google-auth-library` is imported; verifies a Google ID token's signature/issuer/expiry/audience and extracts the identity claims this app needs
+- `server/lib/session.ts`: cookie signing/verification (HMAC, `node:crypto`), session row CRUD, and `requireUser` — an Express middleware for future routes that should require sign-in (nothing uses it yet)
+- `server/lib/auth.ts`: `findOrCreateGoogleUser()` — provider-agnostic sign-in logic; a second provider later adds a sibling function, not a rewrite
 - `server/lib/anthropic-client.ts`: the raw Anthropic client + model id (`lib/claude.ts` wraps it)
 - `server/db/pool.ts`: the connection pool and `withTransaction(work)` — BEGIN → COMMIT, or ROLLBACK + rethrow on any throw, always releasing the client (used by `readings.ts` `/draw`)
-- `server/db/queries/`: SQL strings, row types, and row-to-response mapping, one file per resource; `astrology.ts` also holds `buildReferenceDigest()` (rendered and memoised by `lib/astrology-prompt.ts`)
+- `server/db/queries/`: SQL strings, row types, and row-to-response mapping, one file per resource; `astrology.ts` also holds `buildReferenceDigest()` (rendered and memoised by `lib/astrology-prompt.ts`); `usage.ts`, `users.ts`, and `sessions.ts` back the cost-tracking and accounts features respectively
 - `server/spreads.ts`: the spread registry (label, position labels, prompt guidance) — the single place to add a spread; the API, client picker, draw count, and prompt instructions all derive from it
 - `client/src/App.tsx`: app shell — masthead, tab nav, and the lazily-loaded feature route for each section
 - `client/src/features/<feature>/`: one folder per section (`tarot`, `astrology`, `greek-oracle`, `astragalomancy`), each with `…View.tsx` (state + API calls), `api.ts`, `types.ts`, a `.css` file, and a `components/` folder.
+- `client/src/features/auth/`: `api.ts` (`fetchSessionUser` / `signInWithGoogle` / `signOut`), `useSession.ts` (the `loading` / `signed-out` / `signed-in` state, checked via `GET /api/auth/me` on mount — deliberately not backed by `useRetainedState`, since session truth lives in the server-side cookie), `AccountControl.tsx` (the moon-mark trigger + popover; see [Accounts](#accounts))
 - `@menelaos/react-natal-chart`: reusable open-source React library used by both the Astrology and Transits sections. The library owns the SVG chart rendering, transit bi-wheel rendering, chart/transit summaries, transit calculations and ranking, and reusable astrology geometry/domain helpers using `circular-natal-js`
-- `client/src/components/`: shared UI — `WorkspaceLayout` (controls + two-column workspace + the Markdown reading; shows a "Consulting the oracle…" placeholder while a reading generates and a dismissible error line), `ErrorBoundary` (catches a render-time throw in a feature view — keyed on the route in `App.tsx`), `ControlsSection`, `ReadingPanel`, `DetailOverlay` (the hover/focus details panel used by tarot cards, the Greek letter, and the zodiac dice), `ButtonComponent`, `QuestionInput`, `Header`, `TabNav`
-- `client/src/lib/http.ts`: the API transport — `getJson` / `postJson` with a 90 s abort timeout; a non-2xx becomes an `ApiError` carrying the HTTP status; `messageFrom(err)` turns any caught value into a display string (server message, a connection hint for network failures, or a fallback)
+- `client/src/components/`: shared UI — `WorkspaceLayout` (controls + two-column workspace + the Markdown reading; shows a "Consulting the oracle…" placeholder while a reading generates and a dismissible error line), `ErrorBoundary` (catches a render-time throw in a feature view — keyed on the route in `App.tsx`), `ControlsSection`, `ReadingPanel`, `DetailOverlay` (the hover/focus details panel used by tarot cards, the Greek letter, and the zodiac dice), `ButtonComponent`, `QuestionInput`, `Header` (masthead; takes an optional `accessory` slot — `AccountControl` today), `TabNav`
+- `client/src/lib/http.ts`: the API transport — `getJson` / `postJson` with a 90 s abort timeout and `credentials: 'include'` (carries the session cookie); a non-2xx becomes an `ApiError` carrying the HTTP status; `messageFrom(err)` turns any caught value into a display string (server message, a connection hint for network failures, or a fallback)
 - `client/src/hooks/`: `useRetainedState` (a `useState` that survives tab switches and page reloads, backed by `localStorage` under a versioned `tarot-oracle:v1:` prefix; pass `{ persist: false }` to keep a value tab-switch-only), `useBirthChart` (the birth date/time/place shared by the Astrology and Transits tabs — each tab casts its own `Horoscope` from them), `useError` (the one error line every feature view shows — `clearError` for the dismiss control and action resets, `failWith(cause)` for a caught value, `setError` for literal validation copy)
 - `client/public/tarot/`: tarot card images
 
@@ -122,10 +137,10 @@ router.post(
 );
 ```
 
-- **`handler(fn, fallbackMessage)`** owns error handling — no `try/catch` in routes. A thrown `HttpError` keeps its status; anything else becomes a 500 with `fallbackMessage`.
-- **`loadRow` / `loadRows` / `run`** are the only way routes touch Postgres (`db/pool.ts`'s `withTransaction` for the one multi-statement write, in `readings.ts` `/draw`). A read that legitimately returns zero rows — e.g. astrology's "already generated?" check — still uses `pool.query` directly.
-- **`generateReading(system, prompt, maxTokens, label)`** is the one Claude call: it guards `ANTHROPIC_API_KEY` (503), sends the request, logs token/cache usage, warns on truncation, and returns the concatenated text. `createSystemRules(rules)` joins a rule list and appends the shared second-person-voice and no-claims lines.
-- **`optionalText(value, label)`** validates the optional `question` field.
+- **`handler(fn, fallbackMessage)`** owns error handling — no `try/catch` in routes. A thrown `HttpError` keeps its status; anything else becomes a 500 with `fallbackMessage`. Routes throw via a named factory (`badRequest(msg)`, `unauthorized(msg)`, `notFound(msg)`, `serverError(msg)`, `serviceUnavailable(msg)`) rather than `new HttpError(status, msg)` directly, so a throw site reads as its HTTP semantics.
+- **`loadRow` / `loadRows` / `run`** are the only way routes touch Postgres (`db/pool.ts`'s `withTransaction` for the one multi-statement write, in `readings.ts` `/draw`). A read that legitimately returns zero rows — e.g. astrology's "already generated?" check, or a missing/expired session — still uses `pool.query` directly.
+- **`generateReading(system, prompt, maxTokens, label)`** is the one Claude call: it guards `ANTHROPIC_API_KEY` (503) and the daily spend cap (503), sends the request, logs token/cache usage and records the estimated cost, warns on truncation, and returns the concatenated text. `createSystemRules(rules)` joins a rule list and appends the shared second-person-voice and no-claims lines.
+- **`optionalText(value, label)`** / **`requireText(value, label)`** validate an optional or required string body field (the `question` field; the Google `credential` field).
 
 ## Requirements
 
@@ -133,6 +148,7 @@ router.post(
 - PostgreSQL
 - A local PostgreSQL database named `tarot_app`
 - An Anthropic API key for interpretation generation
+- A Google OAuth client id (Google Cloud Console → APIs & Services → Credentials → OAuth client ID → Web application, with `http://localhost:5173` added under Authorized JavaScript origins for local dev). The server won't start without `GOOGLE_CLIENT_ID` set — see [Setup](#setup)
 
 ## Setup
 
@@ -151,7 +167,7 @@ Create the local environment file:
 cp .env.example .env
 ```
 
-Edit `.env` and add your Anthropic API key:
+Edit `.env` and fill in the required values:
 
 ```env
 ANTHROPIC_API_KEY=your_api_key_here
@@ -160,9 +176,24 @@ PGDATABASE=tarot_app
 PGUSER=your_postgres_user
 PORT=3001
 CLIENT_ORIGIN=http://localhost:5173
+DAILY_SPEND_CAP_USD=5
+GOOGLE_CLIENT_ID=your_google_oauth_client_id
+SESSION_COOKIE_SECRET=a_random_high_entropy_string
 ```
 
-`DATABASE_URL` is also supported as an alternative to `PGDATABASE`/`PGUSER` (e.g. for a hosted Postgres instance) — set it and the individual `PG*` vars are ignored.
+`DATABASE_URL` is also supported as an alternative to `PGDATABASE`/`PGUSER` (e.g. for a hosted Postgres instance) — set it and the individual `PG*` vars are ignored. `DAILY_SPEND_CAP_USD` defaults to `5` if unset — see [Cost & Abuse Controls](#cost--abuse-controls). `GOOGLE_CLIENT_ID` and `SESSION_COOKIE_SECRET` have no default — the server throws at startup if either is missing. Generate a `SESSION_COOKIE_SECRET` with `openssl rand -hex 32`; it's this app's own secret, unrelated to Google.
+
+The client needs its own env file too, for the Google sign-in button:
+
+```bash
+cp client/.env.example client/.env
+```
+
+```env
+VITE_GOOGLE_CLIENT_ID=your_google_oauth_client_id
+```
+
+Same client id as the server's `GOOGLE_CLIENT_ID` — a client id is meant to be public (unlike a client secret, which this flow never needs at all), so using the same value in both files is expected, not a leak.
 
 Never commit `.env` or share the API key.
 
@@ -208,7 +239,7 @@ The Vite development server proxies `/api` requests to the Express server at `ht
 
 ## API Routes
 
-All error responses are `{ "error": "..." }` with an appropriate status code (400 for invalid input, 404 for missing resources, 503 if `ANTHROPIC_API_KEY` isn't configured, 500 for unexpected failures).
+All error responses are `{ "error": "..." }` with an appropriate status code (400 for invalid input, 404 for missing resources, 429 if the per-IP rate limit on Claude-costing routes is exceeded, 503 if `ANTHROPIC_API_KEY` isn't configured or the daily spend cap has been reached, 500 for unexpected failures).
 
 ### Health check
 
@@ -306,6 +337,30 @@ POST /api/astragalomancy/:readingId/interpret
 
 Re-resolves the stored roll and asks Claude to read it in the second person — grounded only in the supplied meaning (standard) or the planet/sign/house keywords and associations (zodiac: planet = the situation, sign = the emotions, house = where the impact lands). Persists the result and returns `{ "interpretation": "..." }`. Requires `ANTHROPIC_API_KEY`.
 
+### Sign in with Google
+
+```text
+POST /api/auth/google
+```
+
+Body: `{ "credential": "..." }` — the signed ID token Google's own sign-in button hands the client directly (Google Identity Services; no server-side OAuth redirect). Verifies the token, finds-or-creates the account (matched on `auth_provider` + `auth_provider_id`, upserting the email/name/avatar in case they changed), starts a session, and sets the session cookie. Returns `{ "user": { id, email, displayName, avatarUrl } }`.
+
+### Sign out
+
+```text
+POST /api/auth/logout
+```
+
+Idempotent — clears the session row and cookie whether or not there was a live session. Returns `{ "ok": true }`.
+
+### Current session
+
+```text
+GET /api/auth/me
+```
+
+Returns `{ "user": UserDto | null }` — always `200`, never an error status, even when signed out. This is a status check the client calls unconditionally on every load, so "no session" is a normal result, not a failure.
+
 Formatting is owned entirely by **Prettier** (`.prettierrc.json` at the repo root, shared by both packages); ESLint (`typescript-eslint` + the React Hooks rules) checks code quality only, with `eslint-config-prettier` switching off anything that would overlap. `format` rewrites, `format:check` just reports.
 
 The root `package.json` fans the common tasks out to both packages:
@@ -357,21 +412,34 @@ Run Stylelint for CSS (add `stylelint:fix` to auto-fix):
 npm --prefix client run stylelint
 ```
 
+## Cost & Abuse Controls
+
+- **Rate limit**: 5 requests/hour per IP on the Claude-costing routes only (`/api/readings/:id/interpret`, `/api/astrology/interpret`, `/api/astrology/transits`, `/api/greek-oracle/:id/interpret`, `/api/astragalomancy/:id/interpret`) — `429` past that. Free reads and draws (`/api/cards/:id`, `/api/spreads`, `/api/health`, and the `/draw` / `/roll` endpoints) are never limited.
+- **Daily spend cap**: `DAILY_SPEND_CAP_USD` (default `5`), tracked in the `api_usage` table from each call's real token usage priced against Anthropic's published rates. Once the trailing 24h of estimated spend is at or over the cap, every Claude-costing route `503`s with a friendly message instead of calling Claude. This is a shared, global budget — there are no accounts-scoped quotas yet.
+- Both are intentionally conservative starting points, adjustable without a code change (`DAILY_SPEND_CAP_USD` env var; the request limit is a constant in `server/lib/rate-limit.ts`).
+- **Also set a hard spend limit in the Anthropic Console.** The in-app cap above is a best-effort, soft guardrail (see Current Limitations) — the Console's own limit is the real backstop against a genuine runaway bill.
+
 ## Current Limitations
 
 - Claude interpretation requires an Anthropic API key and available API credits
-- Automated tests (Vitest, `npm run test`) cover the pure domain/library logic in both packages — validation, the SQL/prompt/reference-digest builders, the spread registry, the API transport, geocoding/geolocation. Express route handlers and the stateful React hooks (`useRetainedState`, `useError`, `useBirthChart`) don't have coverage yet: the routes would need request mocking or `supertest`, and the hooks need a real DOM test environment (`jsdom` + `@testing-library/react`) to exercise state updates, which `vitest`'s current no-DOM setup doesn't provide
-- Readings, charts, transit readings, letter draws, and dice rolls are all stored, but there is not yet a history screen — a reload restores only the most recent view per section (from `localStorage`), not a browsable list
+- Automated tests (Vitest, `npm run test`) cover the pure domain/library logic in both packages — validation, the SQL/prompt/reference-digest builders, the spread registry, the API transport, geocoding/geolocation, cost estimation, and cookie signing/session lookup (mocked Postgres). Express route handlers and the stateful React hooks (`useRetainedState`, `useError`, `useBirthChart`, `useSession`) don't have coverage yet: the routes would need request mocking or `supertest`, and the hooks need a real DOM test environment (`jsdom` + `@testing-library/react`) to exercise state updates, which `vitest`'s current no-DOM setup doesn't provide
+- Readings, charts, transit readings, letter draws, and dice rolls are all stored, but there is not yet a history screen — a reload restores only the most recent view per section (from `localStorage`), not a browsable list. Signing in doesn't change this yet either — no reading table has a `user_id` column, so nothing is actually attributed to an account
 - Astrology charts use the entered wall-clock birth time as-is; historical timezone / DST offsets are not resolved from the coordinates
 - Retained view state lives in the browser's `localStorage` (per-device, not synced); clearing site data resets it, and a stored reading id can 404 on interpret if the database is reseeded
+- The rate limiter's in-memory store resets on restart and isn't shared across instances if this app is ever horizontally scaled — each instance would enforce its own separate 5/hour bucket
+- The daily spend cap is a read-then-write check, not atomic across concurrent requests, so a burst of simultaneous requests can push spend slightly past the cap before their usage rows land — an accepted, small gap given per-request costs are a few cents at most; the Anthropic Console's own spend limit is the real backstop
+- Sign-in is Google-only; no other providers or an email/password fallback yet (the schema is provider-agnostic, so adding one doesn't need a redesign)
 
 ## Next Steps
 
-- Add additional spreads including custom spreads
+- Wire a nullable `user_id` onto the existing reading tables now that accounts exist, so a signed-in reading is actually attributed to someone
+- Add a numerology feature — needs a full name (at birth) and birth date, neither collected yet (`users` only has email/display name/avatar today); once added to the profile, the actual numbers reduce with trivial arithmetic (unlike astrology's ephemeris math), so most of the remaining work is reference content, not calculation
+- Add additional spreads including custom spreads (planned after accounts, so a custom spread has an owner)
 - Add more oracle decks and divination systems
 - Add additional language support starting with Brazilian Portuguese
-- Add history and retrieval across all five sections (a list of past readings, not just the last one restored from `localStorage`)
+- Add history and retrieval across all five sections (a list of past readings, not just the last one restored from `localStorage`) — depends on the `user_id` wiring above
 - Resolve historical timezone offsets for astrology charts
 - Extend test coverage to Express routes (request mocking or `supertest`) and the stateful hooks (`jsdom` + `@testing-library/react`)
+- Move the rate limiter to a shared store (e.g. Redis) if the app is horizontally scaled
+- Add a second sign-in provider or an email/password fallback if Google-only proves too limiting
 - Build on the error/loading pass: a "Try again" affordance on a failed reading, and per-status messaging (503 vs 5xx vs offline)
-- Add user accounts if readings need to persist per user

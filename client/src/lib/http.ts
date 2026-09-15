@@ -66,18 +66,16 @@ export async function postJson<T>(
   return unwrap<T>(await send(url, init), fallbackError);
 }
 
-const NETWORK_HINTS = ['failed to fetch', 'networkerror', 'load failed', 'network request failed'];
+const NETWORK_ERROR_PATTERN = /failed to fetch|networkerror|load failed|network request failed/i;
 
 /** A display string for a caught unknown — server message, connection hint, or fallback. */
 export function messageFrom(error: unknown, fallback = 'Something went wrong.'): string {
-  if (error instanceof ApiError) return error.message;
-  if (error instanceof Error) {
-    if (NETWORK_HINTS.some((hint) => error.message.toLowerCase().includes(hint))) {
-      return 'Could not reach the server — check your connection and try again.';
-    }
-    return error.message;
-  }
-  return fallback;
+  if (!(error instanceof Error)) return fallback;
+
+  const { message } = error;
+  return !(error instanceof ApiError) && NETWORK_ERROR_PATTERN.test(message)
+    ? 'Could not reach the server — check your connection and try again.'
+    : message;
 }
 
 export async function getInterpretationResponse(url: string, body?: unknown): Promise<string> {
