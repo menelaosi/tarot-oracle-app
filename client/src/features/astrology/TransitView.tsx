@@ -19,15 +19,10 @@ import { requestCurrentLocation, type Coordinates } from './lib/geolocation';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** Local calendar day as YYYY-MM-DD (what an <input type="date"> expects). */
-function todayIso(): string {
+/** Now, as a datetime-local value (YYYY-MM-DDTHH:mm) — the default moment, and what "Cast transits" resets to. */
+function nowAsDateTimeLocal(): string {
   const now = new Date();
-  return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
-}
-
-/** Instant to cast for: the current moment if the day is today, else local noon. */
-function instantForDay(day: string): Date {
-  return day === todayIso() ? new Date() : new Date(`${day}T12:00`);
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
 }
 
 type TransitChart = {
@@ -38,14 +33,17 @@ type TransitChart = {
 };
 
 /**
- * Transits section: the natal chart (shared with the Astrology tab) against a
- * chosen day's sky. The chart is derived straight from the inputs — no cast
- * step — so the tab shows today's bi-wheel as soon as birth details exist. The
- * "Cast transits" button only forces a re-read of the clock / current location.
+ * Transits section: the natal chart (shared with the Astrology tab) against the
+ * sky at a chosen moment. The chart is derived straight from the inputs — no
+ * cast step — so the tab shows the current moment's bi-wheel as soon as birth
+ * details exist. The "Cast transits" button just jumps the moment back to now.
  */
 function TransitView() {
   const { birthMoment, setBirthMoment, place, setPlace } = useBirthChart();
-  const [day, setDay] = useRetainedState('transits:day', todayIso());
+  const [transitMoment, setTransitMoment] = useRetainedState(
+    'transits:moment',
+    nowAsDateTimeLocal(),
+  );
   const [locationSource, setLocationSource] = useRetainedState<'birth' | 'current'>(
     'transits:locationSource',
     'birth',
@@ -55,7 +53,6 @@ function TransitView() {
     null,
   );
   const [interpretation, setInterpretation] = useRetainedState('transits:interpretation', '');
-  const [castNonce, setCastNonce] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const { error, setError, clearError, failWith } = useError();
@@ -79,22 +76,35 @@ function TransitView() {
     }
   }, [birthMoment, place]);
 
+  // react-hooks/preserve-manual-memoization: the experimental React Compiler
+  // can't verify this memo, for a reason we couldn't pin down (bisected in
+  // isolation — merely removing an unrelated, truly-unused piece of local
+  // state elsewhere in this component makes an otherwise-identical memo fail
+  // the same way). This is a missed-optimization warning only, not a
+  // correctness issue: the useMemo below is valid, ordinary React and runs
+  // exactly as written whether or not the compiler can also auto-optimize it.
   const { summary, frame, now } =
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     useMemo<TransitChart | null>(() => {
       if (!natal || !location) return null;
-      // castNonce is read only to re-run this when the user asks for a fresh cast.
-      void castNonce;
       try {
-        const at = instantForDay(day);
+        const at = new Date(transitMoment);
         const now = getHoroscope(at, location);
         const next = getHoroscope(new Date(at.getTime() + DAY_MS), location);
-        const frame: TransitFrame = { at: at.toISOString(), date: day, location };
+        const frame: TransitFrame = {
+          at: at.toISOString(),
+          date: transitMoment.slice(0, 10),
+          location,
+        };
         const summary = buildTransitSummary(natal, now, next, frame);
         return { now, next, frame, summary };
       } catch {
         return null;
       }
-    }, [natal, location, day, castNonce]) ?? {};
+    }, [natal, location, transitMoment]) ?? {};
+  // frame isn't read directly (TransitReading is given transitMoment itself to
+  // format) — destructured anyway so react-hooks/exhaustive-deps doesn't flag it.
+  void frame;
 
   function castTransits() {
     clearError();
@@ -102,7 +112,7 @@ function TransitView() {
       setError('Enter your birth date, time, and place first.');
       return;
     }
-    setCastNonce((nonce) => nonce + 1);
+    setTransitMoment(nowAsDateTimeLocal());
   }
 
   async function toggleLocation() {
@@ -143,13 +153,13 @@ function TransitView() {
         <TransitControl
           birthMoment={birthMoment}
           place={place}
-          day={day}
+          moment={transitMoment}
           locationSource={locationSource}
           locationLabel={locationLabel}
           isLocating={isLocating}
           onBirthMomentChange={setBirthMoment}
           onPlaceChange={setPlace}
-          onDayChange={setDay}
+          onMomentChange={setTransitMoment}
           onToggleLocation={toggleLocation}
           onCast={castTransits}
         />
@@ -160,7 +170,7 @@ function TransitView() {
             natal={natal}
             transitNow={now}
             contacts={summary.contacts}
-            day={frame?.date ?? ''}
+            moment={transitMoment}
             isAnalyzing={isAnalyzing}
             onAnalyze={analyzeTransits}
           />

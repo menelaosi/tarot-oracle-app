@@ -7,32 +7,32 @@ import DateInput from './DateInput';
 type TransitControlProps = {
   birthMoment: string;
   place: Place | null;
-  day: string; // Day to read transits for, as a YYYY-MM-DD string.
+  moment: string; // Moment to read transits for, as a datetime-local string.
   locationSource: 'birth' | 'current'; // Which coordinates the transit chart uses.
   locationLabel: string; // Label for the location currently in effect.
   isLocating: boolean;
   onBirthMomentChange: (value: string) => void;
   onPlaceChange: (value: Place | null) => void;
-  onDayChange: (value: string) => void;
+  onMomentChange: (value: string) => void;
   onToggleLocation: () => void; // Switch between birthplace and the browser's current location.
   onCast: () => void;
 };
 
 /**
  * Birth details (shared with the Astrology tab) plus the two transit-only
- * inputs: which day to read, and whether to anchor the sky to the birthplace or
- * to where the user is right now.
+ * inputs: which moment to read, and whether to anchor the sky to the birthplace
+ * or to where the user is right now.
  */
 function TransitControl({
   birthMoment,
   place,
-  day,
+  moment,
   locationSource,
   locationLabel,
   isLocating,
   onBirthMomentChange,
   onPlaceChange,
-  onDayChange,
+  onMomentChange,
   onToggleLocation,
   onCast,
 }: TransitControlProps) {
@@ -52,7 +52,12 @@ function TransitControl({
         onPlaceChange={onPlaceChange}
       />
 
-      <DateInput date={day} label="Day" onDateChange={onDayChange} />
+      <DateInput
+        date={moment}
+        label="Transit"
+        type="datetime-local"
+        onDateChange={onMomentChange}
+      />
 
       <label>
         <span>Transit location</span>
@@ -61,7 +66,7 @@ function TransitControl({
           <ButtonComponent
             className="link-button"
             onClick={onToggleLocation}
-            buttonText={locationSource === 'current' ? 'Use birthplace' : 'Use my location'}
+            buttonText={`Use ${locationSource === 'current' ? 'birthplace' : 'my location'}`}
             loadingButtonText="Locating..."
             isLoading={isLocating}
             showIcon={false}

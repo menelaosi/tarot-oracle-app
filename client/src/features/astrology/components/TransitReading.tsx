@@ -5,31 +5,39 @@ import ReadingPanel from '../../../components/ReadingPanel';
 
 type TransitReadingProps = {
   natal: Horoscope; // The natal chart the transits are read against.
-  transitNow: Horoscope; // Today's sky, drawn as the outer ring.
+  transitNow: Horoscope; // The sky at `moment`, drawn as the outer ring.
   contacts: readonly TransitContact[]; // Ranked transit→natal contacts, most significant first.
-  day: string; // Day being read, as a YYYY-MM-DD string.
+  moment: string; // Moment being read, as a datetime-local string.
   isAnalyzing: boolean;
   onAnalyze: () => void;
 };
 
-const DAY_FORMAT: Intl.DateTimeFormatOptions = {
+const MOMENT_FORMAT: Intl.DateTimeFormatOptions = {
   weekday: 'long',
   month: 'long',
   day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
 };
 
-/** "Monday, September 8" from a YYYY-MM-DD string, in the user's locale. */
-function formatDay(day: string): string {
-  const parsed = new Date(`${day}T12:00`);
-  return Number.isNaN(parsed.getTime()) ? day : parsed.toLocaleDateString(undefined, DAY_FORMAT);
+/**
+ * "Monday, September 8, 3:00 PM" from a datetime-local string. Formats the raw
+ * string's own wall-clock digits (construct + read both default to the current
+ * runtime's timezone and so cancel out) rather than an already-converted ISO
+ * instant, so this always matches what was actually typed in the moment field,
+ * regardless of the viewer's or the transit location's timezone.
+ */
+function formatMoment(moment: string): string {
+  const parsed = new Date(moment);
+  return Number.isNaN(parsed.getTime()) ? moment : parsed.toLocaleString(undefined, MOMENT_FORMAT);
 }
 
-/** The bi-wheel for a given day plus the button that sends the transits to Claude. */
+/** The bi-wheel for a given moment plus the button that sends the transits to Claude. */
 function TransitReading({
   natal,
   transitNow: horoscope,
   contacts,
-  day,
+  moment,
   isAnalyzing,
   onAnalyze,
 }: TransitReadingProps) {
@@ -42,7 +50,7 @@ function TransitReading({
       sectionClassName="reading-column astrology-reading"
       headingClassName="astrology-reading-heading"
       titleId="transit-reading-title"
-      title={`Transits — ${formatDay(day)}`}
+      title={`Transits — ${formatMoment(moment)}`}
       onAnalyze={onAnalyze}
       isAnalyzing={isAnalyzing}
       buttonText="Analyze day"
