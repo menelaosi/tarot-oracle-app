@@ -14,6 +14,7 @@ import { interpretTransits } from './api';
 import './astrology.css';
 import TransitControl from './components/TransitControl';
 import TransitReading from './components/TransitReading';
+import { dateFromDateTimeLocal } from './lib/dateTimeLocal';
 import type { Place } from './lib/geocode';
 import { requestCurrentLocation, type Coordinates } from './lib/geolocation';
 
@@ -70,7 +71,7 @@ function TransitView() {
   const natal = useMemo<Horoscope | null>(() => {
     if (!birthMoment || !place) return null;
     try {
-      return getHoroscope(new Date(birthMoment), place);
+      return getHoroscope(dateFromDateTimeLocal(birthMoment), place);
     } catch {
       return null; // unparseable birth input — the form still shows
     }
@@ -88,7 +89,7 @@ function TransitView() {
     useMemo<TransitChart | null>(() => {
       if (!natal || !location) return null;
       try {
-        const at = new Date(transitMoment);
+        const at = dateFromDateTimeLocal(transitMoment);
         const now = getHoroscope(at, location);
         const next = getHoroscope(new Date(at.getTime() + DAY_MS), location);
         const frame: TransitFrame = {

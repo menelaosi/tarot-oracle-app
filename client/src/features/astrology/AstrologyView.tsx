@@ -10,6 +10,7 @@ import { interpretChart } from './api';
 import './astrology.css';
 import AstrologyReading from './components/AstrologyReading';
 import BirthdayControl from './components/BirthdayControl';
+import { dateFromDateTimeLocal } from './lib/dateTimeLocal';
 
 type HoroscopeMemo = {
   horoscope: Horoscope | null;
@@ -33,7 +34,7 @@ function AstrologyView() {
     }
     try {
       return {
-        horoscope: getHoroscope(new Date(birthMoment), place),
+        horoscope: getHoroscope(dateFromDateTimeLocal(birthMoment), place),
         error: '',
       };
     } catch (chartError) {
